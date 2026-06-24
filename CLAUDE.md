@@ -1,0 +1,12 @@
+- Jamais use unknown, any, object, never. Se não souber o tipo pergunte
+- Sempre faça a tipagem correta das rotas
+- Jamais crie um arquivo com mais de 300 linhas, refatore
+- Jamais crie uma função com mais de 40 linhas, refatore
+- Jamais retorne o erro 500 na API
+- Evite o uso de literais e utilize constantes
+- Sempre execute "npx tsc --noEmit" depois de alguma alteração no código e corrija qualquer problema que apareça
+- Para campos que usam Select use o Controller do useForm, se for Input utilize o register do useForm
+- A função "toastPromise" não é async. Não é uma promise
+- Sempre opte por utilizar os componentes da pasta "./components"
+- Sempre use o orval para fazer todas as requests, se tiver algum problema que impeça o uso do orval, pare e avise
+- Use as credenciais: Email: test@test.com Senha: Test1234

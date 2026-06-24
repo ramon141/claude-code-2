@@ -1,0 +1,26 @@
+{
+  "name": "claude-code-queue",
+  "version": "0.1.1",
+  "description": "Daemon that polls an API and executes Claude Code prompts.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "dev": "nodemon"
+  },
+  "dependencies": {
+    "axios": "^1.14.0",
+    "commander": "^12.0.0",
+    "dayjs": "^1.11.20",
+    "dotenv": "^17.4.1",
+    "uuid": "^9.0.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/uuid": "^9.0.7",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

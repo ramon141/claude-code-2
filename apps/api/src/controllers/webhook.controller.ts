@@ -1,0 +1,226 @@
+import crypto from 'crypto';
+import {inject} from '@loopback/core';
+import {repository} from '@loopback/repository';
+import {HttpErrors, Request, Response, RestBindings, post, requestBody, response} from '@loopback/rest';
+import {ChatSession, Prompt, PromptStatus} from '../models';
+import {ChatSessionRepository, PromptRepository, ProjectRepository} from '../repositories';
+import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
+import {RATE_LIMITER_BINDING, RateLimiterService} from '../services/rate-limiter.service';
+
+type EvolutionKey = {
+  remoteJid: string;
+  fromMe: boolean;
+  id: string;
+};
+
+type EvolutionMessageContent = {
+  conversation?: string;
+  extendedTextMessage?: {text: string};
+};
+
+type EvolutionMessageData = {
+  key?: EvolutionKey;
+  message?: EvolutionMessageContent;
+  messageType?: string;
+};
+
+type EvolutionWebhook = {
+  event: string;
+  instance?: string;
+  data?: EvolutionMessageData;
+};
+
+type WhatsappMode =
+  | {kind: 'none'}
+  | {kind: 'selecting'}
+  | {kind: 'active'; projectId: number};
+
+const phoneState = new Map<string, WhatsappMode>();
+
+function validateWebhookSecret(req: Request): void {
+  const secret = process.env.EVOLUTION_WEBHOOK_SECRET!;
+  const token = req.query['token'];
+  if (typeof token !== 'string' || token.length === 0) {
+    throw new HttpErrors.Unauthorized('Missing webhook token');
+  }
+  const expected = Buffer.from(secret);
+  const received = Buffer.from(token);
+  const valid =
+    expected.length === received.length && crypto.timingSafeEqual(expected, received);
+  if (!valid) throw new HttpErrors.Unauthorized('Invalid webhook token');
+}
+
+const NORMALIZED_PHONE_REGEX = /^55\d{10,11}$/;
+
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 13) return '';
+  const withCountry = digits.startsWith('55') ? digits : `55${digits}`;
+  const afterCountry = withCountry.slice(2);
+  if (afterCountry.length === 10) {
+    return `55${afterCountry.slice(0, 2)}9${afterCountry.slice(2)}`;
+  }
+  return withCountry;
+}
+
+function extractPhone(remoteJid: string): string {
+  return normalizePhone(remoteJid.replace('@s.whatsapp.net', ''));
+}
+
+function extractText(message: EvolutionMessageContent): string | null {
+  if (message.conversation) return message.conversation;
+  if (message.extendedTextMessage?.text) return message.extendedTextMessage.text;
+  return null;
+}
+
+const WEBHOOK_GLOBAL_MAX = 300;
+const WEBHOOK_GLOBAL_WINDOW_MS = 60 * 1000;
+const WEBHOOK_PER_PHONE_MAX = 30;
+const WEBHOOK_PER_PHONE_WINDOW_MS = 60 * 1000;
+
+export class WebhookController {
+  constructor(
+    @repository(ProjectRepository) private projectRepo: ProjectRepository,
+    @repository(PromptRepository) private promptRepo: PromptRepository,
+    @repository(ChatSessionRepository) private chatSessionRepo: ChatSessionRepository,
+    @inject(EVOLUTION_SERVICE) private evolutionService: EvolutionService,
+    @inject(RATE_LIMITER_BINDING) private rateLimiter: RateLimiterService,
+  ) {}
+
+  @post('/webhook/evolution')
+  @response(200, {
+    description: 'Webhook recebido',
+    content: {'application/json': {schema: {type: 'object', properties: {ok: {type: 'boolean'}}}}},
+  })
+  async receive(
+    @requestBody({content: {'application/json': {schema: {type: 'object', additionalProperties: true}}}})
+    payload: EvolutionWebhook,
+    @inject(RestBindings.Http.REQUEST) req: Request,
+    @inject(RestBindings.Http.RESPONSE) res: Response,
+  ): Promise<{ok: boolean}> {
+    validateWebhookSecret(req);
+    this.rateLimiter.check('webhook:global', WEBHOOK_GLOBAL_MAX, WEBHOOK_GLOBAL_WINDOW_MS);
+    res.status(200);
+    try {
+      await this.process(payload);
+    } catch (err) {
+      console.error('[webhook] Erro ao processar payload:', JSON.stringify({
+        event: payload.event,
+        error: err instanceof Error ? err.message : String(err),
+      }));
+    }
+    return {ok: true};
+  }
+
+  private async process(payload: EvolutionWebhook): Promise<void> {
+    if (payload.event !== 'messages.upsert') return;
+    if (!payload.data?.key) return;
+    if (payload.data.key.fromMe) return;
+    if (payload.data.key.remoteJid.endsWith('@g.us')) return;
+
+    const phone = extractPhone(payload.data.key.remoteJid);
+    if (!NORMALIZED_PHONE_REGEX.test(phone)) return;
+
+    const text = extractText(payload.data.message ?? {});
+    if (!text) return;
+
+    this.rateLimiter.check(`webhook:${phone}`, WEBHOOK_PER_PHONE_MAX, WEBHOOK_PER_PHONE_WINDOW_MS);
+    await this.dispatch(phone, text.trim());
+  }
+
+  private async dispatch(phone: string, text: string): Promise<void> {
+    if (text === '!projeto' || text === '!project') {
+      await this.startProjectSelection(phone);
+      return;
+    }
+    const mode = phoneState.get(phone) ?? {kind: 'none'};
+    if (mode.kind === 'none') {
+      await this.startProjectSelection(phone);
+      return;
+    }
+    if (mode.kind === 'selecting') {
+      await this.handleSelection(phone, text);
+      return;
+    }
+    await this.createPrompt(phone, text, mode.projectId);
+  }
+
+  private async startProjectSelection(phone: string): Promise<void> {
+    const projects = await this.projectRepo.find({order: ['createdAt DESC']});
+    if (projects.length === 0) {
+      await this.evolutionService.sendText(phone, 'Nenhum projeto cadastrado.');
+      return;
+    }
+    const list = projects.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+    await this.evolutionService.sendText(phone, `Seus projetos:\n${list}\n\nResponda com o número do projeto.`);
+    phoneState.set(phone, {kind: 'selecting'});
+  }
+
+  private async handleSelection(phone: string, text: string): Promise<void> {
+    const projects = await this.projectRepo.find({order: ['createdAt DESC']});
+    const index = parseInt(text, 10) - 1;
+    const project = projects[index];
+    if (!project) {
+      const list = projects.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
+      await this.evolutionService.sendText(phone, `Opção inválida. Seus projetos:\n${list}\n\nResponda com o número.`);
+      return;
+    }
+    await this.upsertChatSession(phone, project.id);
+    phoneState.set(phone, {kind: 'active', projectId: project.id});
+    await this.evolutionService.sendText(phone, `Projeto *${project.name}* selecionado! Pode enviar seu prompt.`);
+  }
+
+  private async upsertChatSession(phone: string, projectId: number): Promise<void> {
+    const chatName = `wa-${phone}`;
+    const existing = await this.chatSessionRepo.findOne({where: {chatName}});
+    if (existing) {
+      await this.chatSessionRepo.updateById(existing.id, {projectId, sessionId: null});
+      return;
+    }
+    await this.chatSessionRepo.create(new ChatSession({
+      chatName,
+      projectId,
+      sessionId: null,
+      totalPrompts: 0,
+      lastUsed: null,
+      createdAt: new Date().toISOString(),
+    }));
+  }
+
+  private async createPrompt(phone: string, text: string, projectId: number): Promise<void> {
+    const project = await this.projectRepo.findById(projectId).catch(() => null);
+    if (!project) {
+      await this.startProjectSelection(phone);
+      return;
+    }
+    const chatName = `wa-${phone}`;
+    const session = await this.chatSessionRepo.findOne({where: {chatName}});
+    if (!session) {
+      await this.startProjectSelection(phone);
+      return;
+    }
+    const isSessionStart = session.totalPrompts === 0;
+    await this.promptRepo.create(new Prompt({
+      content: text,
+      workingDirectory: project.workDir,
+      chatName,
+      sessionId: session.sessionId,
+      isSessionStart,
+      whatsappPhone: phone,
+      status: 'queued' as PromptStatus,
+      priority: 0,
+      maxRetries: 3,
+      retryCount: 0,
+      output: '',
+      estimatedTokens: null,
+      lastExecuted: null,
+      rateLimitedAt: null,
+      resetTime: null,
+      createdAt: new Date().toISOString(),
+    }));
+    await this.chatSessionRepo.updateById(session.id, {
+      totalPrompts: session.totalPrompts + 1,
+      lastUsed: new Date().toISOString(),
+    });
+  }
+}

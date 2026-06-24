@@ -1,0 +1,11 @@
+node_modules
+dist
+.env
+apps/api/dist
+apps/api/node_modules
+apps/interface/dist
+apps/interface/node_modules
+src-tauri/target
+.DS_Store
+*.tsbuildinfo
+.eslintcache

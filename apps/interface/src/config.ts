@@ -2,10 +2,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 const Env = z.object({
-  API_URL: z.string().url(),
-  API_KEY: z.string().min(1),
   CLAUDE_COMMAND: z.string().default('claude'),
-  CHECK_INTERVAL: z.coerce.number().default(30),
   TIMEOUT: z.coerce.number().default(3600),
 });
 

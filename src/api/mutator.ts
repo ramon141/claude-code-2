@@ -4,7 +4,7 @@ import type { AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosReques
 type NetworkErrorData = {message: string};
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_APP_BASE_API_URL
+    baseURL: 'http://127.0.0.1:3000'
 });
 
 api.interceptors.response.use(

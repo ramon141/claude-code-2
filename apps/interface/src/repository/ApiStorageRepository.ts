@@ -39,10 +39,10 @@ interface QueueStateApiResponse {
 export class ApiStorageRepository implements IStorageRepository {
   private http: AxiosInstance;
 
-  constructor(apiUrl: string, apiKey: string) {
+  constructor() {
     this.http = axios.create({
-      baseURL: apiUrl,
-      headers: { 'Content-Type': 'application/json', 'X-Api-Key': apiKey },
+      baseURL: 'http://127.0.0.1:3000',
+      headers: { 'Content-Type': 'application/json' },
       timeout: 10000,
       httpAgent: new Agent({ keepAlive: false }),
     });

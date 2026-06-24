@@ -96,6 +96,7 @@ export class PromptsController {
         this.contextFileRepo.create(new PromptContextFile({promptId: prompt.id, filePath})),
       ),
     );
+    this.notificationService.notify({event: 'prompt:queued', promptId: prompt.id});
     return this.toResponse(prompt, contextFiles);
   }
 

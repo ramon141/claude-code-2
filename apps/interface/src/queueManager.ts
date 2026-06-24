@@ -2,29 +2,31 @@ import { QueuedPrompt, QueueState, PromptStatus, ExecutionResult } from './model
 import { ClaudeCodeInterface } from './claudeInterface';
 import { IStorageRepository, ChatSessionRow } from './repository/IStorageRepository';
 import { fetchRateLimits } from './rateLimitsService';
+import { createWsClient } from './wsClient';
 
-const SECONDS_TO_MS = 1000;
 const CHAT_INITIAL_PRIORITY = -1;
 const CONTENT_PREVIEW_LENGTH = 50;
 
 export class QueueManager {
   readonly claudeInterface: ClaudeCodeInterface;
   private repository: IStorageRepository;
-  private checkInterval: number;
+  private wsUrl: string;
   private running: boolean;
-  private intervalHandle: ReturnType<typeof setTimeout> | null;
+  private processing: boolean;
+  private disconnectWs: (() => void) | null;
 
   constructor(
     repository: IStorageRepository,
     claudeCommand: string = 'claude',
-    checkInterval: number = 30,
     timeout: number = 3600,
+    wsUrl: string = 'ws://127.0.0.1:3000/ws',
   ) {
     this.repository = repository;
     this.claudeInterface = new ClaudeCodeInterface(claudeCommand, timeout);
-    this.checkInterval = checkInterval;
+    this.wsUrl = wsUrl;
     this.running = false;
-    this.intervalHandle = null;
+    this.processing = false;
+    this.disconnectWs = null;
   }
 
   private setupSignalHandlers(): void {
@@ -59,25 +61,28 @@ export class QueueManager {
   private async runLoop(callback?: (state: QueueState) => void): Promise<void> {
     if (!this.running) { await this.shutdown(); return; }
 
+    await this.triggerIteration(callback);
+
+    this.disconnectWs = createWsClient(this.wsUrl, () => {
+      void this.triggerIteration(callback);
+    });
+  }
+
+  private async triggerIteration(callback?: (state: QueueState) => void): Promise<void> {
+    if (this.processing) return;
+    this.processing = true;
     try {
       await this.processQueueIteration(callback);
     } catch (e) {
       console.error('Error in queue processing:', e);
-    }
-
-    if (this.running) {
-      this.intervalHandle = setTimeout(
-        () => void this.runLoop(callback),
-        this.checkInterval * SECONDS_TO_MS,
-      );
-    } else {
-      await this.shutdown();
+    } finally {
+      this.processing = false;
     }
   }
 
   stop(): void {
     this.running = false;
-    if (this.intervalHandle) { clearTimeout(this.intervalHandle); this.intervalHandle = null; }
+    if (this.disconnectWs) { this.disconnectWs(); this.disconnectWs = null; }
   }
 
   private async shutdown(): Promise<void> {

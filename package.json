@@ -9,6 +9,7 @@
     "build:all": "npm run build:api && npm run build:interface && npm run build",
     "build:api": "cd apps/api && npm run build",
     "build:interface": "cd apps/interface && npm run build",
+    "build:mobile": "vite build --outDir apps/api/public --emptyOutDir",
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",

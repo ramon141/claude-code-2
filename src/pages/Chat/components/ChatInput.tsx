@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Send } from 'lucide-react'
+import SlashCommandMenu from './SlashCommandMenu'
+import { useSlashCommands } from '../hooks/useSlashCommands'
+import type { SlashCommand } from '../constants/slashCommands'
 
 interface Props {
   onSend: (content: string) => Promise<void>
@@ -12,6 +15,12 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const slash = useSlashCommands(value)
+
+  const applyCommand = (item: SlashCommand) => {
+    setValue(`${item.command} `)
+    textareaRef.current?.focus()
+  }
 
   useEffect(() => {
     if (!injectedText) return
@@ -33,7 +42,25 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
     }
   }
 
+  const [menuDismissed, setMenuDismissed] = useState(false)
+  const menuOpen = slash.open && !menuDismissed
+
+  const handleMenuKey = (e: React.KeyboardEvent<HTMLTextAreaElement>): boolean => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); slash.moveSelection(1); return true }
+    if (e.key === 'ArrowUp') { e.preventDefault(); slash.moveSelection(-1); return true }
+    if (e.key === 'Escape') { e.preventDefault(); setMenuDismissed(true); return true }
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      const selected = slash.resolveSelection()
+      if (!selected) return false
+      e.preventDefault()
+      applyCommand(selected)
+      return true
+    }
+    return false
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (menuOpen && handleMenuKey(e)) return
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit()
@@ -41,6 +68,7 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMenuDismissed(false)
     setValue(e.target.value)
     const el = e.target
     el.style.height = 'auto'
@@ -50,7 +78,15 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
   const canSend = value.trim().length > 0 && !sending && !disabled
 
   return (
-    <div className="p-4 border-t border-[#3A3A3A]">
+    <div className="p-4 border-t border-[#3A3A3A] relative">
+      {menuOpen && (
+        <SlashCommandMenu
+          commands={slash.commands}
+          activeIndex={slash.activeIndex}
+          onSelect={applyCommand}
+          onHover={slash.setActiveIndex}
+        />
+      )}
       <div className="flex items-end gap-3 bg-[#2A2A2A] border border-[#3A3A3A] rounded-2xl px-4 py-3 focus-within:border-[#D97757]/50 transition-colors">
         <textarea
           ref={textareaRef}

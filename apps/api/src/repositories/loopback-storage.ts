@@ -8,6 +8,7 @@ import {decryptValue} from '../authentication/auth.utils';
 import {Prompt as LbPrompt, PromptStatus as LbPromptStatus} from '../models/prompt.model';
 import {IStorageRepository, QueueGlobalState, PromptPatch} from '../queue/IStorageRepository';
 import {QueuedPrompt, PromptStatus} from '../queue/queue.models';
+import {NotificationService} from '../services/notification.service';
 
 const COUNTER_COLUMNS: Record<string, string> = {
   totalProcessed: 'total_processed',
@@ -21,7 +22,21 @@ export class LoopBackStorageRepository implements IStorageRepository {
     private chatSessionRepo: ChatSessionRepository,
     private queueStateRepo: QueueStateRepository,
     private apiKeyRepo: ClaudeCodeApiKeyRepository,
+    private notifier: NotificationService,
   ) {}
+
+  // Emite prompt:updated no WebSocket com o snapshot atual (status + output),
+  // pra UI atualizar em tempo real sem precisar trocar de página.
+  private async emitPromptUpdate(id: string): Promise<void> {
+    const prompt = await this.promptRepo.findById(Number(id)).catch(() => null);
+    if (!prompt) return;
+    this.notifier.notify({
+      event: 'prompt:updated',
+      promptId: Number(id),
+      status: prompt.status,
+      output: prompt.output ?? '',
+    });
+  }
 
   private mapPrompt(p: LbPrompt): QueuedPrompt {
     return new QueuedPrompt({
@@ -60,16 +75,19 @@ export class LoopBackStorageRepository implements IStorageRepository {
     if (patch.isSessionStart !== undefined) update.isSessionStart = patch.isSessionStart;
     if (patch.sessionId !== undefined) update.sessionId = patch.sessionId;
     await this.promptRepo.updateById(Number(id), update);
+    await this.emitPromptUpdate(id);
   }
 
   async saveOutput(id: string, output: string): Promise<void> {
     await this.promptRepo.updateById(Number(id), {output});
+    await this.emitPromptUpdate(id);
   }
 
   async cancelPrompt(id: string): Promise<boolean> {
     const prompt = await this.promptRepo.findById(Number(id)).catch(() => null);
     if (!prompt) return false;
     await this.promptRepo.updateById(Number(id), {status: 'cancelled'});
+    await this.emitPromptUpdate(id);
     return true;
   }
 
@@ -89,7 +107,7 @@ export class LoopBackStorageRepository implements IStorageRepository {
   }
 
   async setLastProcessed(at: Date): Promise<void> {
-    await this.queueStateRepo.updateAll({}, {lastProcessed: at.toISOString()});
+    await this.queueStateRepo.updateAll({lastProcessed: at.toISOString()}, {});
   }
 
   async getSessionIdByChatName(chatName: string): Promise<string | null> {
@@ -111,8 +129,8 @@ export class LoopBackStorageRepository implements IStorageRepository {
 
   async patchActiveLimits(sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void> {
     await this.apiKeyRepo.updateAll(
-      {isActive: true},
       {sessionLimitPercentage, weeklyLimitPercentage, lastUpdatedLimits: new Date().toISOString()},
+      {isActive: true},
     );
   }
 

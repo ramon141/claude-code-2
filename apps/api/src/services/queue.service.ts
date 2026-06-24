@@ -1,4 +1,4 @@
-import {BindingScope, LifeCycleObserver, injectable} from '@loopback/core';
+import {BindingScope, LifeCycleObserver, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {
   ChatSessionRepository,
@@ -8,6 +8,7 @@ import {
 } from '../repositories';
 import {QueueManager} from '../queue/queueManager';
 import {LoopBackStorageRepository} from '../repositories/loopback-storage';
+import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 
 const CLAUDE_COMMAND = process.env.CLAUDE_COMMAND ?? 'claude';
 const TIMEOUT_SECONDS = Number(process.env.TIMEOUT ?? '3600');
@@ -23,8 +24,15 @@ export class QueueService implements LifeCycleObserver {
     @repository(ChatSessionRepository) private chatSessionRepo: ChatSessionRepository,
     @repository(QueueStateRepository) private queueStateRepo: QueueStateRepository,
     @repository(ClaudeCodeApiKeyRepository) private apiKeyRepo: ClaudeCodeApiKeyRepository,
+    @inject(NOTIFICATION_SERVICE) private notifier: NotificationService,
   ) {
-    const storageRepo = new LoopBackStorageRepository(promptRepo, chatSessionRepo, queueStateRepo, apiKeyRepo);
+    const storageRepo = new LoopBackStorageRepository(
+      promptRepo,
+      chatSessionRepo,
+      queueStateRepo,
+      apiKeyRepo,
+      notifier,
+    );
     this.manager = new QueueManager(storageRepo, CLAUDE_COMMAND, TIMEOUT_SECONDS);
   }
 

@@ -60,6 +60,8 @@ import type {
   SetupControllerGenerateNgrokWebhookBody,
   SetupControllerRestart200,
   SetupControllerStatus200,
+  SetupControllerToggleNgrok200,
+  SetupControllerToggleNgrokBody,
   WebhookControllerReceive200,
   WebhookControllerReceiveBody
 } from './models';
@@ -2088,6 +2090,65 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getSetupControllerConfigureEvolutionMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerToggleNgrok = (
+    setupControllerToggleNgrokBody: SetupControllerToggleNgrokBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerToggleNgrok200>(
+      {url: `/setup/ngrok`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerToggleNgrokBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerToggleNgrokMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerToggleNgrok>>, TError,{data: SetupControllerToggleNgrokBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerToggleNgrok>>, TError,{data: SetupControllerToggleNgrokBody}, TContext> => {
+
+const mutationKey = ['setupControllerToggleNgrok'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerToggleNgrok>>, {data: SetupControllerToggleNgrokBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerToggleNgrok(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerToggleNgrokMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerToggleNgrok>>>
+    export type SetupControllerToggleNgrokMutationBody = SetupControllerToggleNgrokBody
+    export type SetupControllerToggleNgrokMutationError = unknown
+
+    export const useSetupControllerToggleNgrok = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerToggleNgrok>>, TError,{data: SetupControllerToggleNgrokBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerToggleNgrok>>,
+        TError,
+        {data: SetupControllerToggleNgrokBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerToggleNgrokMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

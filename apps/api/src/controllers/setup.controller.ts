@@ -8,6 +8,7 @@ import {
   ClaudeSetupBody,
   DatabaseSetupBody,
   EvolutionSetupBody,
+  NgrokToggleBody,
   NgrokWebhookBody,
   NgrokWebhookResult,
   SetupStatus,
@@ -18,6 +19,7 @@ import {
   databaseResultSchema,
   databaseSetupSchema,
   evolutionSetupSchema,
+  ngrokToggleSchema,
   ngrokWebhookResultSchema,
   ngrokWebhookSchema,
   setupStatusSchema,
@@ -62,6 +64,7 @@ export class SetupController {
       evolutionToken: cfg.evolution.token,
       evolutionInstanceName: cfg.evolution.instanceName,
       websocketAllowedOrigins: cfg.websocketAllowedOrigins,
+      ngrokEnabled: cfg.ngrokEnabled,
     };
   }
 
@@ -120,6 +123,15 @@ export class SetupController {
       throw new HttpErrors.BadRequest('Informe ao menos uma origem permitida');
     }
     writeConfig({websocketAllowedOrigins: origins});
+    return {success: true};
+  }
+
+  @post('/setup/ngrok')
+  @response(OK, okSpec('Túnel ngrok atualizado', successResultSchema))
+  toggleNgrok(
+    @requestBody(jsonBody(ngrokToggleSchema)) body: NgrokToggleBody,
+  ): {success: boolean} {
+    writeConfig({ngrokEnabled: body.enabled});
     return {success: true};
   }
 

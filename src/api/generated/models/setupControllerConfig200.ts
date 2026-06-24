@@ -14,4 +14,5 @@ export type SetupControllerConfig200 = {
   evolutionToken: string;
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
+  ngrokEnabled: boolean;
 };

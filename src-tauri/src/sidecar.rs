@@ -39,6 +39,19 @@ fn resolve_ngrok() -> Option<String> {
     which::which("ngrok").map(|p| p.to_string_lossy().to_string()).ok()
 }
 
+// Lê ngrokEnabled do app-config.json. Default false quando o arquivo não existe
+// ou o campo está ausente — o túnel só sobe quando explicitamente habilitado.
+fn is_ngrok_enabled(config_path: &PathBuf) -> bool {
+    let content = match std::fs::read_to_string(config_path) {
+        Ok(c) => c,
+        Err(_) => return false,
+    };
+    serde_json::from_str::<serde_json::Value>(&content)
+        .ok()
+        .and_then(|v| v.get("ngrokEnabled").and_then(|n| n.as_bool()))
+        .unwrap_or(false)
+}
+
 // Mantém um túnel ngrok apontando pra API (porta 3000). A URL pública fica
 // disponível na API local do ngrok em http://127.0.0.1:4040/api/tunnels, que o
 // endpoint /setup/webhook/ngrok consulta. Reinicia o túnel se cair.
@@ -142,10 +155,15 @@ pub async fn start_services(app: &AppHandle) {
     }
     ensure_encryption_key(&env_file);
 
-    if let Some(ngrok) = resolve_ngrok() {
-        tokio::spawn(start_ngrok(ngrok));
+    if is_ngrok_enabled(&config_path) {
+        match resolve_ngrok() {
+            Some(ngrok) => {
+                tokio::spawn(start_ngrok(ngrok));
+            }
+            None => eprintln!("[sidecar] ngrok não encontrado — webhook via ngrok indisponível"),
+        }
     } else {
-        eprintln!("[sidecar] ngrok não encontrado — webhook via ngrok indisponível");
+        println!("[sidecar] ngrok desabilitado nas configurações");
     }
 
     loop {

@@ -4,6 +4,7 @@ import { useRestartWatcher } from '../hooks/useRestartWatcher'
 import DatabaseSection from './application/DatabaseSection'
 import ClaudeSection from './application/ClaudeSection'
 import EvolutionSection from './application/EvolutionSection'
+import NgrokSection from './application/NgrokSection'
 import WebsocketSection from './application/WebsocketSection'
 import {
   useSetupControllerConfig,
@@ -44,6 +45,7 @@ const ApplicationTab: React.FC = () => {
         token={data.evolutionToken}
         instanceName={data.evolutionInstanceName}
       />
+      <NgrokSection enabled={data.ngrokEnabled} onNeedRestart={triggerRestart} />
       <WebsocketSection origins={data.websocketAllowedOrigins} />
     </div>
   )

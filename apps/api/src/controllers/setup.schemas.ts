@@ -36,6 +36,10 @@ export type WebsocketSetupBody = {
   origins: string[];
 };
 
+export type NgrokToggleBody = {
+  enabled: boolean;
+};
+
 export type AppConfigView = {
   databaseUrl: string;
   claudeCommand: string;
@@ -44,6 +48,7 @@ export type AppConfigView = {
   evolutionToken: string;
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
+  ngrokEnabled: boolean;
 };
 
 const TYPE_STRING = 'string';
@@ -139,6 +144,14 @@ export const websocketSetupSchema: SchemaObject = {
   },
 };
 
+export const ngrokToggleSchema: SchemaObject = {
+  type: 'object',
+  required: ['enabled'],
+  properties: {
+    enabled: {type: TYPE_BOOLEAN},
+  },
+};
+
 export const appConfigViewSchema: SchemaObject = {
   type: 'object',
   required: [
@@ -149,6 +162,7 @@ export const appConfigViewSchema: SchemaObject = {
     'evolutionToken',
     'evolutionInstanceName',
     'websocketAllowedOrigins',
+    'ngrokEnabled',
   ],
   properties: {
     databaseUrl: {type: TYPE_STRING},
@@ -158,5 +172,6 @@ export const appConfigViewSchema: SchemaObject = {
     evolutionToken: {type: TYPE_STRING},
     evolutionInstanceName: {type: TYPE_STRING},
     websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
+    ngrokEnabled: {type: TYPE_BOOLEAN},
   },
 };

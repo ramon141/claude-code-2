@@ -15,6 +15,7 @@ export type AppConfig = {
   timeout: number;
   evolution: EvolutionConfig;
   websocketAllowedOrigins: string[];
+  ngrokEnabled: boolean;
   setupCompleted: boolean;
 };
 
@@ -49,6 +50,7 @@ function defaultConfig(): AppConfig {
     timeout: DEFAULT_TIMEOUT_SECONDS,
     evolution: {...EMPTY_EVOLUTION},
     websocketAllowedOrigins: [...DEFAULT_ALLOWED_ORIGINS],
+    ngrokEnabled: false,
     setupCompleted: false,
   };
 }
@@ -78,6 +80,7 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
       parsed.websocketAllowedOrigins && parsed.websocketAllowedOrigins.length > 0
         ? parsed.websocketAllowedOrigins
         : base.websocketAllowedOrigins,
+    ngrokEnabled: parsed.ngrokEnabled ?? base.ngrokEnabled,
     setupCompleted: parsed.setupCompleted ?? base.setupCompleted,
   };
 }

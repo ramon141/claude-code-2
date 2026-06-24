@@ -16,6 +16,7 @@ export type AppConfig = {
   evolution: EvolutionConfig;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
+  claudeRotationEnabled: boolean;
   setupCompleted: boolean;
 };
 
@@ -51,6 +52,7 @@ function defaultConfig(): AppConfig {
     evolution: {...EMPTY_EVOLUTION},
     websocketAllowedOrigins: [...DEFAULT_ALLOWED_ORIGINS],
     ngrokEnabled: false,
+    claudeRotationEnabled: false,
     setupCompleted: false,
   };
 }
@@ -81,6 +83,7 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
         ? parsed.websocketAllowedOrigins
         : base.websocketAllowedOrigins,
     ngrokEnabled: parsed.ngrokEnabled ?? base.ngrokEnabled,
+    claudeRotationEnabled: parsed.claudeRotationEnabled ?? base.claudeRotationEnabled,
     setupCompleted: parsed.setupCompleted ?? base.setupCompleted,
   };
 }

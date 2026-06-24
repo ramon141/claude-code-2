@@ -7,6 +7,11 @@ export interface QueueGlobalState {
   lastProcessed: Date | null;
 }
 
+export interface ClaudeCredentials {
+  token: string;
+  keyId: number;
+}
+
 export type PromptPatch = Partial<{
   retryCount: number;
   lastExecuted: Date;
@@ -26,8 +31,9 @@ export interface IStorageRepository {
   setLastProcessed(at: Date): Promise<void>;
   getSessionIdByChatName(chatName: string): Promise<string | null>;
   updateChatSessionId(chatName: string, sessionId: string): Promise<void>;
-  getClaudeToken(): Promise<string>;
-  patchActiveLimits(sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
+  getClaudeToken(): Promise<ClaudeCredentials>;
+  patchLimitsByKeyId(keyId: number, sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
+  markKeyRateLimited(keyId: number, until: Date): Promise<void>;
   initialize(): Promise<void>;
   disconnect(): Promise<void>;
 }

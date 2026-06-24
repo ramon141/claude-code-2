@@ -3,12 +3,15 @@ import {HttpErrors, Response, RestBindings, SchemaObject} from '@loopback/rest';
 import {del, get, getModelSchemaRef, param, patch, post, requestBody, response} from '@loopback/rest';
 import {inject} from '@loopback/core';
 import {encryptValue} from '../authentication/auth.utils';
+import {readConfig, writeConfig} from '../config/app-config';
 import {ClaudeCodeApiKey} from '../models';
 import {ClaudeCodeApiKeyRepository} from '../repositories';
 
 type CreateBody = {name: string; keyValue: string};
-type PatchBody = {name?: string; isActive?: boolean};
+type PatchBody = {name?: string; isActive?: boolean; rotationEnabled?: boolean};
 type PatchLimitsBody = {sessionLimitPercentage: number; weeklyLimitPercentage: number};
+type RotationBody = {enabled: boolean};
+type RotationView = {enabled: boolean};
 
 const createSchema: SchemaObject = {
   type: 'object',
@@ -26,6 +29,16 @@ const patchSchema: SchemaObject = {
   properties: {
     name: {type: 'string', minLength: 1},
     isActive: {type: 'boolean'},
+    rotationEnabled: {type: 'boolean'},
+  },
+};
+
+const rotationSchema: SchemaObject = {
+  type: 'object',
+  required: ['enabled'],
+  additionalProperties: false,
+  properties: {
+    enabled: {type: 'boolean'},
   },
 };
 
@@ -80,6 +93,28 @@ export class ClaudeCodeApiKeysController {
     return this.claudeCodeApiKeyRepository.find({order: ['createdAt DESC']});
   }
 
+  @get('/claude-code-api-keys/rotation')
+  @response(200, {
+    description: 'Estado do rodízio entre contas',
+    content: {'application/json': {schema: rotationSchema}},
+  })
+  getRotation(): RotationView {
+    return {enabled: readConfig().claudeRotationEnabled};
+  }
+
+  @post('/claude-code-api-keys/rotation')
+  @response(200, {
+    description: 'Rodízio entre contas atualizado',
+    content: {'application/json': {schema: rotationSchema}},
+  })
+  setRotation(
+    @requestBody({content: {'application/json': {schema: rotationSchema}}})
+    body: RotationBody,
+  ): RotationView {
+    writeConfig({claudeRotationEnabled: body.enabled});
+    return {enabled: body.enabled};
+  }
+
   @get('/claude-code-api-keys/{id}')
   @response(200, {
     description: 'Claude Code API key por id',
@@ -106,6 +141,7 @@ export class ClaudeCodeApiKeysController {
     const update: Partial<ClaudeCodeApiKey> = {updatedAt: new Date().toISOString()};
     if (body.name !== undefined) update.name = body.name;
     if (body.isActive !== undefined) update.isActive = body.isActive;
+    if (body.rotationEnabled !== undefined) update.rotationEnabled = body.rotationEnabled;
     await this.claudeCodeApiKeyRepository.updateById(id, update);
     return this.claudeCodeApiKeyRepository.findById(id);
   }

@@ -84,6 +84,35 @@ export class ClaudeCodeApiKey extends Entity {
   })
   weeklyLimitPercentage: number | null;
 
+  @property({
+    type: 'boolean',
+    default: false,
+    postgresql: {columnName: 'rotation_enabled', dataType: 'boolean'},
+  })
+  rotationEnabled: boolean;
+
+  @property({
+    type: 'date',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {
+      columnName: 'last_used_at',
+      dataType: 'timestamp with time zone',
+    },
+  })
+  lastUsedAt: string | null;
+
+  @property({
+    type: 'date',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {
+      columnName: 'rate_limited_until',
+      dataType: 'timestamp with time zone',
+    },
+  })
+  rateLimitedUntil: string | null;
+
   constructor(data?: Partial<ClaudeCodeApiKey>) {
     super(data);
   }

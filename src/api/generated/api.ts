@@ -31,6 +31,9 @@ import type {
   ChatSessionsControllerUpdateSessionIdBody,
   ClaudeCodeApiKey,
   ClaudeCodeApiKeysControllerCreateBody,
+  ClaudeCodeApiKeysControllerGetRotation200,
+  ClaudeCodeApiKeysControllerSetRotation200,
+  ClaudeCodeApiKeysControllerSetRotationBody,
   ClaudeCodeApiKeysControllerUpdateActiveLimitsBody,
   ClaudeCodeApiKeysControllerUpdateByIdBody,
   Project,
@@ -607,6 +610,127 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const claudeCodeApiKeysControllerSetRotation = (
+    claudeCodeApiKeysControllerSetRotationBody: ClaudeCodeApiKeysControllerSetRotationBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<ClaudeCodeApiKeysControllerSetRotation200>(
+      {url: `/claude-code-api-keys/rotation`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: claudeCodeApiKeysControllerSetRotationBody, signal
+    },
+      );
+    }
+  
+
+
+export const getClaudeCodeApiKeysControllerSetRotationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>, TError,{data: ClaudeCodeApiKeysControllerSetRotationBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>, TError,{data: ClaudeCodeApiKeysControllerSetRotationBody}, TContext> => {
+
+const mutationKey = ['claudeCodeApiKeysControllerSetRotation'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>, {data: ClaudeCodeApiKeysControllerSetRotationBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  claudeCodeApiKeysControllerSetRotation(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaudeCodeApiKeysControllerSetRotationMutationResult = NonNullable<Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>>
+    export type ClaudeCodeApiKeysControllerSetRotationMutationBody = ClaudeCodeApiKeysControllerSetRotationBody
+    export type ClaudeCodeApiKeysControllerSetRotationMutationError = unknown
+
+    export const useClaudeCodeApiKeysControllerSetRotation = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>, TError,{data: ClaudeCodeApiKeysControllerSetRotationBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claudeCodeApiKeysControllerSetRotation>>,
+        TError,
+        {data: ClaudeCodeApiKeysControllerSetRotationBody},
+        TContext
+      > => {
+
+      const mutationOptions = getClaudeCodeApiKeysControllerSetRotationMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const claudeCodeApiKeysControllerGetRotation = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<ClaudeCodeApiKeysControllerGetRotation200>(
+      {url: `/claude-code-api-keys/rotation`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getClaudeCodeApiKeysControllerGetRotationQueryKey = () => {
+    return [
+    `/claude-code-api-keys/rotation`
+    ] as const;
+    }
+
+    
+export const getClaudeCodeApiKeysControllerGetRotationQueryOptions = <TData = Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getClaudeCodeApiKeysControllerGetRotationQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>> = ({ signal }) => claudeCodeApiKeysControllerGetRotation(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ClaudeCodeApiKeysControllerGetRotationQueryResult = NonNullable<Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>>
+export type ClaudeCodeApiKeysControllerGetRotationQueryError = unknown
+
+
+
+export function useClaudeCodeApiKeysControllerGetRotation<TData = Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerGetRotation>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getClaudeCodeApiKeysControllerGetRotationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
 export const claudeCodeApiKeysControllerActivate = (
     id: number,
  signal?: AbortSignal

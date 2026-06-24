@@ -63,6 +63,13 @@ export function useClaudeApiKeys() {
     },
   })
 
+  const { mutateAsync: rotationMutation, isLoading: isTogglingRotation } = useClaudeCodeApiKeysControllerUpdateById({
+    mutation: {
+      onSuccess: () => invalidateKeys(),
+      onError: () => toast.error('Erro ao atualizar rodízio da conta.'),
+    },
+  })
+
   const createApiKey = (data: ClaudeCodeApiKeysControllerCreateBody) =>
     createMutation({ data })
 
@@ -74,6 +81,9 @@ export function useClaudeApiKeys() {
 
   const activateApiKey = (id: number) =>
     activateMutation({ id })
+
+  const toggleRotation = (id: number, enabled: boolean) =>
+    rotationMutation({ id, data: { rotationEnabled: enabled } })
 
   return {
     apiKeys,
@@ -87,5 +97,7 @@ export function useClaudeApiKeys() {
     isDeleting,
     activateApiKey,
     isActivating,
+    toggleRotation,
+    isTogglingRotation,
   }
 }

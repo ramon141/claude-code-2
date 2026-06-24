@@ -4,6 +4,7 @@ import { ArrowLeft, Plus } from 'lucide-react'
 import { useClaudeApiKeys } from './hooks/useClaudeApiKeys'
 import ClaudeApiKeyModal from './components/ClaudeApiKeyModal'
 import ClaudeApiKeysTable from './components/ClaudeApiKeysTable'
+import RotationHeader from './components/RotationHeader'
 import type { ClaudeCodeApiKey } from '../../api/generated/models'
 
 export default function ClaudeApiKeys() {
@@ -19,6 +20,7 @@ function ClaudeApiKeysContent() {
     updateApiKey, isUpdating,
     deleteApiKey, isDeleting,
     activateApiKey, isActivating,
+    toggleRotation, isTogglingRotation,
   } = useClaudeApiKeys()
 
   const [editingKey, setEditingKey] = useState<ClaudeCodeApiKey | null>(null)
@@ -62,7 +64,8 @@ function ClaudeApiKeysContent() {
         </button>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-6 space-y-4">
+        <RotationHeader />
         <div className="bg-[#2A2A2A] rounded-xl border border-[#3A3A3A] overflow-hidden">
           <ClaudeApiKeysTable
             apiKeys={apiKeys}
@@ -71,8 +74,10 @@ function ClaudeApiKeysContent() {
             onEdit={setEditingKey}
             onDelete={handleDelete}
             onActivate={activateApiKey}
+            onToggleRotation={toggleRotation}
             isDeleting={isDeleting}
             isActivating={isActivating}
+            isTogglingRotation={isTogglingRotation}
           />
         </div>
       </div>

@@ -1,7 +1,7 @@
 import {fork} from 'child_process';
 import * as path from 'path';
 import {QueuedPrompt, PromptStatus, ExecutionResult} from './queue.models';
-import {IStorageRepository, PromptPatch} from './IStorageRepository';
+import {ClaudeCredentials, IStorageRepository, PromptPatch} from './IStorageRepository';
 import {fetchRateLimits} from './rateLimitsService';
 import type {WorkerMessage, WorkerResultData} from './claudeWorker';
 
@@ -140,9 +140,9 @@ export class QueueManager {
   }
 
   private async runPrompt(prompt: QueuedPrompt): Promise<void> {
-    let oauthToken: string;
+    let creds: ClaudeCredentials;
     try {
-      oauthToken = await this.repository.getClaudeToken();
+      creds = await this.repository.getClaudeToken();
     } catch (e) {
       const error = e instanceof Error ? e.message : String(e);
       await this.repository.saveOutput(prompt.id, `Erro ao obter Claude token: ${error}`);
@@ -152,7 +152,7 @@ export class QueueManager {
       return;
     }
     const onFlush = (text: string) => this.repository.saveOutput(prompt.id, text);
-    const result = await this.runInFork(prompt, oauthToken, onFlush);
+    const result = await this.runInFork(prompt, creds.token, onFlush);
     if (prompt.isSessionStart && result.sessionId && prompt.chatName) {
       await this.repository.updateChatSessionId(prompt.chatName, result.sessionId);
       await this.repository.updatePromptStatus(prompt.id, PromptStatus.EXECUTING, {sessionId: result.sessionId});
@@ -161,8 +161,8 @@ export class QueueManager {
     if (prompt.isSessionStart && !result.sessionId && prompt.chatName) {
       await this.cancelPendingChatPrompts(prompt.chatName, prompt.id);
     }
-    await this.processExecutionResult(prompt, result);
-    await this.updateRateLimits(oauthToken);
+    await this.processExecutionResult(prompt, result, creds.keyId);
+    await this.updateRateLimits(creds.keyId, creds.token);
   }
 
   private async getExecutingChatNames(): Promise<Set<string>> {
@@ -174,10 +174,10 @@ export class QueueManager {
     return [...prompts].sort((a, b) => a.priority - b.priority || a.createdAt.getTime() - b.createdAt.getTime());
   }
 
-  private async updateRateLimits(oauthToken: string): Promise<void> {
+  private async updateRateLimits(keyId: number, oauthToken: string): Promise<void> {
     try {
       const limits = await fetchRateLimits(oauthToken);
-      await this.repository.patchActiveLimits(limits.sessionLimitPercentage, limits.weeklyLimitPercentage);
+      await this.repository.patchLimitsByKeyId(keyId, limits.sessionLimitPercentage, limits.weeklyLimitPercentage);
       console.log(`✓ Rate limits updated: 5h=${limits.sessionLimitPercentage}% 7d=${limits.weeklyLimitPercentage}%`);
     } catch (e) {
       console.warn(`⚠ Failed to update rate limits: ${e}`);
@@ -191,11 +191,12 @@ export class QueueManager {
     console.log(`✓ Prompt ${prompt.id} completed in ${result.executionTime.toFixed(1)}s`);
   }
 
-  private async handleRateLimit(prompt: QueuedPrompt, result: ExecutionResult): Promise<void> {
+  private async handleRateLimit(prompt: QueuedPrompt, result: ExecutionResult, keyId: number): Promise<void> {
     const resetTime = result.rateLimitInfo?.resetTime ?? undefined;
     await this.repository.updatePromptStatus(prompt.id, PromptStatus.RATE_LIMITED, {
       rateLimitedAt: new Date(), retryCount: prompt.retryCount + 1, resetTime,
     });
+    if (resetTime) await this.repository.markKeyRateLimited(keyId, resetTime);
     if (result.rateLimitInfo?.limitMessage) await this.repository.saveOutput(prompt.id, result.rateLimitInfo.limitMessage);
     await this.repository.incrementCounter('rateLimitedCount');
     console.log(`⚠ Prompt ${prompt.id} rate limited`);
@@ -214,9 +215,9 @@ export class QueueManager {
     }
   }
 
-  private async processExecutionResult(prompt: QueuedPrompt, result: ExecutionResult): Promise<void> {
+  private async processExecutionResult(prompt: QueuedPrompt, result: ExecutionResult, keyId: number): Promise<void> {
     if (result.success) await this.handleSuccess(prompt, result);
-    else if (result.isRateLimited) await this.handleRateLimit(prompt, result);
+    else if (result.isRateLimited) await this.handleRateLimit(prompt, result, keyId);
     else await this.handleFailure(prompt, result);
     await this.repository.setLastProcessed(new Date());
   }

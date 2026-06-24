@@ -3,6 +3,7 @@ import { Plus } from 'lucide-react'
 import { useClaudeApiKeys } from '../../ClaudeApiKeys/hooks/useClaudeApiKeys'
 import ClaudeApiKeyModal from '../../ClaudeApiKeys/components/ClaudeApiKeyModal'
 import ClaudeApiKeysTable from '../../ClaudeApiKeys/components/ClaudeApiKeysTable'
+import RotationHeader from '../../ClaudeApiKeys/components/RotationHeader'
 import type { ClaudeCodeApiKey } from '../../../api/generated/models'
 
 function AccountModals({
@@ -43,6 +44,7 @@ export default function ClaudeCodeAccountsTab() {
     updateApiKey, isUpdating,
     deleteApiKey, isDeleting,
     activateApiKey, isActivating,
+    toggleRotation, isTogglingRotation,
   } = useClaudeApiKeys()
 
   const [editingKey, setEditingKey] = useState<ClaudeCodeApiKey | null>(null)
@@ -61,6 +63,7 @@ export default function ClaudeCodeAccountsTab() {
 
   return (
     <div className="space-y-4">
+      <RotationHeader />
       <div className="flex justify-end">
         <button
           type="button"
@@ -79,8 +82,10 @@ export default function ClaudeCodeAccountsTab() {
           onEdit={setEditingKey}
           onDelete={deleteApiKey}
           onActivate={activateApiKey}
+          onToggleRotation={toggleRotation}
           isDeleting={isDeleting}
           isActivating={isActivating}
+          isTogglingRotation={isTogglingRotation}
         />
       </div>
       <AccountModals

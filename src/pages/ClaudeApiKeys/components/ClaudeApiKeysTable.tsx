@@ -1,6 +1,7 @@
 import { Pencil, Trash2, Key, CheckCircle, XCircle, Power } from 'lucide-react'
 import type { ClaudeCodeApiKey } from '../../../api/generated/models'
 import { Progress } from '../../../components/ui/Progress'
+import { Switch } from '../../../components/ui/Switch'
 
 function maskKey(value: string | undefined) {
   if (!value) return '••••••••'
@@ -32,11 +33,13 @@ interface RowProps {
   onEdit: (apiKey: ClaudeCodeApiKey) => void
   onDelete: (id: number) => void
   onActivate: (id: number) => void
+  onToggleRotation: (id: number, enabled: boolean) => void
   isDeleting: boolean
   isActivating: boolean
+  isTogglingRotation: boolean
 }
 
-function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, isDeleting, isActivating }: RowProps) {
+function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRotation, isDeleting, isActivating, isTogglingRotation }: RowProps) {
   return (
     <tr className="border-b border-[#3A3A3A] last:border-0">
       <td className="px-4 py-3">
@@ -61,6 +64,14 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, isDeleting,
       </td>
       <td className="px-4 py-3 text-sm text-[#9A9A9A]">
         {apiKey.createdAt ? new Date(apiKey.createdAt).toLocaleDateString('pt-BR') : '—'}
+      </td>
+      <td className="px-4 py-3">
+        <Switch
+          checked={apiKey.rotationEnabled ?? false}
+          disabled={isTogglingRotation || apiKey.id === undefined}
+          label="Incluir no rodízio"
+          onChange={(next) => apiKey.id !== undefined && onToggleRotation(apiKey.id, next)}
+        />
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-col gap-2">
@@ -109,11 +120,13 @@ interface Props {
   onEdit: (apiKey: ClaudeCodeApiKey) => void
   onDelete: (id: number) => void
   onActivate: (id: number) => void
+  onToggleRotation: (id: number, enabled: boolean) => void
   isDeleting: boolean
   isActivating: boolean
+  isTogglingRotation: boolean
 }
 
-export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading, onEdit, onDelete, onActivate, isDeleting, isActivating }: Props) {
+export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading, onEdit, onDelete, onActivate, onToggleRotation, isDeleting, isActivating, isTogglingRotation }: Props) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -141,6 +154,7 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
           <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Chave</th>
           <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Status</th>
           <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Criado em</th>
+          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Rodízio</th>
           <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Limites</th>
           <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Ações</th>
         </tr>
@@ -154,8 +168,10 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
             onEdit={onEdit}
             onDelete={onDelete}
             onActivate={onActivate}
+            onToggleRotation={onToggleRotation}
             isDeleting={isDeleting}
             isActivating={isActivating}
+            isTogglingRotation={isTogglingRotation}
           />
         ))}
       </tbody>

@@ -10,4 +10,5 @@ export type ClaudeCodeApiKeysControllerUpdateByIdBody = {
   /** @minLength 1 */
   name?: string;
   isActive?: boolean;
+  rotationEnabled?: boolean;
 };

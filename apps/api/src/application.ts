@@ -9,6 +9,7 @@ import {
 import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {securityHeadersMiddleware} from './middleware/security-headers.middleware';
+import {apiAuthMiddleware} from './middleware/api-auth.middleware';
 import {MySequence} from './sequence';
 import {NotificationService, NOTIFICATION_SERVICE} from './services/notification.service';
 import {RateLimiterService, RATE_LIMITER_BINDING} from './services/rate-limiter.service';
@@ -26,6 +27,7 @@ export class ClaudeCodeApiApplication extends BootMixin(
     this.sequence(MySequence);
 
     this.middleware(securityHeadersMiddleware);
+    this.middleware(apiAuthMiddleware);
 
     this.static('/', path.join(__dirname, '../public'));
 

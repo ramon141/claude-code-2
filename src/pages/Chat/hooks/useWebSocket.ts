@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { getWebSocketUrl } from '../../../api/apiConfig'
 
 export type WsPromptStatus = 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
 
@@ -9,7 +10,6 @@ export interface WsPromptUpdate {
   output: string
 }
 
-const WS_URL = 'ws://127.0.0.1:3000/ws'
 const RECONNECT_DELAY_MS = 3000
 
 export function useWebSocket(
@@ -28,7 +28,7 @@ export function useWebSocket(
     function connect() {
       if (cancelled) return
 
-      ws = new WebSocket(WS_URL)
+      ws = new WebSocket(getWebSocketUrl())
 
       ws.onmessage = (event: MessageEvent<string>) => {
         const data = JSON.parse(event.data) as WsPromptUpdate

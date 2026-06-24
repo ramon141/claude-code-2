@@ -5,21 +5,25 @@ import {getNgrokUrl} from '../config/ngrok';
 import {registerEvolutionWebhook} from '../config/evolution-webhook';
 import {
   AppConfigView,
+  AuthTokenBody,
   ClaudeSetupBody,
   DatabaseSetupBody,
   EvolutionSetupBody,
   NgrokToggleBody,
+  NgrokUrlResult,
   NgrokWebhookBody,
   NgrokWebhookResult,
   SetupStatus,
   WebsocketSetupBody,
   appConfigViewSchema,
+  authTokenSchema,
   claudeSetupSchema,
   completeResultSchema,
   databaseResultSchema,
   databaseSetupSchema,
   evolutionSetupSchema,
   ngrokToggleSchema,
+  ngrokUrlResultSchema,
   ngrokWebhookResultSchema,
   ngrokWebhookSchema,
   setupStatusSchema,
@@ -65,7 +69,17 @@ export class SetupController {
       evolutionInstanceName: cfg.evolution.instanceName,
       websocketAllowedOrigins: cfg.websocketAllowedOrigins,
       ngrokEnabled: cfg.ngrokEnabled,
+      authConfigured: cfg.apiAuthToken.length > 0,
     };
+  }
+
+  @post('/setup/auth')
+  @response(OK, okSpec('Senha de acesso externo atualizada', successResultSchema))
+  configureAuth(
+    @requestBody(jsonBody(authTokenSchema)) body: AuthTokenBody,
+  ): {success: boolean} {
+    writeConfig({apiAuthToken: body.token.trim()});
+    return {success: true};
   }
 
   @post('/setup/database')
@@ -133,6 +147,13 @@ export class SetupController {
   ): {success: boolean} {
     writeConfig({ngrokEnabled: body.enabled});
     return {success: true};
+  }
+
+  @get('/setup/ngrok/url')
+  @response(OK, okSpec('URL pública do túnel ngrok', ngrokUrlResultSchema))
+  async ngrokUrl(): Promise<NgrokUrlResult> {
+    const url = await getNgrokUrl().catch(() => null);
+    return {url};
   }
 
   @post('/setup/restart')

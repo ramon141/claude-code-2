@@ -5,6 +5,7 @@ import DatabaseSection from './application/DatabaseSection'
 import ClaudeSection from './application/ClaudeSection'
 import EvolutionSection from './application/EvolutionSection'
 import NgrokSection from './application/NgrokSection'
+import AuthSection from './application/AuthSection'
 import WebsocketSection from './application/WebsocketSection'
 import {
   useSetupControllerConfig,
@@ -46,6 +47,7 @@ const ApplicationTab: React.FC = () => {
         instanceName={data.evolutionInstanceName}
       />
       <NgrokSection enabled={data.ngrokEnabled} onNeedRestart={triggerRestart} />
+      <AuthSection authConfigured={data.authConfigured} />
       <WebsocketSection origins={data.websocketAllowedOrigins} />
     </div>
   )

@@ -38,11 +38,13 @@ import type {
   QueueState,
   SetupControllerComplete200,
   SetupControllerConfig200,
+  SetupControllerConfigureAuth200,
   SetupControllerConfigureClaude200,
   SetupControllerConfigureDatabase200,
   SetupControllerConfigureEvolution200,
   SetupControllerConfigureWebsocket200,
   SetupControllerGenerateNgrokWebhook200,
+  SetupControllerNgrokUrl200,
   SetupControllerRestart200,
   SetupControllerStatus200,
   SetupControllerToggleNgrok200,
@@ -102,15 +104,19 @@ export const getQueueStateControllerUpdateLastProcessedResponseMock = (overrideR
 
 export const getQueueStateControllerGetStateResponseMock = (overrideResponse: Partial< QueueState > = {}): QueueState => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), totalProcessed: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), failedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), rateLimitedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), lastProcessed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), ...overrideResponse})
 
+export const getSetupControllerConfigureAuthResponseMock = (overrideResponse: Partial< SetupControllerConfigureAuth200 > = {}): SetupControllerConfigureAuth200 => ({success: faker.datatype.boolean(), ...overrideResponse})
+
 export const getSetupControllerConfigureClaudeResponseMock = (overrideResponse: Partial< SetupControllerConfigureClaude200 > = {}): SetupControllerConfigureClaude200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
 export const getSetupControllerCompleteResponseMock = (overrideResponse: Partial< SetupControllerComplete200 > = {}): SetupControllerComplete200 => ({completed: faker.datatype.boolean(), ...overrideResponse})
 
-export const getSetupControllerConfigResponseMock = (overrideResponse: Partial< SetupControllerConfig200 > = {}): SetupControllerConfig200 => ({databaseUrl: faker.string.alpha({length: {min: 10, max: 20}}), claudeCommand: faker.string.alpha({length: {min: 10, max: 20}}), timeout: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), evolutionUrl: faker.string.alpha({length: {min: 10, max: 20}}), evolutionToken: faker.string.alpha({length: {min: 10, max: 20}}), evolutionInstanceName: faker.string.alpha({length: {min: 10, max: 20}}), websocketAllowedOrigins: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ngrokEnabled: faker.datatype.boolean(), ...overrideResponse})
+export const getSetupControllerConfigResponseMock = (overrideResponse: Partial< SetupControllerConfig200 > = {}): SetupControllerConfig200 => ({databaseUrl: faker.string.alpha({length: {min: 10, max: 20}}), claudeCommand: faker.string.alpha({length: {min: 10, max: 20}}), timeout: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), evolutionUrl: faker.string.alpha({length: {min: 10, max: 20}}), evolutionToken: faker.string.alpha({length: {min: 10, max: 20}}), evolutionInstanceName: faker.string.alpha({length: {min: 10, max: 20}}), websocketAllowedOrigins: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ngrokEnabled: faker.datatype.boolean(), authConfigured: faker.datatype.boolean(), ...overrideResponse})
 
 export const getSetupControllerConfigureDatabaseResponseMock = (overrideResponse: Partial< SetupControllerConfigureDatabase200 > = {}): SetupControllerConfigureDatabase200 => ({success: faker.datatype.boolean(), migrated: faker.datatype.boolean(), ...overrideResponse})
 
 export const getSetupControllerConfigureEvolutionResponseMock = (overrideResponse: Partial< SetupControllerConfigureEvolution200 > = {}): SetupControllerConfigureEvolution200 => ({success: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerNgrokUrlResponseMock = (overrideResponse: Partial< SetupControllerNgrokUrl200 > = {}): SetupControllerNgrokUrl200 => ({url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), ...overrideResponse})
 
 export const getSetupControllerToggleNgrokResponseMock = (overrideResponse: Partial< SetupControllerToggleNgrok200 > = {}): SetupControllerToggleNgrok200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
@@ -487,6 +493,18 @@ export const getQueueStateControllerGetStateMockHandler = (overrideResponse?: Qu
   }, options)
 }
 
+export const getSetupControllerConfigureAuthMockHandler = (overrideResponse?: SetupControllerConfigureAuth200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureAuth200> | SetupControllerConfigureAuth200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/auth', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerConfigureAuthResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getSetupControllerConfigureClaudeMockHandler = (overrideResponse?: SetupControllerConfigureClaude200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureClaude200> | SetupControllerConfigureClaude200), options?: RequestHandlerOptions) => {
   return http.post('*/setup/claude', async (info) => {await delay(1000);
   
@@ -541,6 +559,18 @@ export const getSetupControllerConfigureEvolutionMockHandler = (overrideResponse
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getSetupControllerConfigureEvolutionResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerNgrokUrlMockHandler = (overrideResponse?: SetupControllerNgrokUrl200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SetupControllerNgrokUrl200> | SetupControllerNgrokUrl200), options?: RequestHandlerOptions) => {
+  return http.get('*/setup/ngrok/url', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerNgrokUrlResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -650,11 +680,13 @@ export const getClaudeCodeApiMock = () => [
   getQueueStateControllerIncrementMockHandler(),
   getQueueStateControllerUpdateLastProcessedMockHandler(),
   getQueueStateControllerGetStateMockHandler(),
+  getSetupControllerConfigureAuthMockHandler(),
   getSetupControllerConfigureClaudeMockHandler(),
   getSetupControllerCompleteMockHandler(),
   getSetupControllerConfigMockHandler(),
   getSetupControllerConfigureDatabaseMockHandler(),
   getSetupControllerConfigureEvolutionMockHandler(),
+  getSetupControllerNgrokUrlMockHandler(),
   getSetupControllerToggleNgrokMockHandler(),
   getSetupControllerRestartMockHandler(),
   getSetupControllerStatusMockHandler(),

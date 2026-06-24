@@ -1,6 +1,6 @@
 import {ClaudeCodeApiApplication} from '../application';
 import {NOTIFICATION_SERVICE, NotificationService} from './notification.service';
-import {DEFAULT_ALLOWED_ORIGINS} from '../config/app-config';
+import {DEFAULT_ALLOWED_ORIGINS, readConfig} from '../config/app-config';
 import WebSocket, {WebSocketServer} from 'ws';
 import http from 'http';
 
@@ -32,11 +32,40 @@ function getAllowedOrigins(): string[] {
   return list.length > 0 ? list : DEFAULT_ALLOWED_ORIGINS;
 }
 
+// Same-origin: o Origin do WebSocket bate com o host por onde a requisição
+// chegou. Cobre o acesso via ngrok (cuja URL muda a cada restart) sem precisar
+// cadastrar o domínio manualmente — a própria página servida pela API sempre
+// pode abrir o WS.
+function isSameOrigin(req: http.IncomingMessage, origin: string): boolean {
+  const host = req.headers['x-forwarded-host'] ?? req.headers['host'];
+  if (typeof host !== 'string') return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 function isOriginAllowed(req: http.IncomingMessage): boolean {
-  const allowed = getAllowedOrigins();
   const origin = req.headers['origin'];
   if (!origin) return false;
-  return allowed.includes(origin);
+  if (getAllowedOrigins().includes(origin)) return true;
+  return isSameOrigin(req, origin);
+}
+
+const WS_LOOPBACK_IPS = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+
+// Mesma regra do middleware HTTP: conexão do próprio computador (loopback, sem
+// cabeçalho de proxy) é confiável; via túnel (ngrok) exige o token na query
+// (?token=), já que o WebSocket do browser não permite enviar headers.
+function isWsAuthorized(req: http.IncomingMessage): boolean {
+  const token = readConfig().apiAuthToken;
+  if (token.length === 0) return true;
+  const forwarded = req.headers['x-forwarded-for'] ?? req.headers['x-forwarded-host'];
+  const isLocal = !forwarded && WS_LOOPBACK_IPS.includes(req.socket.remoteAddress ?? '');
+  if (isLocal) return true;
+  const provided = new URL(req.url ?? '', 'http://localhost').searchParams.get('token');
+  return provided === token;
 }
 
 function trackConnection(ip: string, ws: WebSocket): boolean {
@@ -58,6 +87,10 @@ function handleConnection(
 ): void {
   if (!isOriginAllowed(req)) {
     ws.close(4003, 'Forbidden origin');
+    return;
+  }
+  if (!isWsAuthorized(req)) {
+    ws.close(4001, 'Unauthorized');
     return;
   }
   const ip = getClientIp(req);

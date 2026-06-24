@@ -40,6 +40,14 @@ export type NgrokToggleBody = {
   enabled: boolean;
 };
 
+export type AuthTokenBody = {
+  token: string;
+};
+
+export type NgrokUrlResult = {
+  url: string | null;
+};
+
 export type AppConfigView = {
   databaseUrl: string;
   claudeCommand: string;
@@ -49,6 +57,7 @@ export type AppConfigView = {
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
+  authConfigured: boolean;
 };
 
 const TYPE_STRING = 'string';
@@ -152,6 +161,22 @@ export const ngrokToggleSchema: SchemaObject = {
   },
 };
 
+export const authTokenSchema: SchemaObject = {
+  type: 'object',
+  required: ['token'],
+  properties: {
+    token: {type: TYPE_STRING},
+  },
+};
+
+export const ngrokUrlResultSchema: SchemaObject = {
+  type: 'object',
+  required: ['url'],
+  properties: {
+    url: {type: TYPE_STRING, nullable: true},
+  },
+};
+
 export const appConfigViewSchema: SchemaObject = {
   type: 'object',
   required: [
@@ -163,6 +188,7 @@ export const appConfigViewSchema: SchemaObject = {
     'evolutionInstanceName',
     'websocketAllowedOrigins',
     'ngrokEnabled',
+    'authConfigured',
   ],
   properties: {
     databaseUrl: {type: TYPE_STRING},
@@ -173,5 +199,6 @@ export const appConfigViewSchema: SchemaObject = {
     evolutionInstanceName: {type: TYPE_STRING},
     websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
     ngrokEnabled: {type: TYPE_BOOLEAN},
+    authConfigured: {type: TYPE_BOOLEAN},
   },
 };

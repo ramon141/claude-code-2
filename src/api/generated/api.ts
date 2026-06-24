@@ -51,6 +51,8 @@ import type {
   QueueStateControllerIncrementBody,
   SetupControllerComplete200,
   SetupControllerConfig200,
+  SetupControllerConfigureAuth200,
+  SetupControllerConfigureAuthBody,
   SetupControllerConfigureClaude200,
   SetupControllerConfigureClaudeBody,
   SetupControllerConfigureDatabase200,
@@ -61,6 +63,7 @@ import type {
   SetupControllerConfigureWebsocketBody,
   SetupControllerGenerateNgrokWebhook200,
   SetupControllerGenerateNgrokWebhookBody,
+  SetupControllerNgrokUrl200,
   SetupControllerRestart200,
   SetupControllerStatus200,
   SetupControllerToggleNgrok200,
@@ -1922,6 +1925,65 @@ export function useQueueStateControllerGetState<TData = Awaited<ReturnType<typeo
 
 
 
+export const setupControllerConfigureAuth = (
+    setupControllerConfigureAuthBody: SetupControllerConfigureAuthBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerConfigureAuth200>(
+      {url: `/setup/auth`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerConfigureAuthBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerConfigureAuthMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureAuth>>, TError,{data: SetupControllerConfigureAuthBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureAuth>>, TError,{data: SetupControllerConfigureAuthBody}, TContext> => {
+
+const mutationKey = ['setupControllerConfigureAuth'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureAuth>>, {data: SetupControllerConfigureAuthBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerConfigureAuth(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerConfigureAuthMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigureAuth>>>
+    export type SetupControllerConfigureAuthMutationBody = SetupControllerConfigureAuthBody
+    export type SetupControllerConfigureAuthMutationError = unknown
+
+    export const useSetupControllerConfigureAuth = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureAuth>>, TError,{data: SetupControllerConfigureAuthBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerConfigureAuth>>,
+        TError,
+        {data: SetupControllerConfigureAuthBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerConfigureAuthMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const setupControllerConfigureClaude = (
     setupControllerConfigureClaudeBody: SetupControllerConfigureClaudeBody,
  signal?: AbortSignal
@@ -2218,6 +2280,68 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const setupControllerNgrokUrl = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerNgrokUrl200>(
+      {url: `/setup/ngrok/url`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getSetupControllerNgrokUrlQueryKey = () => {
+    return [
+    `/setup/ngrok/url`
+    ] as const;
+    }
+
+    
+export const getSetupControllerNgrokUrlQueryOptions = <TData = Awaited<ReturnType<typeof setupControllerNgrokUrl>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerNgrokUrl>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSetupControllerNgrokUrlQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof setupControllerNgrokUrl>>> = ({ signal }) => setupControllerNgrokUrl(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof setupControllerNgrokUrl>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SetupControllerNgrokUrlQueryResult = NonNullable<Awaited<ReturnType<typeof setupControllerNgrokUrl>>>
+export type SetupControllerNgrokUrlQueryError = unknown
+
+
+
+export function useSetupControllerNgrokUrl<TData = Awaited<ReturnType<typeof setupControllerNgrokUrl>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerNgrokUrl>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSetupControllerNgrokUrlQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
 export const setupControllerToggleNgrok = (
     setupControllerToggleNgrokBody: SetupControllerToggleNgrokBody,
  signal?: AbortSignal

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Network } from 'lucide-react'
 import { extractErrorMessage, type ApiError } from '../../../Setup/errorMessage'
 import SectionCard from './SectionCard'
+import NgrokUrlDisplay from './NgrokUrlDisplay'
 import { useSetupControllerToggleNgrok } from '../../../../api/generated/api'
 
 interface NgrokSectionProps {
@@ -54,6 +55,7 @@ const NgrokSection: React.FC<NgrokSectionProps> = ({ enabled, onNeedRestart }) =
           />
         </button>
       </div>
+      {checked && <NgrokUrlDisplay />}
       {apiError && <p className="text-red-400 text-sm">{apiError}</p>}
     </SectionCard>
   )

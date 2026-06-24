@@ -1,10 +1,19 @@
 import axios from "axios";
 import type { AxiosResponse, AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
+import { getApiBaseUrl, getAuthToken, AUTH_HEADER, BEARER_PREFIX } from "./apiConfig";
 
 type NetworkErrorData = {message: string};
 
 const api = axios.create({
-    baseURL: 'http://127.0.0.1:3000'
+    baseURL: getApiBaseUrl()
+});
+
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const token = getAuthToken();
+    if (token) {
+        config.headers.set(AUTH_HEADER, `${BEARER_PREFIX}${token}`);
+    }
+    return config;
 });
 
 api.interceptors.response.use(

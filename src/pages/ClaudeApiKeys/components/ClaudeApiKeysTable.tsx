@@ -20,7 +20,7 @@ function LimitBar({ value, label }: LimitBarProps) {
   }
   const pct = Math.min(Math.max(value, 0), 100)
   return (
-    <div className="flex flex-col gap-1 min-w-[90px]">
+    <div className="flex flex-col gap-1 min-w-[60px]">
       <span className="text-xs text-[#9A9A9A]">{label}: {pct.toFixed(1)}%</span>
       <Progress value={pct} />
     </div>
@@ -42,16 +42,16 @@ interface RowProps {
 function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRotation, isDeleting, isActivating, isTogglingRotation }: RowProps) {
   return (
     <tr className="border-b border-[#3A3A3A] last:border-0">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2.5">
+      <td className="px-3 py-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-[#D97757]/10 border border-[#D97757]/20 flex items-center justify-center flex-shrink-0">
             <Key className="w-3.5 h-3.5 text-[#D97757]" />
           </div>
-          <span className="text-sm text-[#F5F5F5] font-medium">{apiKey.name}</span>
+          <span className="text-sm text-[#F5F5F5] font-medium truncate max-w-[150px]" title={apiKey.name}>{apiKey.name}</span>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm font-mono text-[#9A9A9A]">{maskKey(apiKey.keyValue)}</td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-3 text-sm font-mono text-[#9A9A9A]">{maskKey(apiKey.keyValue)}</td>
+      <td className="px-3 py-3">
         {isActive ? (
           <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
             <CheckCircle className="w-3.5 h-3.5" /> Ativa
@@ -62,10 +62,10 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
           </span>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-[#9A9A9A]">
+      <td className="px-3 py-3 text-sm text-[#9A9A9A]">
         {apiKey.createdAt ? new Date(apiKey.createdAt).toLocaleDateString('pt-BR') : '—'}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-3">
         <Switch
           checked={apiKey.rotationEnabled ?? false}
           disabled={isTogglingRotation || apiKey.id === undefined}
@@ -73,13 +73,13 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
           onChange={(next) => apiKey.id !== undefined && onToggleRotation(apiKey.id, next)}
         />
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-3">
         <div className="flex flex-col gap-2">
           <LimitBar value={apiKey.sessionLimitPercentage} label="Sessão" />
           <LimitBar value={apiKey.weeklyLimitPercentage} label="Semanal" />
         </div>
       </td>
-      <td className="px-4 py-3">
+      <td className="px-3 py-3">
         <div className="flex items-center justify-end gap-1">
           {!isActive && (
             <button
@@ -150,13 +150,13 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
     <table className="w-full">
       <thead>
         <tr className="border-b border-[#3A3A3A]">
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Nome</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Chave</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Status</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Criado em</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Rodízio</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Limites</th>
-          <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Ações</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Nome</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Chave</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Status</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Criado em</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Rodízio</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Limites</th>
+          <th className="text-right px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Ações</th>
         </tr>
       </thead>
       <tbody>

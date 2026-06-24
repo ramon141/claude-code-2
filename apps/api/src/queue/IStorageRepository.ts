@@ -34,6 +34,7 @@ export interface IStorageRepository {
   getClaudeToken(): Promise<ClaudeCredentials>;
   patchLimitsByKeyId(keyId: number, sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
   markKeyRateLimited(keyId: number, until: Date): Promise<void>;
+  canFailoverToAnotherKey(excludeKeyId: number): Promise<boolean>;
   initialize(): Promise<void>;
   disconnect(): Promise<void>;
 }

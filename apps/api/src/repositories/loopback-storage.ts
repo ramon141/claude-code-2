@@ -176,6 +176,14 @@ export class LoopBackStorageRepository implements IStorageRepository {
     await this.apiKeyRepo.updateById(keyId, {rateLimitedUntil: until.toISOString()});
   }
 
+  // True se o rodízio está ligado e existe outra conta marcada, fora de rate
+  // limit, diferente da que acabou de estourar — ou seja, dá pra fazer failover.
+  async canFailoverToAnotherKey(excludeKeyId: number): Promise<boolean> {
+    if (!readConfig().claudeRotationEnabled) return false;
+    const candidates = await this.apiKeyRepo.find({where: {rotationEnabled: true}});
+    return candidates.some(k => k.id !== excludeKeyId && !isKeyRateLimited(k));
+  }
+
   async initialize(): Promise<void> {
     await this.queueStateRepo.findOne({});
   }

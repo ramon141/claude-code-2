@@ -7,18 +7,21 @@ import type {WorkerMessage, WorkerResultData} from './claudeWorker';
 
 const CHAT_INITIAL_PRIORITY = -1;
 const CONTENT_PREVIEW_LENGTH = 50;
+const RATE_LIMIT_SWEEP_INTERVAL_MS = 60_000;
 
 export class QueueManager {
   private repository: IStorageRepository;
   private claudeCommand: string;
   private timeout: number;
   private processing: boolean;
+  private rateLimitSweep: NodeJS.Timeout | null;
 
   constructor(repository: IStorageRepository, claudeCommand: string = 'claude', timeout: number = 3600) {
     this.repository = repository;
     this.claudeCommand = claudeCommand;
     this.timeout = timeout;
     this.processing = false;
+    this.rateLimitSweep = null;
   }
 
   async start(): Promise<void> {
@@ -31,12 +34,42 @@ export class QueueManager {
       return;
     }
     await this.triggerIteration();
+    this.startRateLimitSweep();
     console.log('[queue] Ready — waiting for events');
   }
 
   stop(): void {
     console.log('[queue] Stopping...');
+    if (this.rateLimitSweep) clearInterval(this.rateLimitSweep);
+    this.rateLimitSweep = null;
     void this.repository.disconnect();
+  }
+
+  // Varre periodicamente os prompts em RATE_LIMITED: os que já passaram do
+  // resetTime voltam pra fila (ou falham se esgotaram retries). Garante que um
+  // prompt travado por limite seja retomado sozinho assim que o limite reseta.
+  private startRateLimitSweep(): void {
+    this.rateLimitSweep = setInterval(() => {
+      void this.requeueReadyRateLimited().catch(e => console.error('[queue] Rate-limit sweep error:', e));
+    }, RATE_LIMIT_SWEEP_INTERVAL_MS);
+    this.rateLimitSweep.unref();
+  }
+
+  private async requeueReadyRateLimited(): Promise<void> {
+    const limited = await this.repository.listPrompts(PromptStatus.RATE_LIMITED);
+    const ready = limited.filter(p => p.shouldExecuteNow());
+    if (ready.length === 0) return;
+    for (const prompt of ready) {
+      if (prompt.canRetry()) {
+        await this.repository.updatePromptStatus(prompt.id, PromptStatus.QUEUED, {});
+        console.log(`↻ Prompt ${prompt.id} liberado do rate limit — re-enfileirado`);
+      } else {
+        await this.repository.updatePromptStatus(prompt.id, PromptStatus.FAILED, {});
+        await this.repository.incrementCounter('failedCount');
+        console.log(`✗ Prompt ${prompt.id} falhou — retries esgotados após rate limit`);
+      }
+    }
+    void this.triggerIteration();
   }
 
   triggerIteration(): Promise<void> {
@@ -193,12 +226,22 @@ export class QueueManager {
 
   private async handleRateLimit(prompt: QueuedPrompt, result: ExecutionResult, keyId: number): Promise<void> {
     const resetTime = result.rateLimitInfo?.resetTime ?? undefined;
-    await this.repository.updatePromptStatus(prompt.id, PromptStatus.RATE_LIMITED, {
-      rateLimitedAt: new Date(), retryCount: prompt.retryCount + 1, resetTime,
-    });
     if (resetTime) await this.repository.markKeyRateLimited(keyId, resetTime);
     if (result.rateLimitInfo?.limitMessage) await this.repository.saveOutput(prompt.id, result.rateLimitInfo.limitMessage);
     await this.repository.incrementCounter('rateLimitedCount');
+
+    const newRetryCount = prompt.retryCount + 1;
+    const canFailover = newRetryCount < prompt.maxRetries
+      && await this.repository.canFailoverToAnotherKey(keyId);
+    if (canFailover) {
+      await this.repository.updatePromptStatus(prompt.id, PromptStatus.QUEUED, {retryCount: newRetryCount});
+      console.log(`⚠ Prompt ${prompt.id} rate limited — re-enfileirado para outra conta (rodízio)`);
+      void this.triggerIteration();
+      return;
+    }
+    await this.repository.updatePromptStatus(prompt.id, PromptStatus.RATE_LIMITED, {
+      rateLimitedAt: new Date(), retryCount: newRetryCount, resetTime,
+    });
     console.log(`⚠ Prompt ${prompt.id} rate limited`);
   }
 

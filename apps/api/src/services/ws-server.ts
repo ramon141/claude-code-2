@@ -1,5 +1,6 @@
 import {ClaudeCodeApiApplication} from '../application';
 import {NOTIFICATION_SERVICE, NotificationService} from './notification.service';
+import {DEFAULT_ALLOWED_ORIGINS} from '../config/app-config';
 import WebSocket, {WebSocketServer} from 'ws';
 import http from 'http';
 
@@ -22,16 +23,17 @@ function getClientIp(req: http.IncomingMessage): string {
   return req.socket.remoteAddress ?? 'unknown';
 }
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  'tauri://localhost',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://127.0.0.1:3000',
-];
+const ORIGIN_SEPARATOR = ',';
+
+function getAllowedOrigins(): string[] {
+  const fromEnv = process.env.WEBSOCKET_ALLOWED_ORIGINS;
+  if (!fromEnv) return DEFAULT_ALLOWED_ORIGINS;
+  const list = fromEnv.split(ORIGIN_SEPARATOR).map(o => o.trim()).filter(o => o.length > 0);
+  return list.length > 0 ? list : DEFAULT_ALLOWED_ORIGINS;
+}
 
 function isOriginAllowed(req: http.IncomingMessage): boolean {
-  const allowed = DEFAULT_ALLOWED_ORIGINS;
+  const allowed = getAllowedOrigins();
   const origin = req.headers['origin'];
   if (!origin) return false;
   return allowed.includes(origin);

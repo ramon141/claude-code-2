@@ -4,12 +4,15 @@ import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
 import {registerEvolutionWebhook} from '../config/evolution-webhook';
 import {
+  AppConfigView,
   ClaudeSetupBody,
   DatabaseSetupBody,
   EvolutionSetupBody,
   NgrokWebhookBody,
   NgrokWebhookResult,
   SetupStatus,
+  WebsocketSetupBody,
+  appConfigViewSchema,
   claudeSetupSchema,
   completeResultSchema,
   databaseResultSchema,
@@ -19,6 +22,7 @@ import {
   ngrokWebhookSchema,
   setupStatusSchema,
   successResultSchema,
+  websocketSetupSchema,
 } from './setup.schemas';
 
 const CONTENT_JSON = 'application/json';
@@ -43,6 +47,21 @@ export class SetupController {
       claudeConfigured: cfg.claudeCommand.length > 0,
       evolutionConfigured: cfg.evolution.url.length > 0,
       completed: cfg.setupCompleted,
+    };
+  }
+
+  @get('/setup/config')
+  @response(OK, okSpec('Configuração atual', appConfigViewSchema))
+  config(): AppConfigView {
+    const cfg = readConfig();
+    return {
+      databaseUrl: cfg.databaseUrl,
+      claudeCommand: cfg.claudeCommand,
+      timeout: cfg.timeout,
+      evolutionUrl: cfg.evolution.url,
+      evolutionToken: cfg.evolution.token,
+      evolutionInstanceName: cfg.evolution.instanceName,
+      websocketAllowedOrigins: cfg.websocketAllowedOrigins,
     };
   }
 
@@ -88,6 +107,26 @@ export class SetupController {
     writeConfig({
       evolution: {url: body.url, token: body.token, instanceName: body.instanceName},
     });
+    return {success: true};
+  }
+
+  @post('/setup/websocket')
+  @response(OK, okSpec('Origens WebSocket salvas', successResultSchema))
+  configureWebsocket(
+    @requestBody(jsonBody(websocketSetupSchema)) body: WebsocketSetupBody,
+  ): {success: boolean} {
+    const origins = body.origins.map(o => o.trim()).filter(o => o.length > 0);
+    if (origins.length === 0) {
+      throw new HttpErrors.BadRequest('Informe ao menos uma origem permitida');
+    }
+    writeConfig({websocketAllowedOrigins: origins});
+    return {success: true};
+  }
+
+  @post('/setup/restart')
+  @response(OK, okSpec('Reinício agendado', successResultSchema))
+  restart(): {success: boolean} {
+    scheduleRestart();
     return {success: true};
   }
 

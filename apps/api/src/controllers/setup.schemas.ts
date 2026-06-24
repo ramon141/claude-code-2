@@ -32,6 +32,20 @@ export type NgrokWebhookResult = {
   webhookUrl: string;
 };
 
+export type WebsocketSetupBody = {
+  origins: string[];
+};
+
+export type AppConfigView = {
+  databaseUrl: string;
+  claudeCommand: string;
+  timeout: number;
+  evolutionUrl: string;
+  evolutionToken: string;
+  evolutionInstanceName: string;
+  websocketAllowedOrigins: string[];
+};
+
 const TYPE_STRING = 'string';
 const TYPE_NUMBER = 'number';
 const TYPE_BOOLEAN = 'boolean';
@@ -114,5 +128,35 @@ export const ngrokWebhookResultSchema: SchemaObject = {
   required: ['webhookUrl'],
   properties: {
     webhookUrl: {type: TYPE_STRING},
+  },
+};
+
+export const websocketSetupSchema: SchemaObject = {
+  type: 'object',
+  required: ['origins'],
+  properties: {
+    origins: {type: 'array', items: {type: TYPE_STRING}},
+  },
+};
+
+export const appConfigViewSchema: SchemaObject = {
+  type: 'object',
+  required: [
+    'databaseUrl',
+    'claudeCommand',
+    'timeout',
+    'evolutionUrl',
+    'evolutionToken',
+    'evolutionInstanceName',
+    'websocketAllowedOrigins',
+  ],
+  properties: {
+    databaseUrl: {type: TYPE_STRING},
+    claudeCommand: {type: TYPE_STRING},
+    timeout: {type: TYPE_NUMBER},
+    evolutionUrl: {type: TYPE_STRING},
+    evolutionToken: {type: TYPE_STRING},
+    evolutionInstanceName: {type: TYPE_STRING},
+    websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
   },
 };

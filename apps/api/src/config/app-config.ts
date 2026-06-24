@@ -14,6 +14,7 @@ export type AppConfig = {
   claudeCommand: string;
   timeout: number;
   evolution: EvolutionConfig;
+  websocketAllowedOrigins: string[];
   setupCompleted: boolean;
 };
 
@@ -25,6 +26,14 @@ const DEFAULT_CLAUDE_COMMAND = 'claude';
 const DEFAULT_TIMEOUT_SECONDS = 3600;
 const CONFIG_FILE_NAME = 'app-config.json';
 const WEBHOOK_SECRET_BYTES = 16;
+
+export const DEFAULT_ALLOWED_ORIGINS: string[] = [
+  'tauri://localhost',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://127.0.0.1:3000',
+];
 
 const EMPTY_EVOLUTION: EvolutionConfig = {
   webhookSecret: '',
@@ -39,6 +48,7 @@ function defaultConfig(): AppConfig {
     claudeCommand: DEFAULT_CLAUDE_COMMAND,
     timeout: DEFAULT_TIMEOUT_SECONDS,
     evolution: {...EMPTY_EVOLUTION},
+    websocketAllowedOrigins: [...DEFAULT_ALLOWED_ORIGINS],
     setupCompleted: false,
   };
 }
@@ -64,6 +74,10 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
     claudeCommand: parsed.claudeCommand ?? base.claudeCommand,
     timeout: parsed.timeout ?? base.timeout,
     evolution: {...base.evolution, ...(parsed.evolution ?? {})},
+    websocketAllowedOrigins:
+      parsed.websocketAllowedOrigins && parsed.websocketAllowedOrigins.length > 0
+        ? parsed.websocketAllowedOrigins
+        : base.websocketAllowedOrigins,
     setupCompleted: parsed.setupCompleted ?? base.setupCompleted,
   };
 }
@@ -98,4 +112,5 @@ export function applyConfigToEnv(cfg: AppConfig): void {
   process.env.EVOLUTION_URL = cfg.evolution.url;
   process.env.EVOLUTION_TOKEN = cfg.evolution.token;
   process.env.EVOLUTION_INSTANCE_NAME = cfg.evolution.instanceName;
+  process.env.WEBSOCKET_ALLOWED_ORIGINS = cfg.websocketAllowedOrigins.join(',');
 }

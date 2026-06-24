@@ -1,5 +1,4 @@
 import React from 'react';
-import { BreadcrumbProvider } from "./BreadcrumbContext";
 import { SidebarProvider } from "./SidebarContext";
 import { LoadingProvider } from "./LoadingContext";
 import PromisePopup from "../components/PromisePopup";
@@ -9,10 +8,8 @@ export default function GlobalProvider({ children }: BaseComponentProps): React.
   return (
     <LoadingProvider>
       <SidebarProvider>
-        <BreadcrumbProvider>
-          {children}
-          <PromisePopup />
-        </BreadcrumbProvider>
+        {children}
+        <PromisePopup />
       </SidebarProvider>
     </LoadingProvider>
   );

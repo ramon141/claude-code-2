@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
-export default function useModal() {
-  const [isOpen, setOpen] = useState(false)
+interface UseModalReturn {
+  isOpen: boolean;
+  handleOpen: () => void;
+  handleClose: () => void;
+}
 
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
-
-  return {
-    isOpen,
-    handleOpen,
-    handleClose,
-  }
+export default function useModal(): UseModalReturn {
+  const [isOpen, setIsOpen] = useState(false);
+  const handleOpen = () => setIsOpen(true);
+  const handleClose = () => setIsOpen(false);
+  return { isOpen, handleOpen, handleClose };
 }

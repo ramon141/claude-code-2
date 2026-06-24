@@ -30,11 +30,7 @@ interface LoadingProviderProps {
 export const LoadingProvider: React.FC<LoadingProviderProps> = ({ children }) => {
   const [type, setType] = useState<string>("");
   const [message, setMessage] = useState<string>("");
-  const {
-    isOpen,
-    handleOpen,
-    handleClose,
-  } = useModal();
+  const { isOpen, handleOpen, handleClose } = useModal();
 
   const toastPromise = (
     promise: Promise<any>,

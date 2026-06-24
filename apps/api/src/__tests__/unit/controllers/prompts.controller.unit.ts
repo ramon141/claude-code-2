@@ -62,6 +62,7 @@ describe('PromptsController (unit)', () => {
       chatSessionRepo as unknown as ChatSessionRepository,
       notificationService as unknown as NotificationService,
       evolutionService as unknown as EvolutionService,
+      {triggerIteration: () => {}} as unknown as import('../../../services/queue.service').QueueService,
     );
   });
 

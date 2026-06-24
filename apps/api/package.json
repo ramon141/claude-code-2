@@ -56,16 +56,17 @@
     "@loopback/rest": "^15.0.11",
     "@loopback/rest-explorer": "^8.0.11",
     "@loopback/service-proxy": "^8.0.10",
+    "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
+    "dayjs": "^1.11.21",
     "dotenv": "^17.4.1",
     "jsonwebtoken": "^9.0.3",
     "loopback-connector-postgresql": "^8.0.7",
     "tslib": "^2.0.0",
+    "uuid": "^14.0.1",
     "ws": "^8.20.0"
   },
   "overrides": {
-    "uuid": "^8.3.2",
-    "chalk": "^4.1.2",
     "loopback-connector-postgresql": {
       "chalk": "^4.1.2"
     },
@@ -83,6 +84,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^16.18.126",
+    "@types/uuid": "^10.0.0",
     "@types/ws": "^8.18.1",
     "eslint": "^8.57.1",
     "nodemon": "^3.1.14",

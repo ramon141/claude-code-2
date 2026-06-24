@@ -2,19 +2,12 @@ import {BindingKey, BindingScope, injectable} from '@loopback/core';
 import WebSocket from 'ws';
 import {PromptStatus} from '../models';
 
-export type PromptUpdatedNotification = {
+export type PromptNotification = {
   event: 'prompt:updated';
   promptId: number;
   status: PromptStatus;
   output: string;
 };
-
-export type PromptQueuedNotification = {
-  event: 'prompt:queued';
-  promptId: number;
-};
-
-export type PromptNotification = PromptUpdatedNotification | PromptQueuedNotification;
 
 export const NOTIFICATION_SERVICE = BindingKey.create<NotificationService>(
   'services.NotificationService',
@@ -38,7 +31,6 @@ export class NotificationService {
         sent++;
       }
     });
-    const statusLabel = payload.event === 'prompt:updated' ? payload.status : payload.event;
-    console.log(`[ws] promptId=${payload.promptId} event=${statusLabel} clients=${sent}`);
+    console.log(`[ws] promptId=${payload.promptId} status=${payload.status} clients=${sent}`);
   }
 }

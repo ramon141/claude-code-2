@@ -13,6 +13,7 @@ import {
 } from './prompts.schemas';
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
+import {QueueService, QUEUE_SERVICE_KEY} from '../services/queue.service';
 
 export type CreatePromptBody = Omit<
   Prompt,
@@ -57,6 +58,7 @@ export class PromptsController {
     @repository(ChatSessionRepository) private chatSessionRepo: ChatSessionRepository,
     @inject(NOTIFICATION_SERVICE) private notificationService: NotificationService,
     @inject(EVOLUTION_SERVICE) private evolutionService: EvolutionService,
+    @inject(QUEUE_SERVICE_KEY) private queueService: QueueService,
   ) {}
 
   @post('/prompts')
@@ -96,7 +98,7 @@ export class PromptsController {
         this.contextFileRepo.create(new PromptContextFile({promptId: prompt.id, filePath})),
       ),
     );
-    this.notificationService.notify({event: 'prompt:queued', promptId: prompt.id});
+    this.queueService.triggerIteration();
     return this.toResponse(prompt, contextFiles);
   }
 

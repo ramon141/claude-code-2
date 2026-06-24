@@ -70,7 +70,6 @@ pub async fn start_services(app: &AppHandle) {
     let node = resolve_node();
 
     start_api(&node, &apps_root).await;
-    start_interface(&node, &apps_root).await;
 }
 
 async fn start_api(node: &str, apps_root: &PathBuf) {
@@ -112,33 +111,3 @@ async fn start_api(node: &str, apps_root: &PathBuf) {
     }
 }
 
-async fn start_interface(node: &str, apps_root: &PathBuf) {
-    let iface_dir = apps_root.join("apps/interface");
-    let entry = resolve_entry(apps_root, "apps/interface", "main.js", "main.js");
-    let env_file = iface_dir.join(".env");
-
-    if !entry.exists() {
-        eprintln!("[sidecar] Interface entry not found: {}", entry.display());
-        return;
-    }
-
-    let env_vars = load_env_file(&env_file);
-
-    let mut cmd = Command::new(node);
-    cmd.arg(&entry)
-        .current_dir(&iface_dir)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .envs(env_vars);
-
-    match cmd.spawn() {
-        Ok(mut child) => {
-            println!("[sidecar] Interface daemon started (pid={})", child.id().unwrap_or(0));
-            tokio::spawn(async move {
-                let _ = child.wait().await;
-                eprintln!("[sidecar] Interface process exited");
-            });
-        }
-        Err(e) => eprintln!("[sidecar] Failed to start interface: {}", e),
-    }
-}

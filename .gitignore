@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+app-config.json
+apps/api/app-config.json
 apps/api/dist
 apps/api/node_modules
 apps/interface/dist

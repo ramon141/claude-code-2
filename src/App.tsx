@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GlobalProvider from './contexts/GlobalProvider';
+import SetupGate from './components/SetupGate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,7 +21,9 @@ const App: React.FC = () => {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <GlobalProvider>
-            <Routes />
+            <SetupGate>
+              <Routes />
+            </SetupGate>
           </GlobalProvider>
           <ToastContainer />
         </QueryClientProvider>

@@ -34,6 +34,12 @@ import type {
   PromptsControllerNext200,
   PromptsControllerUpdateById200,
   QueueState,
+  SetupControllerComplete200,
+  SetupControllerConfigureClaude200,
+  SetupControllerConfigureDatabase200,
+  SetupControllerConfigureEvolution200,
+  SetupControllerGenerateNgrokWebhook200,
+  SetupControllerStatus200,
   WebhookControllerReceive200
 } from './models';
 
@@ -85,6 +91,18 @@ export const getQueueStateControllerIncrementResponseMock = (overrideResponse: P
 export const getQueueStateControllerUpdateLastProcessedResponseMock = (overrideResponse: Partial< QueueState > = {}): QueueState => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), totalProcessed: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), failedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), rateLimitedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), lastProcessed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), ...overrideResponse})
 
 export const getQueueStateControllerGetStateResponseMock = (overrideResponse: Partial< QueueState > = {}): QueueState => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), totalProcessed: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), failedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), rateLimitedCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), lastProcessed: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), ...overrideResponse})
+
+export const getSetupControllerConfigureClaudeResponseMock = (overrideResponse: Partial< SetupControllerConfigureClaude200 > = {}): SetupControllerConfigureClaude200 => ({success: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerCompleteResponseMock = (overrideResponse: Partial< SetupControllerComplete200 > = {}): SetupControllerComplete200 => ({completed: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerConfigureDatabaseResponseMock = (overrideResponse: Partial< SetupControllerConfigureDatabase200 > = {}): SetupControllerConfigureDatabase200 => ({success: faker.datatype.boolean(), migrated: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerConfigureEvolutionResponseMock = (overrideResponse: Partial< SetupControllerConfigureEvolution200 > = {}): SetupControllerConfigureEvolution200 => ({success: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerStatusResponseMock = (overrideResponse: Partial< SetupControllerStatus200 > = {}): SetupControllerStatus200 => ({databaseConfigured: faker.datatype.boolean(), claudeConfigured: faker.datatype.boolean(), evolutionConfigured: faker.datatype.boolean(), completed: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerGenerateNgrokWebhookResponseMock = (overrideResponse: Partial< SetupControllerGenerateNgrokWebhook200 > = {}): SetupControllerGenerateNgrokWebhook200 => ({webhookUrl: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 
 export const getWebhookControllerReceiveResponseMock = (overrideResponse: Partial< WebhookControllerReceive200 > = {}): WebhookControllerReceive200 => ({ok: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), ...overrideResponse})
 
@@ -427,6 +445,78 @@ export const getQueueStateControllerGetStateMockHandler = (overrideResponse?: Qu
   }, options)
 }
 
+export const getSetupControllerConfigureClaudeMockHandler = (overrideResponse?: SetupControllerConfigureClaude200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureClaude200> | SetupControllerConfigureClaude200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/claude', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerConfigureClaudeResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerCompleteMockHandler = (overrideResponse?: SetupControllerComplete200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerComplete200> | SetupControllerComplete200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/complete', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerCompleteResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerConfigureDatabaseMockHandler = (overrideResponse?: SetupControllerConfigureDatabase200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureDatabase200> | SetupControllerConfigureDatabase200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/database', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerConfigureDatabaseResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerConfigureEvolutionMockHandler = (overrideResponse?: SetupControllerConfigureEvolution200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureEvolution200> | SetupControllerConfigureEvolution200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/evolution', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerConfigureEvolutionResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerStatusMockHandler = (overrideResponse?: SetupControllerStatus200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SetupControllerStatus200> | SetupControllerStatus200), options?: RequestHandlerOptions) => {
+  return http.get('*/setup/status', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerStatusResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getSetupControllerGenerateNgrokWebhookMockHandler = (overrideResponse?: SetupControllerGenerateNgrokWebhook200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerGenerateNgrokWebhook200> | SetupControllerGenerateNgrokWebhook200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/webhook/ngrok', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerGenerateNgrokWebhookResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getWebhookControllerReceiveMockHandler = (overrideResponse?: WebhookControllerReceive200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<WebhookControllerReceive200> | WebhookControllerReceive200), options?: RequestHandlerOptions) => {
   return http.post('*/webhook/evolution', async (info) => {await delay(1000);
   
@@ -468,5 +558,11 @@ export const getClaudeCodeApiMock = () => [
   getQueueStateControllerIncrementMockHandler(),
   getQueueStateControllerUpdateLastProcessedMockHandler(),
   getQueueStateControllerGetStateMockHandler(),
+  getSetupControllerConfigureClaudeMockHandler(),
+  getSetupControllerCompleteMockHandler(),
+  getSetupControllerConfigureDatabaseMockHandler(),
+  getSetupControllerConfigureEvolutionMockHandler(),
+  getSetupControllerStatusMockHandler(),
+  getSetupControllerGenerateNgrokWebhookMockHandler(),
   getWebhookControllerReceiveMockHandler()
 ]

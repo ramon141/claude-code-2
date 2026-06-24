@@ -7,7 +7,7 @@ import {
   QueueStateRepository,
 } from '../repositories';
 import {QueueManager} from '../queue/queueManager';
-import {LoopBackStorageRepository} from '../repositories/loopback-storage.repository';
+import {LoopBackStorageRepository} from '../repositories/loopback-storage';
 
 const CLAUDE_COMMAND = process.env.CLAUDE_COMMAND ?? 'claude';
 const TIMEOUT_SECONDS = Number(process.env.TIMEOUT ?? '3600');
@@ -29,6 +29,10 @@ export class QueueService implements LifeCycleObserver {
   }
 
   async start(): Promise<void> {
+    if (!process.env.DATABASE_URL) {
+      console.log('[queue] modo setup — fila aguardando configuração do banco');
+      return;
+    }
     void this.manager.start();
   }
 

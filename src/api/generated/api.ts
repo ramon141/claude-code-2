@@ -46,6 +46,16 @@ import type {
   PromptsControllerUpdateByIdBody,
   QueueState,
   QueueStateControllerIncrementBody,
+  SetupControllerComplete200,
+  SetupControllerConfigureClaude200,
+  SetupControllerConfigureClaudeBody,
+  SetupControllerConfigureDatabase200,
+  SetupControllerConfigureDatabaseBody,
+  SetupControllerConfigureEvolution200,
+  SetupControllerConfigureEvolutionBody,
+  SetupControllerGenerateNgrokWebhook200,
+  SetupControllerGenerateNgrokWebhookBody,
+  SetupControllerStatus200,
   WebhookControllerReceive200,
   WebhookControllerReceiveBody
 } from './models';
@@ -1782,6 +1792,361 @@ export function useQueueStateControllerGetState<TData = Awaited<ReturnType<typeo
 
 
 
+export const setupControllerConfigureClaude = (
+    setupControllerConfigureClaudeBody: SetupControllerConfigureClaudeBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerConfigureClaude200>(
+      {url: `/setup/claude`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerConfigureClaudeBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerConfigureClaudeMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureClaude>>, TError,{data: SetupControllerConfigureClaudeBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureClaude>>, TError,{data: SetupControllerConfigureClaudeBody}, TContext> => {
+
+const mutationKey = ['setupControllerConfigureClaude'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureClaude>>, {data: SetupControllerConfigureClaudeBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerConfigureClaude(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerConfigureClaudeMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigureClaude>>>
+    export type SetupControllerConfigureClaudeMutationBody = SetupControllerConfigureClaudeBody
+    export type SetupControllerConfigureClaudeMutationError = unknown
+
+    export const useSetupControllerConfigureClaude = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureClaude>>, TError,{data: SetupControllerConfigureClaudeBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerConfigureClaude>>,
+        TError,
+        {data: SetupControllerConfigureClaudeBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerConfigureClaudeMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerComplete = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerComplete200>(
+      {url: `/setup/complete`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerCompleteMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerComplete>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerComplete>>, TError,void, TContext> => {
+
+const mutationKey = ['setupControllerComplete'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerComplete>>, void> = () => {
+          
+
+          return  setupControllerComplete()
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerComplete>>>
+    
+    export type SetupControllerCompleteMutationError = unknown
+
+    export const useSetupControllerComplete = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerComplete>>, TError,void, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerComplete>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerCompleteMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerConfigureDatabase = (
+    setupControllerConfigureDatabaseBody: SetupControllerConfigureDatabaseBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerConfigureDatabase200>(
+      {url: `/setup/database`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerConfigureDatabaseBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerConfigureDatabaseMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext> => {
+
+const mutationKey = ['setupControllerConfigureDatabase'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, {data: SetupControllerConfigureDatabaseBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerConfigureDatabase(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerConfigureDatabaseMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>>
+    export type SetupControllerConfigureDatabaseMutationBody = SetupControllerConfigureDatabaseBody
+    export type SetupControllerConfigureDatabaseMutationError = unknown
+
+    export const useSetupControllerConfigureDatabase = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerConfigureDatabase>>,
+        TError,
+        {data: SetupControllerConfigureDatabaseBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerConfigureDatabaseMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerConfigureEvolution = (
+    setupControllerConfigureEvolutionBody: SetupControllerConfigureEvolutionBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerConfigureEvolution200>(
+      {url: `/setup/evolution`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerConfigureEvolutionBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerConfigureEvolutionMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureEvolution>>, TError,{data: SetupControllerConfigureEvolutionBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureEvolution>>, TError,{data: SetupControllerConfigureEvolutionBody}, TContext> => {
+
+const mutationKey = ['setupControllerConfigureEvolution'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureEvolution>>, {data: SetupControllerConfigureEvolutionBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerConfigureEvolution(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerConfigureEvolutionMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigureEvolution>>>
+    export type SetupControllerConfigureEvolutionMutationBody = SetupControllerConfigureEvolutionBody
+    export type SetupControllerConfigureEvolutionMutationError = unknown
+
+    export const useSetupControllerConfigureEvolution = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureEvolution>>, TError,{data: SetupControllerConfigureEvolutionBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerConfigureEvolution>>,
+        TError,
+        {data: SetupControllerConfigureEvolutionBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerConfigureEvolutionMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerStatus = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerStatus200>(
+      {url: `/setup/status`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getSetupControllerStatusQueryKey = () => {
+    return [
+    `/setup/status`
+    ] as const;
+    }
+
+    
+export const getSetupControllerStatusQueryOptions = <TData = Awaited<ReturnType<typeof setupControllerStatus>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerStatus>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSetupControllerStatusQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof setupControllerStatus>>> = ({ signal }) => setupControllerStatus(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof setupControllerStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SetupControllerStatusQueryResult = NonNullable<Awaited<ReturnType<typeof setupControllerStatus>>>
+export type SetupControllerStatusQueryError = unknown
+
+
+
+export function useSetupControllerStatus<TData = Awaited<ReturnType<typeof setupControllerStatus>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerStatus>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSetupControllerStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const setupControllerGenerateNgrokWebhook = (
+    setupControllerGenerateNgrokWebhookBody: SetupControllerGenerateNgrokWebhookBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerGenerateNgrokWebhook200>(
+      {url: `/setup/webhook/ngrok`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerGenerateNgrokWebhookBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerGenerateNgrokWebhookMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>, TError,{data: SetupControllerGenerateNgrokWebhookBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>, TError,{data: SetupControllerGenerateNgrokWebhookBody}, TContext> => {
+
+const mutationKey = ['setupControllerGenerateNgrokWebhook'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>, {data: SetupControllerGenerateNgrokWebhookBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerGenerateNgrokWebhook(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerGenerateNgrokWebhookMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>>
+    export type SetupControllerGenerateNgrokWebhookMutationBody = SetupControllerGenerateNgrokWebhookBody
+    export type SetupControllerGenerateNgrokWebhookMutationError = unknown
+
+    export const useSetupControllerGenerateNgrokWebhook = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>, TError,{data: SetupControllerGenerateNgrokWebhookBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerGenerateNgrokWebhook>>,
+        TError,
+        {data: SetupControllerGenerateNgrokWebhookBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerGenerateNgrokWebhookMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const webhookControllerReceive = (
     webhookControllerReceiveBody: WebhookControllerReceiveBody,
  signal?: AbortSignal

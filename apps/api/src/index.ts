@@ -1,16 +1,14 @@
 import 'dotenv/config';
+import './config/bootstrap';
 import {ApplicationConfig, ClaudeCodeApiApplication} from './application';
 import {RestServer} from '@loopback/rest';
 import {setupWebSocketServer} from './services/ws-server';
+import {applyConfigToEnv, readConfig} from './config/app-config';
 import http from 'http';
 
 export * from './application';
 
-const REQUIRED_ENV_VARS = [
-  'ENCRYPTION_KEY',
-  'EVOLUTION_WEBHOOK_SECRET',
-  'DATABASE_URL',
-];
+const REQUIRED_ENV_VARS = ['ENCRYPTION_KEY'];
 
 function assertEnvVars(): void {
   const missing = REQUIRED_ENV_VARS.filter(v => !process.env[v]);
@@ -20,6 +18,7 @@ function assertEnvVars(): void {
 }
 
 export async function main(options: ApplicationConfig = {}) {
+  applyConfigToEnv(readConfig());
   assertEnvVars();
   const app = new ClaudeCodeApiApplication(options);
   await app.boot();

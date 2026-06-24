@@ -5,3 +5,4 @@ export * from './projects.controller';
 export * from './claude-code-api-keys.controller';
 export * from './auth.controller';
 export * from './webhook.controller';
+export * from './setup.controller';

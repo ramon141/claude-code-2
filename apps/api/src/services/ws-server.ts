@@ -22,16 +22,16 @@ function getClientIp(req: http.IncomingMessage): string {
   return req.socket.remoteAddress ?? 'unknown';
 }
 
+const DEFAULT_ALLOWED_ORIGINS = [
+  'tauri://localhost',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://127.0.0.1:3000',
+];
+
 function isOriginAllowed(req: http.IncomingMessage): boolean {
-  const allowedEnv = process.env.WEBSOCKET_ALLOWED_ORIGINS;
-  if (!allowedEnv) {
-    if (process.env.NODE_ENV === 'production') {
-      console.warn('[ws] WEBSOCKET_ALLOWED_ORIGINS não configurado em produção — conexão rejeitada');
-      return false;
-    }
-    return true;
-  }
-  const allowed = allowedEnv.split(',').map(o => o.trim());
+  const allowed = DEFAULT_ALLOWED_ORIGINS;
   const origin = req.headers['origin'];
   if (!origin) return false;
   return allowed.includes(origin);

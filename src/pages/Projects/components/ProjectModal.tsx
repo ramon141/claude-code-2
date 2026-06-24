@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { X } from 'lucide-react'
+import { X, FolderOpen } from 'lucide-react'
+import { open } from '@tauri-apps/plugin-dialog'
 import type { Project } from '../../../api/generated/models'
 
 const schema = yup.object({
@@ -35,10 +36,17 @@ const textareaClass =
 export default function ProjectModal({ project, onConfirm, onClose, isLoading }: Props) {
   const isEditing = !!project
 
-  const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm<FormValues>({
+  const { register, handleSubmit, reset, setValue, formState: { errors, isValid } } = useForm<FormValues>({
     resolver: yupResolver(schema),
     mode: 'onChange',
   })
+
+  const selectFolder = async () => {
+    const selected = await open({ directory: true, multiple: false })
+    if (typeof selected === 'string') {
+      setValue('workDir', selected, { shouldValidate: true, shouldDirty: true })
+    }
+  }
 
   useEffect(() => {
     if (project) {
@@ -68,7 +76,18 @@ export default function ProjectModal({ project, onConfirm, onClose, isLoading }:
 
           <div>
             <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">Diretório de trabalho</label>
-            <input type="text" placeholder="ex: /home/user/project" {...register('workDir')} className={inputClass} />
+            <div className="flex gap-2">
+              <input type="text" placeholder="ex: /home/user/project" {...register('workDir')} className={inputClass} />
+              <button
+                type="button"
+                onClick={selectFolder}
+                title="Selecionar pasta"
+                className="shrink-0 h-10 px-3 flex items-center gap-2 border border-[#3A3A3A] text-[#9A9A9A] hover:text-[#F5F5F5] hover:border-[#D97757] rounded-lg text-sm transition-colors"
+              >
+                <FolderOpen className="w-4 h-4" />
+                Procurar
+              </button>
+            </div>
             {errors.workDir && <p className="text-xs text-red-400 mt-1">{errors.workDir.message}</p>}
           </div>
 

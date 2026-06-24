@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, User, LayoutDashboard, Terminal, SlidersHorizontal } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, Terminal, SlidersHorizontal } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import ClaudeCodeAccountsTab from './TabPages/ClaudeCodeAccountsTab'
 import DashboardTab from './TabPages/DashboardTab'
-import AccountTab from './TabPages/AccountTab'
 import ApplicationTab from './TabPages/ApplicationTab'
 
 interface Tab {
@@ -17,14 +16,12 @@ const TABS: Tab[] = [
   { id: 'claude-accounts', label: 'Contas Claude', icon: <Terminal className="w-4 h-4" /> },
   { id: 'application',     label: 'Aplicação',     icon: <SlidersHorizontal className="w-4 h-4" /> },
   { id: 'dashboard',       label: 'Dashboard',     icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'account',         label: 'Conta',         icon: <User className="w-4 h-4" /> },
 ]
 
 function TabContent({ activeTab }: { activeTab: string }) {
   if (activeTab === 'claude-accounts') return <ClaudeCodeAccountsTab />
   if (activeTab === 'application') return <ApplicationTab />
-  if (activeTab === 'dashboard') return <DashboardTab />
-  return <AccountTab />
+  return <DashboardTab />
 }
 
 export default function Settings() {

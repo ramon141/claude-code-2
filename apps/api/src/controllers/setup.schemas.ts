@@ -44,6 +44,10 @@ export type AuthTokenBody = {
   token: string;
 };
 
+export type PhonesBody = {
+  phones: string[];
+};
+
 export type NgrokUrlResult = {
   url: string | null;
 };
@@ -58,6 +62,7 @@ export type AppConfigView = {
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
   authConfigured: boolean;
+  allowedPhones: string[];
 };
 
 const TYPE_STRING = 'string';
@@ -169,6 +174,14 @@ export const authTokenSchema: SchemaObject = {
   },
 };
 
+export const phonesSchema: SchemaObject = {
+  type: 'object',
+  required: ['phones'],
+  properties: {
+    phones: {type: 'array', items: {type: TYPE_STRING}},
+  },
+};
+
 export const ngrokUrlResultSchema: SchemaObject = {
   type: 'object',
   required: ['url'],
@@ -189,6 +202,7 @@ export const appConfigViewSchema: SchemaObject = {
     'websocketAllowedOrigins',
     'ngrokEnabled',
     'authConfigured',
+    'allowedPhones',
   ],
   properties: {
     databaseUrl: {type: TYPE_STRING},
@@ -200,5 +214,6 @@ export const appConfigViewSchema: SchemaObject = {
     websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
     ngrokEnabled: {type: TYPE_BOOLEAN},
     authConfigured: {type: TYPE_BOOLEAN},
+    allowedPhones: {type: 'array', items: {type: TYPE_STRING}},
   },
 };

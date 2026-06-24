@@ -18,6 +18,7 @@ export type AppConfig = {
   ngrokEnabled: boolean;
   claudeRotationEnabled: boolean;
   apiAuthToken: string;
+  allowedPhones: string[];
   setupCompleted: boolean;
 };
 
@@ -55,6 +56,7 @@ function defaultConfig(): AppConfig {
     ngrokEnabled: false,
     claudeRotationEnabled: false,
     apiAuthToken: '',
+    allowedPhones: [],
     setupCompleted: false,
   };
 }
@@ -87,6 +89,7 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
     ngrokEnabled: parsed.ngrokEnabled ?? base.ngrokEnabled,
     claudeRotationEnabled: parsed.claudeRotationEnabled ?? base.claudeRotationEnabled,
     apiAuthToken: parsed.apiAuthToken ?? base.apiAuthToken,
+    allowedPhones: parsed.allowedPhones ?? base.allowedPhones,
     setupCompleted: parsed.setupCompleted ?? base.setupCompleted,
   };
 }

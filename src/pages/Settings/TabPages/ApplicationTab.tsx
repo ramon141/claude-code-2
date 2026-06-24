@@ -4,6 +4,7 @@ import { useRestartWatcher } from '../hooks/useRestartWatcher'
 import DatabaseSection from './application/DatabaseSection'
 import ClaudeSection from './application/ClaudeSection'
 import EvolutionSection from './application/EvolutionSection'
+import PhoneAllowlistSection from './application/PhoneAllowlistSection'
 import NgrokSection from './application/NgrokSection'
 import AuthSection from './application/AuthSection'
 import WebsocketSection from './application/WebsocketSection'
@@ -46,6 +47,7 @@ const ApplicationTab: React.FC = () => {
         token={data.evolutionToken}
         instanceName={data.evolutionInstanceName}
       />
+      <PhoneAllowlistSection allowedPhones={data.allowedPhones} />
       <NgrokSection enabled={data.ngrokEnabled} onNeedRestart={triggerRestart} />
       <AuthSection authConfigured={data.authConfigured} />
       <WebsocketSection origins={data.websocketAllowedOrigins} />

@@ -59,6 +59,8 @@ import type {
   SetupControllerConfigureDatabaseBody,
   SetupControllerConfigureEvolution200,
   SetupControllerConfigureEvolutionBody,
+  SetupControllerConfigurePhones200,
+  SetupControllerConfigurePhonesBody,
   SetupControllerConfigureWebsocket200,
   SetupControllerConfigureWebsocketBody,
   SetupControllerGenerateNgrokWebhook200,
@@ -2397,6 +2399,65 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getSetupControllerToggleNgrokMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerConfigurePhones = (
+    setupControllerConfigurePhonesBody: SetupControllerConfigurePhonesBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerConfigurePhones200>(
+      {url: `/setup/phones`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerConfigurePhonesBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerConfigurePhonesMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigurePhones>>, TError,{data: SetupControllerConfigurePhonesBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigurePhones>>, TError,{data: SetupControllerConfigurePhonesBody}, TContext> => {
+
+const mutationKey = ['setupControllerConfigurePhones'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigurePhones>>, {data: SetupControllerConfigurePhonesBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerConfigurePhones(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerConfigurePhonesMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigurePhones>>>
+    export type SetupControllerConfigurePhonesMutationBody = SetupControllerConfigurePhonesBody
+    export type SetupControllerConfigurePhonesMutationError = unknown
+
+    export const useSetupControllerConfigurePhones = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigurePhones>>, TError,{data: SetupControllerConfigurePhonesBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerConfigurePhones>>,
+        TError,
+        {data: SetupControllerConfigurePhonesBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerConfigurePhonesMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

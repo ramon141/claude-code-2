@@ -6,6 +6,8 @@ import {ChatSession, Prompt, PromptStatus} from '../models';
 import {ChatSessionRepository, PromptRepository, ProjectRepository} from '../repositories';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
 import {RATE_LIMITER_BINDING, RateLimiterService} from '../services/rate-limiter.service';
+import {NORMALIZED_PHONE_REGEX, normalizePhone} from '../services/phone';
+import {readConfig} from '../config/app-config';
 
 type EvolutionKey = {
   remoteJid: string;
@@ -50,17 +52,12 @@ function validateWebhookSecret(req: Request): void {
   if (!valid) throw new HttpErrors.Unauthorized('Invalid webhook token');
 }
 
-const NORMALIZED_PHONE_REGEX = /^55\d{10,11}$/;
-
-function normalizePhone(raw: string): string {
-  const digits = raw.replace(/\D/g, '');
-  if (digits.length < 8 || digits.length > 13) return '';
-  const withCountry = digits.startsWith('55') ? digits : `55${digits}`;
-  const afterCountry = withCountry.slice(2);
-  if (afterCountry.length === 10) {
-    return `55${afterCountry.slice(0, 2)}9${afterCountry.slice(2)}`;
-  }
-  return withCountry;
+// Allowlist vazia = aceita qualquer número. Com entradas, só os números
+// listados (já normalizados ao salvar) podem disparar prompts.
+function isPhoneAllowed(phone: string): boolean {
+  const allowed = readConfig().allowedPhones;
+  if (allowed.length === 0) return true;
+  return allowed.includes(phone);
 }
 
 function extractPhone(remoteJid: string): string {
@@ -72,6 +69,8 @@ function extractText(message: EvolutionMessageContent): string | null {
   if (message.extendedTextMessage?.text) return message.extendedTextMessage.text;
   return null;
 }
+
+const SWITCH_PROJECT_HINT = 'Envie *!project* a qualquer momento para escolher outro projeto.';
 
 const WEBHOOK_GLOBAL_MAX = 300;
 const WEBHOOK_GLOBAL_WINDOW_MS = 60 * 1000;
@@ -120,6 +119,7 @@ export class WebhookController {
 
     const phone = extractPhone(payload.data.key.remoteJid);
     if (!NORMALIZED_PHONE_REGEX.test(phone)) return;
+    if (!isPhoneAllowed(phone)) return;
 
     const text = extractText(payload.data.message ?? {});
     if (!text) return;
@@ -152,7 +152,10 @@ export class WebhookController {
       return;
     }
     const list = projects.map((p, i) => `${i + 1}. ${p.name}`).join('\n');
-    await this.evolutionService.sendText(phone, `Seus projetos:\n${list}\n\nResponda com o número do projeto.`);
+    await this.evolutionService.sendText(
+      phone,
+      `Seus projetos:\n${list}\n\nResponda com o número do projeto.\n\n${SWITCH_PROJECT_HINT}`,
+    );
     phoneState.set(phone, {kind: 'selecting'});
   }
 
@@ -167,7 +170,10 @@ export class WebhookController {
     }
     await this.upsertChatSession(phone, project.id);
     phoneState.set(phone, {kind: 'active', projectId: project.id});
-    await this.evolutionService.sendText(phone, `Projeto *${project.name}* selecionado! Pode enviar seu prompt.`);
+    await this.evolutionService.sendText(
+      phone,
+      `Projeto *${project.name}* selecionado! Pode enviar seu prompt.\n\n${SWITCH_PROJECT_HINT}`,
+    );
   }
 
   private async upsertChatSession(phone: string, projectId: number): Promise<void> {

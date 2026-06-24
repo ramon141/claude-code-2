@@ -16,4 +16,5 @@ export type SetupControllerConfig200 = {
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
   authConfigured: boolean;
+  allowedPhones: string[];
 };

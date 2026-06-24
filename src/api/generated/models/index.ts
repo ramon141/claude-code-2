@@ -52,6 +52,8 @@ export * from './setupControllerConfigureDatabase200';
 export * from './setupControllerConfigureDatabaseBody';
 export * from './setupControllerConfigureEvolution200';
 export * from './setupControllerConfigureEvolutionBody';
+export * from './setupControllerConfigurePhones200';
+export * from './setupControllerConfigurePhonesBody';
 export * from './setupControllerConfigureWebsocket200';
 export * from './setupControllerConfigureWebsocketBody';
 export * from './setupControllerGenerateNgrokWebhook200';

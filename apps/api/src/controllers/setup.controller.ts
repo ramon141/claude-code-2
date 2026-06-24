@@ -2,6 +2,7 @@ import {HttpErrors, SchemaObject, get, post, requestBody, response} from '@loopb
 import {ensureWebhookSecret, readConfig, writeConfig} from '../config/app-config';
 import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
+import {normalizePhone} from '../services/phone';
 import {registerEvolutionWebhook} from '../config/evolution-webhook';
 import {
   AppConfigView,
@@ -13,10 +14,12 @@ import {
   NgrokUrlResult,
   NgrokWebhookBody,
   NgrokWebhookResult,
+  PhonesBody,
   SetupStatus,
   WebsocketSetupBody,
   appConfigViewSchema,
   authTokenSchema,
+  phonesSchema,
   claudeSetupSchema,
   completeResultSchema,
   databaseResultSchema,
@@ -70,7 +73,20 @@ export class SetupController {
       websocketAllowedOrigins: cfg.websocketAllowedOrigins,
       ngrokEnabled: cfg.ngrokEnabled,
       authConfigured: cfg.apiAuthToken.length > 0,
+      allowedPhones: cfg.allowedPhones,
     };
+  }
+
+  @post('/setup/phones')
+  @response(OK, okSpec('Telefones permitidos atualizados', successResultSchema))
+  configurePhones(
+    @requestBody(jsonBody(phonesSchema)) body: PhonesBody,
+  ): {success: boolean} {
+    const normalized = body.phones
+      .map(p => normalizePhone(p))
+      .filter(p => p.length > 0);
+    writeConfig({allowedPhones: Array.from(new Set(normalized))});
+    return {success: true};
   }
 
   @post('/setup/auth')

@@ -72,6 +72,12 @@ function extractText(message: EvolutionMessageContent): string | null {
 
 const SWITCH_PROJECT_HINT = 'Envie *!project* a qualquer momento para escolher outro projeto.';
 
+const WA_CHAT_PREFIX = 'wa-';
+
+function chatNameFor(phone: string): string {
+  return `${WA_CHAT_PREFIX}${phone}`;
+}
+
 const WEBHOOK_GLOBAL_MAX = 300;
 const WEBHOOK_GLOBAL_WINDOW_MS = 60 * 1000;
 const WEBHOOK_PER_PHONE_MAX = 30;
@@ -177,7 +183,7 @@ export class WebhookController {
   }
 
   private async upsertChatSession(phone: string, projectId: number): Promise<void> {
-    const chatName = `wa-${phone}`;
+    const chatName = chatNameFor(phone);
     const existing = await this.chatSessionRepo.findOne({where: {chatName}});
     if (existing) {
       await this.chatSessionRepo.updateById(existing.id, {projectId, sessionId: null});
@@ -199,7 +205,7 @@ export class WebhookController {
       await this.startProjectSelection(phone);
       return;
     }
-    const chatName = `wa-${phone}`;
+    const chatName = chatNameFor(phone);
     const session = await this.chatSessionRepo.findOne({where: {chatName}});
     if (!session) {
       await this.startProjectSelection(phone);

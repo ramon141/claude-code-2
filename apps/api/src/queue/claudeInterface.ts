@@ -11,9 +11,20 @@ type StreamEvent = {
   is_error?: boolean;
 };
 
+type CliStreamState = {
+  buffer: string;
+  stderr: string;
+  currentOutput: string;
+  sessionId: string | null;
+  finalResult: string | null;
+  isFinalError: boolean;
+  timedOut: boolean;
+};
+
 const STREAM_FLUSH_INTERVAL_MS = 5_000;
 const VERIFY_TIMEOUT_MS = 10_000;
 const LIMIT_MESSAGE_MAX_CHARS = 500;
+const ERROR_OUTPUT_PREVIEW_CHARS = 200;
 const FIVE_HOURS_MS = 5 * 60 * 60 * 1000;
 const SECONDS_TO_MS = 1000;
 const RESET_HOUR_WINDOWS = [5, 10, 15, 20] as const;
@@ -93,63 +104,75 @@ export class ClaudeCodeInterface {
       const child: ChildProcess = spawn(this.claudeCommand, this.buildSpawnArgs(prompt, workingDir), {
         cwd: workingDir, env: spawnEnv, stdio: ['ignore', 'pipe', 'pipe'],
       });
-      let buffer = '';
-      let stderr = '';
-      let currentOutput = '';
-      let sessionId: string | null = null;
-      let finalResult: string | null = null;
-      let isFinalError = false;
-      let timedOut = false;
+      const state = this.createStreamState();
 
-      const killTimer = setTimeout(() => {timedOut = true; child.kill();}, this.timeout * SECONDS_TO_MS);
+      const killTimer = setTimeout(() => {state.timedOut = true; child.kill();}, this.timeout * SECONDS_TO_MS);
       const flushTimer = onOutputFlush
-        ? setInterval(() => {if (currentOutput) void onOutputFlush(currentOutput).catch(() => {});}, STREAM_FLUSH_INTERVAL_MS)
+        ? setInterval(() => {if (state.currentOutput) void onOutputFlush(state.currentOutput).catch(() => {});}, STREAM_FLUSH_INTERVAL_MS)
         : null;
+      const clearTimers = () => {
+        clearTimeout(killTimer);
+        if (flushTimer) clearInterval(flushTimer);
+      };
 
       child.stdout?.setEncoding('utf-8');
       child.stderr?.setEncoding('utf-8');
 
-      child.stdout?.on('data', (chunk: string) => {
-        buffer += chunk;
-        const lines = buffer.split('\n');
-        buffer = lines.pop() ?? '';
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          const event = this.parseStreamLine(line);
-          if (!event) continue;
-          const delta = this.extractTextDelta(event);
-          if (delta) currentOutput += delta;
-          if (event.type === 'result') {
-            finalResult = event.result ?? null;
-            sessionId = event.session_id ?? null;
-            isFinalError = event.is_error ?? false;
-          }
-        }
-      });
-
-      child.stderr?.on('data', (c: string) => {stderr += c;});
+      child.stdout?.on('data', (chunk: string) => this.handleStdoutChunk(chunk, state));
+      child.stderr?.on('data', (c: string) => {state.stderr += c;});
 
       child.on('close', code => {
-        clearTimeout(killTimer);
-        if (flushTimer) clearInterval(flushTimer);
-        const executionTime = (Date.now() - startTime) / SECONDS_TO_MS;
-        if (timedOut) {
-          resolve(new ExecutionResult({success: false, output: '', error: `Execution timed out after ${this.timeout}s`, executionTime}));
-          return;
-        }
-        const output = finalResult ?? currentOutput;
-        const rateLimitInfo = this.detectRateLimit(output + stderr);
-        const success = code === 0 && !rateLimitInfo.isRateLimited && !isFinalError;
-        if (!success) console.error(`✗ CLI exit code=${code} isFinalError=${isFinalError} stderr=${JSON.stringify(stderr)} output=${JSON.stringify(output.substring(0, 200))}`);
-        resolve(new ExecutionResult({success, output, error: stderr, rateLimitInfo, executionTime, sessionId}));
+        clearTimers();
+        resolve(this.buildCloseResult(code, state, startTime));
       });
 
       child.on('error', err => {
-        clearTimeout(killTimer);
-        if (flushTimer) clearInterval(flushTimer);
+        clearTimers();
         resolve(new ExecutionResult({success: false, output: '', error: `Execution failed: ${err.message}`, executionTime: (Date.now() - startTime) / SECONDS_TO_MS}));
       });
     });
+  }
+
+  private createStreamState(): CliStreamState {
+    return {
+      buffer: '',
+      stderr: '',
+      currentOutput: '',
+      sessionId: null,
+      finalResult: null,
+      isFinalError: false,
+      timedOut: false,
+    };
+  }
+
+  private handleStdoutChunk(chunk: string, state: CliStreamState): void {
+    state.buffer += chunk;
+    const lines = state.buffer.split('\n');
+    state.buffer = lines.pop() ?? '';
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      const event = this.parseStreamLine(line);
+      if (!event) continue;
+      const delta = this.extractTextDelta(event);
+      if (delta) state.currentOutput += delta;
+      if (event.type === 'result') {
+        state.finalResult = event.result ?? null;
+        state.sessionId = event.session_id ?? null;
+        state.isFinalError = event.is_error ?? false;
+      }
+    }
+  }
+
+  private buildCloseResult(code: number | null, state: CliStreamState, startTime: number): ExecutionResult {
+    const executionTime = (Date.now() - startTime) / SECONDS_TO_MS;
+    if (state.timedOut) {
+      return new ExecutionResult({success: false, output: '', error: `Execution timed out after ${this.timeout}s`, executionTime});
+    }
+    const output = state.finalResult ?? state.currentOutput;
+    const rateLimitInfo = this.detectRateLimit(output + state.stderr);
+    const success = code === 0 && !rateLimitInfo.isRateLimited && !state.isFinalError;
+    if (!success) console.error(`✗ CLI exit code=${code} isFinalError=${state.isFinalError} stderr=${JSON.stringify(state.stderr)} output=${JSON.stringify(output.substring(0, ERROR_OUTPUT_PREVIEW_CHARS))}`);
+    return new ExecutionResult({success, output, error: state.stderr, rateLimitInfo, executionTime, sessionId: state.sessionId});
   }
 
   detectRateLimit(output: string): RateLimitInfo {

@@ -19,56 +19,34 @@ export function useClaudeApiKeys() {
   const invalidateKeys = () =>
     queryClient.invalidateQueries({ queryKey: getClaudeCodeApiKeysControllerFindQueryKey() })
 
+  const mutationOpts = (errorMsg: string, successMsg?: string) => ({
+    mutation: {
+      onSuccess: () => {
+        invalidateKeys()
+        if (successMsg) toast.success(successMsg)
+      },
+      onError: () => toast.error(errorMsg),
+    },
+  })
+
   const { data: apiKeys = [], isLoading } = useClaudeCodeApiKeysControllerFind()
 
   const activeApiKeyId = apiKeys.find(k => k.isActive)?.id ?? null
 
-  const { mutateAsync: createMutation, isLoading: isCreating } = useClaudeCodeApiKeysControllerCreate({
-    mutation: {
-      onSuccess: () => {
-        invalidateKeys()
-        toast.success('API Key criada com sucesso!')
-      },
-      onError: () => toast.error('Erro ao criar API Key.'),
-    },
-  })
+  const { mutateAsync: createMutation, isLoading: isCreating } =
+    useClaudeCodeApiKeysControllerCreate(mutationOpts('Erro ao criar API Key.', 'API Key criada com sucesso!'))
 
-  const { mutateAsync: updateMutation, isLoading: isUpdating } = useClaudeCodeApiKeysControllerUpdateById({
-    mutation: {
-      onSuccess: () => {
-        invalidateKeys()
-        toast.success('API Key atualizada com sucesso!')
-      },
-      onError: () => toast.error('Erro ao atualizar API Key.'),
-    },
-  })
+  const { mutateAsync: updateMutation, isLoading: isUpdating } =
+    useClaudeCodeApiKeysControllerUpdateById(mutationOpts('Erro ao atualizar API Key.', 'API Key atualizada com sucesso!'))
 
-  const { mutateAsync: deleteMutation, isLoading: isDeleting } = useClaudeCodeApiKeysControllerDeleteById({
-    mutation: {
-      onSuccess: () => {
-        invalidateKeys()
-        toast.success('API Key removida com sucesso!')
-      },
-      onError: () => toast.error('Erro ao remover API Key.'),
-    },
-  })
+  const { mutateAsync: deleteMutation, isLoading: isDeleting } =
+    useClaudeCodeApiKeysControllerDeleteById(mutationOpts('Erro ao remover API Key.', 'API Key removida com sucesso!'))
 
-  const { mutateAsync: activateMutation, isLoading: isActivating } = useClaudeCodeApiKeysControllerActivate({
-    mutation: {
-      onSuccess: () => {
-        invalidateKeys()
-        toast.success('API Key ativada com sucesso!')
-      },
-      onError: () => toast.error('Erro ao ativar API Key.'),
-    },
-  })
+  const { mutateAsync: activateMutation, isLoading: isActivating } =
+    useClaudeCodeApiKeysControllerActivate(mutationOpts('Erro ao ativar API Key.', 'API Key ativada com sucesso!'))
 
-  const { mutateAsync: rotationMutation, isLoading: isTogglingRotation } = useClaudeCodeApiKeysControllerUpdateById({
-    mutation: {
-      onSuccess: () => invalidateKeys(),
-      onError: () => toast.error('Erro ao atualizar rodízio da conta.'),
-    },
-  })
+  const { mutateAsync: rotationMutation, isLoading: isTogglingRotation } =
+    useClaudeCodeApiKeysControllerUpdateById(mutationOpts('Erro ao atualizar rodízio da conta.'))
 
   const createApiKey = (data: ClaudeCodeApiKeysControllerCreateBody) =>
     createMutation({ data })

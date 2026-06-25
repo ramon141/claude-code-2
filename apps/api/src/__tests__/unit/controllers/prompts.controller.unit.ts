@@ -4,9 +4,10 @@ import {PromptsController, CreatePromptBody} from '../../../controllers/prompts.
 import {PromptRepository, PromptContextFileRepository, ChatSessionRepository} from '../../../repositories';
 import {NotificationService} from '../../../services/notification.service';
 import {EvolutionService} from '../../../services/evolution.service';
+import {QueueService} from '../../../services/queue.service';
 import {Prompt, ChatSession} from '../../../models';
 
-const mockRes = {status: sinon.stub().returnsThis()} as unknown as Response;
+const mockRes = {status: sinon.stub().returnsThis()} as Partial<Response> as Response;
 
 describe('PromptsController (unit)', () => {
   let controller: PromptsController;
@@ -57,12 +58,12 @@ describe('PromptsController (unit)', () => {
     notificationService = sinon.createStubInstance(NotificationService);
     evolutionService = sinon.createStubInstance(EvolutionService);
     controller = new PromptsController(
-      promptRepo as unknown as PromptRepository,
-      contextFileRepo as unknown as PromptContextFileRepository,
-      chatSessionRepo as unknown as ChatSessionRepository,
-      notificationService as unknown as NotificationService,
-      evolutionService as unknown as EvolutionService,
-      {triggerIteration: () => {}} as unknown as import('../../../services/queue.service').QueueService,
+      promptRepo,
+      contextFileRepo,
+      chatSessionRepo,
+      notificationService,
+      evolutionService,
+      {triggerIteration: () => {}} as Partial<QueueService> as QueueService,
     );
   });
 

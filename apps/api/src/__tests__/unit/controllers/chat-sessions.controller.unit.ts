@@ -4,7 +4,7 @@ import {ChatSessionsController} from '../../../controllers/chat-sessions.control
 import {ChatSessionRepository, ProjectRepository, PromptRepository} from '../../../repositories';
 import {ChatSession, Project, Prompt} from '../../../models';
 
-const mockRes = {status: sinon.stub().returnsThis()} as unknown as Response;
+const mockRes = {status: sinon.stub().returnsThis()} as Partial<Response> as Response;
 
 describe('ChatSessionsController (unit)', () => {
   let controller: ChatSessionsController;
@@ -39,9 +39,9 @@ describe('ChatSessionsController (unit)', () => {
     promptRepo = sinon.createStubInstance(PromptRepository);
     projectRepo = sinon.createStubInstance(ProjectRepository);
     controller = new ChatSessionsController(
-      chatSessionRepo as unknown as ChatSessionRepository,
-      promptRepo as unknown as PromptRepository,
-      projectRepo as unknown as ProjectRepository,
+      chatSessionRepo,
+      promptRepo,
+      projectRepo,
     );
   });
 

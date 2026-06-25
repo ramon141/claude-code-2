@@ -4,7 +4,7 @@ import {ProjectsController} from '../../../controllers/projects.controller';
 import {ProjectRepository} from '../../../repositories';
 import {Project} from '../../../models';
 
-const mockRes = {status: sinon.stub().returnsThis()} as unknown as Response;
+const mockRes = {status: sinon.stub().returnsThis()} as Partial<Response> as Response;
 
 describe('ProjectsController (unit)', () => {
   let controller: ProjectsController;
@@ -22,7 +22,7 @@ describe('ProjectsController (unit)', () => {
 
   beforeEach(() => {
     projectRepo = sinon.createStubInstance(ProjectRepository);
-    controller = new ProjectsController(projectRepo as unknown as ProjectRepository);
+    controller = new ProjectsController(projectRepo);
   });
 
   describe('create', () => {

@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, LayoutDashboard, Terminal, SlidersHorizontal } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, Terminal, SlidersHorizontal, MessageCircle } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import ClaudeCodeAccountsTab from './TabPages/ClaudeCodeAccountsTab'
 import DashboardTab from './TabPages/DashboardTab'
 import ApplicationTab from './TabPages/ApplicationTab'
+import WhatsAppTab from './TabPages/WhatsAppTab'
 
 interface Tab {
   id: string
@@ -15,12 +16,14 @@ interface Tab {
 const TABS: Tab[] = [
   { id: 'claude-accounts', label: 'Contas Claude', icon: <Terminal className="w-4 h-4" /> },
   { id: 'application',     label: 'Aplicação',     icon: <SlidersHorizontal className="w-4 h-4" /> },
+  { id: 'whatsapp',        label: 'WhatsApp',      icon: <MessageCircle className="w-4 h-4" /> },
   { id: 'dashboard',       label: 'Dashboard',     icon: <LayoutDashboard className="w-4 h-4" /> },
 ]
 
 function TabContent({ activeTab }: { activeTab: string }) {
   if (activeTab === 'claude-accounts') return <ClaudeCodeAccountsTab />
   if (activeTab === 'application') return <ApplicationTab />
+  if (activeTab === 'whatsapp') return <WhatsAppTab />
   return <DashboardTab />
 }
 

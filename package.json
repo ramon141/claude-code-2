@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "tauri:dev": "npm run build:api && tauri dev",
     "tauri:build": "npm run build:all && tauri build",
     "api:generate": "orval --config orval.config.cjs",
     "api:generate:watch": "orval --config orval.config.cjs --watch"

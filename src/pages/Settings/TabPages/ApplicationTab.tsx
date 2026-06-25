@@ -40,7 +40,7 @@ const ApplicationTab: React.FC = () => {
         timeout={data.timeout}
         onNeedRestart={triggerRestart}
       />
-      <NgrokSection enabled={data.ngrokEnabled} onNeedRestart={triggerRestart} />
+      <NgrokSection enabled={data.ngrokEnabled} domain={data.ngrokDomain} onNeedRestart={triggerRestart} />
       <AuthSection authConfigured={data.authConfigured} />
       <WebsocketSection origins={data.websocketAllowedOrigins} />
     </div>

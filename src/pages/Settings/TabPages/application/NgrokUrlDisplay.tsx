@@ -1,13 +1,28 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Copy, ExternalLink, RefreshCw, Check } from 'lucide-react'
 import { useSetupControllerNgrokUrl } from '../../../../api/generated/api'
 
 const COPY_FEEDBACK_MS = 1500
+const POLL_INTERVAL_MS = 2000
 
-const NgrokUrlDisplay: React.FC = () => {
-  const { data, isLoading, refetch, isFetching } = useSetupControllerNgrokUrl()
+interface NgrokUrlDisplayProps {
+  polling?: boolean
+  expectedDomain?: string
+  onUrlReady?: () => void
+}
+
+const NgrokUrlDisplay: React.FC<NgrokUrlDisplayProps> = ({ polling = false, expectedDomain, onUrlReady }) => {
+  const { data, isLoading, refetch, isFetching } = useSetupControllerNgrokUrl({
+    query: { refetchInterval: polling ? POLL_INTERVAL_MS : false },
+  })
   const [copied, setCopied] = useState(false)
   const url = data?.url ?? ''
+
+  useEffect(() => {
+    if (!polling || !url || !onUrlReady) return
+    const domainMatches = !expectedDomain || url.includes(expectedDomain)
+    if (domainMatches) onUrlReady()
+  }, [polling, url, expectedDomain, onUrlReady])
 
   const copy = async () => {
     if (!url) return
@@ -16,8 +31,13 @@ const NgrokUrlDisplay: React.FC = () => {
     setTimeout(() => setCopied(false), COPY_FEEDBACK_MS)
   }
 
-  if (isLoading) {
-    return <p className="text-[#9A9A9A] text-sm mt-3">Consultando URL pública...</p>
+  if (isLoading || (polling && !url)) {
+    return (
+      <div className="mt-3 flex items-center gap-2 text-[#9A9A9A] text-sm">
+        <RefreshCw className="w-4 h-4 animate-spin" />
+        <span>Aguardando ngrok iniciar...</span>
+      </div>
+    )
   }
 
   if (!url) {

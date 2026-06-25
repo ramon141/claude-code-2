@@ -8,4 +8,5 @@
 
 export type SetupControllerToggleNgrokBody = {
   enabled: boolean;
+  domain?: string;
 };

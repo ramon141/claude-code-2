@@ -38,6 +38,7 @@ export type WebsocketSetupBody = {
 
 export type NgrokToggleBody = {
   enabled: boolean;
+  domain?: string;
 };
 
 export type AuthTokenBody = {
@@ -71,6 +72,7 @@ export type AppConfigView = {
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
+  ngrokDomain: string;
   authConfigured: boolean;
   allowedPhones: string[];
   notificationsEnabled: boolean;
@@ -175,6 +177,7 @@ export const ngrokToggleSchema: SchemaObject = {
   required: ['enabled'],
   properties: {
     enabled: {type: TYPE_BOOLEAN},
+    domain: {type: TYPE_STRING},
   },
 };
 
@@ -231,6 +234,7 @@ export const appConfigViewSchema: SchemaObject = {
     'evolutionInstanceName',
     'websocketAllowedOrigins',
     'ngrokEnabled',
+    'ngrokDomain',
     'authConfigured',
     'allowedPhones',
     'notificationsEnabled',
@@ -245,6 +249,7 @@ export const appConfigViewSchema: SchemaObject = {
     evolutionInstanceName: {type: TYPE_STRING},
     websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
     ngrokEnabled: {type: TYPE_BOOLEAN},
+    ngrokDomain: {type: TYPE_STRING},
     authConfigured: {type: TYPE_BOOLEAN},
     allowedPhones: {type: 'array', items: {type: TYPE_STRING}},
     notificationsEnabled: {type: TYPE_BOOLEAN},

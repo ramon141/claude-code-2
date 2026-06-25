@@ -11,3 +11,4 @@ src-tauri/target
 .DS_Store
 *.tsbuildinfo
 .eslintcache
+.playwright-mcp/

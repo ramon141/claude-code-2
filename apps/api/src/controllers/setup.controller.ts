@@ -1,5 +1,6 @@
 import {HttpErrors, SchemaObject, get, post, requestBody, response} from '@loopback/rest';
 import {ensureWebhookSecret, readConfig, writeConfig} from '../config/app-config';
+import {restartNgrok} from '../services/ngrok-process';
 import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
 import {normalizePhone} from '../services/phone';
@@ -89,11 +90,13 @@ export class SetupController {
   @response(OK, okSpec('Estado do setup', setupStatusSchema))
   status(): SetupStatus {
     const cfg = readConfig();
+    const databaseConfigured = cfg.databaseUrl.length > 0;
+    const claudeConfigured = cfg.claudeCommand.length > 0;
     return {
-      databaseConfigured: cfg.databaseUrl.length > 0,
-      claudeConfigured: cfg.claudeCommand.length > 0,
+      databaseConfigured,
+      claudeConfigured,
       evolutionConfigured: cfg.evolution.url.length > 0,
-      completed: cfg.setupCompleted,
+      completed: cfg.setupCompleted || (databaseConfigured && claudeConfigured),
     };
   }
 
@@ -110,6 +113,7 @@ export class SetupController {
       evolutionInstanceName: cfg.evolution.instanceName,
       websocketAllowedOrigins: cfg.websocketAllowedOrigins,
       ngrokEnabled: cfg.ngrokEnabled,
+      ngrokDomain: cfg.ngrokDomain,
       authConfigured: cfg.apiAuthToken.length > 0,
       allowedPhones: cfg.allowedPhones,
       notificationsEnabled: cfg.notificationsEnabled,
@@ -218,7 +222,9 @@ export class SetupController {
   toggleNgrok(
     @requestBody(jsonBody(ngrokToggleSchema)) body: NgrokToggleBody,
   ): {success: boolean} {
-    writeConfig({ngrokEnabled: body.enabled});
+    const domain = body.domain ?? '';
+    writeConfig({ngrokEnabled: body.enabled, ngrokDomain: domain});
+    void restartNgrok(body.enabled, domain);
     return {success: true};
   }
 

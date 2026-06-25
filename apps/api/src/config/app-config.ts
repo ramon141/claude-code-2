@@ -16,6 +16,7 @@ export type AppConfig = {
   evolution: EvolutionConfig;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
+  ngrokDomain: string;
   claudeRotationEnabled: boolean;
   apiAuthToken: string;
   allowedPhones: string[];
@@ -56,6 +57,7 @@ function defaultConfig(): AppConfig {
     evolution: {...EMPTY_EVOLUTION},
     websocketAllowedOrigins: [...DEFAULT_ALLOWED_ORIGINS],
     ngrokEnabled: false,
+    ngrokDomain: '',
     claudeRotationEnabled: false,
     apiAuthToken: '',
     allowedPhones: [],
@@ -91,6 +93,7 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
         ? parsed.websocketAllowedOrigins
         : base.websocketAllowedOrigins,
     ngrokEnabled: parsed.ngrokEnabled ?? base.ngrokEnabled,
+    ngrokDomain: parsed.ngrokDomain ?? base.ngrokDomain,
     claudeRotationEnabled: parsed.claudeRotationEnabled ?? base.claudeRotationEnabled,
     apiAuthToken: parsed.apiAuthToken ?? base.apiAuthToken,
     allowedPhones: parsed.allowedPhones ?? base.allowedPhones,

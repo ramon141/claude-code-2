@@ -41,27 +41,38 @@ fn resolve_ngrok() -> Option<String> {
 
 // Lê ngrokEnabled do app-config.json. Default false quando o arquivo não existe
 // ou o campo está ausente — o túnel só sobe quando explicitamente habilitado.
-fn is_ngrok_enabled(config_path: &PathBuf) -> bool {
+struct NgrokConfig {
+    enabled: bool,
+    domain: Option<String>,
+}
+
+fn read_ngrok_config(config_path: &PathBuf) -> NgrokConfig {
     let content = match std::fs::read_to_string(config_path) {
         Ok(c) => c,
-        Err(_) => return false,
+        Err(_) => return NgrokConfig { enabled: false, domain: None },
     };
-    serde_json::from_str::<serde_json::Value>(&content)
-        .ok()
-        .and_then(|v| v.get("ngrokEnabled").and_then(|n| n.as_bool()))
-        .unwrap_or(false)
+    let val: serde_json::Value = serde_json::from_str(&content).unwrap_or_default();
+    let enabled = val.get("ngrokEnabled").and_then(|n| n.as_bool()).unwrap_or(false);
+    let domain = val.get("ngrokDomain")
+        .and_then(|d| d.as_str())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+    NgrokConfig { enabled, domain }
 }
 
 // Mantém um túnel ngrok apontando pra API (porta 7300). A URL pública fica
 // disponível na API local do ngrok em http://127.0.0.1:4040/api/tunnels, que o
 // endpoint /setup/webhook/ngrok consulta. Reinicia o túnel se cair.
-async fn start_ngrok(ngrok: String) {
+async fn start_ngrok(ngrok: String, domain: Option<String>) {
     loop {
         let mut cmd = Command::new(&ngrok);
         cmd.arg("http")
             .arg(API_PORT.to_string())
-            .arg("--log=stdout")
-            .stdout(Stdio::null())
+            .arg("--log=stdout");
+        if let Some(ref d) = domain {
+            cmd.arg(format!("--url={}", d));
+        }
+        cmd.stdout(Stdio::null())
             .stderr(Stdio::null());
         match cmd.spawn() {
             Ok(mut child) => {
@@ -155,10 +166,11 @@ pub async fn start_services(app: &AppHandle) {
     }
     ensure_encryption_key(&env_file);
 
-    if is_ngrok_enabled(&config_path) {
+    let ngrok_cfg = read_ngrok_config(&config_path);
+    if ngrok_cfg.enabled {
         match resolve_ngrok() {
             Some(ngrok) => {
-                tokio::spawn(start_ngrok(ngrok));
+                tokio::spawn(start_ngrok(ngrok, ngrok_cfg.domain));
             }
             None => eprintln!("[sidecar] ngrok não encontrado — webhook via ngrok indisponível"),
         }

@@ -56,6 +56,7 @@ export const patchPromptSchema: SchemaObject = {
       type: 'string',
       enum: ['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'],
     },
+    content: {type: 'string'},
     retryCount: {type: 'number'},
     lastExecuted: {type: 'string', format: 'date-time'},
     rateLimitedAt: {type: 'string', format: 'date-time'},
@@ -65,3 +66,5 @@ export const patchPromptSchema: SchemaObject = {
     sessionId: {type: 'string', nullable: true},
   },
 };
+
+export const EDITABLE_STATUSES: PromptStatus[] = ['queued' as PromptStatus, 'rate_limited' as PromptStatus];

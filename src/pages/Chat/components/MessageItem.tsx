@@ -1,10 +1,13 @@
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { usePromptsControllerUpdateById } from '../../../api/generated/api'
 import type { ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
 
 interface Props {
   prompt: ChatSessionsControllerGetPrompts200Item
+  onUpdated?: () => void
 }
 
 type KnownStatus = 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
@@ -49,14 +52,18 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
 }
 
 const KNOWN_STATUSES: KnownStatus[] = ['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited']
+const EDITABLE_STATUSES: KnownStatus[] = ['queued', 'rate_limited']
 
 function isKnownStatus(s: string): s is KnownStatus {
   return (KNOWN_STATUSES as string[]).includes(s)
 }
 
+function isEditable(status?: string): boolean {
+  return !!status && (EDITABLE_STATUSES as string[]).includes(status)
+}
+
 function StatusBadge({ status }: { status?: string }) {
-  if (!status) return null
-  if (!isKnownStatus(status)) return null
+  if (!status || !isKnownStatus(status)) return null
   const config = STATUS_CONFIG[status]
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.className}`}>
@@ -80,8 +87,74 @@ function ContextFileTag({ path }: { path: string }) {
   )
 }
 
-export default function MessageItem({ prompt }: Props) {
+function EditableContent({
+  promptId,
+  content,
+  onCancel,
+  onSaved,
+}: {
+  promptId: number
+  content: string
+  onCancel: () => void
+  onSaved: () => void
+}) {
+  const [value, setValue] = useState(content)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { mutateAsync, isPending } = usePromptsControllerUpdateById()
+
+  useEffect(() => {
+    textareaRef.current?.focus()
+    textareaRef.current?.setSelectionRange(value.length, value.length)
+  }, [value.length])
+
+  const save = async () => {
+    if (value.trim() === content.trim()) { onCancel(); return }
+    await mutateAsync({ id: promptId, data: { content: value.trim() } })
+    onSaved()
+  }
+
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void save()
+    if (e.key === 'Escape') onCancel()
+  }
+
+  return (
+    <div className="space-y-2">
+      <textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKey}
+        rows={Math.max(2, value.split('\n').length)}
+        className="w-full bg-[#1A1A1A] border border-[#D97757]/50 rounded-xl px-3 py-2 text-[#F5F5F5] text-sm resize-none focus:outline-none focus:border-[#D97757]"
+      />
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors"
+        >
+          <X className="w-3.5 h-3.5" />
+          Cancelar
+        </button>
+        <button
+          type="button"
+          onClick={() => void save()}
+          disabled={isPending || !value.trim()}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-[#D97757]/20 text-[#D97757] hover:bg-[#D97757]/30 transition-colors disabled:opacity-50"
+        >
+          <Check className="w-3.5 h-3.5" />
+          Salvar
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default function MessageItem({ prompt, onUpdated }: Props) {
+  const [editing, setEditing] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
+  const canEdit = isEditable(prompt.status)
 
   return (
     <div className="space-y-3">
@@ -94,8 +167,29 @@ export default function MessageItem({ prompt }: Props) {
               ))}
             </div>
           )}
-          <div className="bg-[#D97757]/20 border border-[#D97757]/30 rounded-2xl rounded-tr-sm px-4 py-3">
-            <p className="text-[#F5F5F5] text-sm whitespace-pre-wrap">{prompt.content}</p>
+          <div className="group relative bg-[#D97757]/20 border border-[#D97757]/30 rounded-2xl rounded-tr-sm px-4 py-3">
+            {editing ? (
+              <EditableContent
+                promptId={prompt.id!}
+                content={prompt.content ?? ''}
+                onCancel={() => setEditing(false)}
+                onSaved={() => { setEditing(false); onUpdated?.() }}
+              />
+            ) : (
+              <>
+                <p className="text-[#F5F5F5] text-sm whitespace-pre-wrap">{prompt.content}</p>
+                {canEdit && (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-[#9A9A9A] hover:text-[#F5F5F5] hover:bg-[#3A3A3A] transition-all"
+                    title="Editar prompt"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

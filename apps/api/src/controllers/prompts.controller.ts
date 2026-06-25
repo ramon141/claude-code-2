@@ -11,6 +11,7 @@ import {
   patchPromptSchema,
   promptResponseSchema,
   PromptResponse,
+  EDITABLE_STATUSES,
 } from './prompts.schemas';
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
@@ -33,6 +34,7 @@ export type CreatePromptBody = Omit<
 
 type PatchPromptBody = {
   status?: PromptStatus;
+  content?: string;
   retryCount?: number;
   lastExecuted?: string;
   rateLimitedAt?: string;
@@ -176,7 +178,13 @@ export class PromptsController {
       .findById(id, {include: ['contextFiles']})
       .catch(() => null);
     if (!prompt) throw new HttpErrors.NotFound(`Prompt ${id} not found`);
+    if (body.content !== undefined && !EDITABLE_STATUSES.includes(prompt.status)) {
+      throw new HttpErrors.UnprocessableEntity(
+        `Prompt com status "${prompt.status}" não pode ser editado`,
+      );
+    }
     const update: Partial<Prompt> = {};
+    if (body.content !== undefined) update.content = body.content;
     if (body.status !== undefined) update.status = body.status;
     if (body.retryCount !== undefined) update.retryCount = body.retryCount;
     if (body.lastExecuted !== undefined) update.lastExecuted = body.lastExecuted;

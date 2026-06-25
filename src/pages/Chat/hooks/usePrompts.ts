@@ -17,7 +17,7 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     query: { enabled: !!session?.projectId },
   })
 
-  const { data: prompts = [], isLoading } = useChatSessionsControllerGetPrompts(chatName, {
+  const { data: prompts = [], isLoading, refetch: refetchPrompts } = useChatSessionsControllerGetPrompts(chatName, {
     query: { enabled: !!chatName },
   })
 
@@ -52,5 +52,5 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     })
   }
 
-  return { prompts, isLoading, sendPrompt, isSending }
+  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts }
 }

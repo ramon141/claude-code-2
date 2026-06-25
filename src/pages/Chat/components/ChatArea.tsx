@@ -52,7 +52,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const { data: project } = useProjectsControllerFindById(session?.projectId ?? 0, {
     query: { enabled: !!session?.projectId },
   })
-  const { prompts, sendPrompt, isSending } = usePrompts(session)
+  const { prompts, sendPrompt, isSending, refetchPrompts } = usePrompts(session)
   const {
     isDragging,
     attachedFiles,
@@ -116,7 +116,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
           </div>
         )}
         {prompts.map((prompt, index) => (
-          <MessageItem key={prompt.id ?? index} prompt={prompt} />
+          <MessageItem key={prompt.id ?? index} prompt={prompt} onUpdated={refetchPrompts} />
         ))}
         <div ref={bottomRef} />
       </div>

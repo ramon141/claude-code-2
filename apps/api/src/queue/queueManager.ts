@@ -263,6 +263,7 @@ export class QueueManager {
     else if (result.isRateLimited) await this.handleRateLimit(prompt, result, keyId);
     else await this.handleFailure(prompt, result);
     await this.repository.setLastProcessed(new Date());
+    void this.triggerIteration();
   }
 
   createChatSession(chatName: string, priority = CHAT_INITIAL_PRIORITY): {chatName: string; priority: number} {

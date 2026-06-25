@@ -9,6 +9,7 @@ import type { PromptsControllerUpdateByIdBodyStatus } from './promptsControllerU
 
 export type PromptsControllerUpdateByIdBody = {
   status?: PromptsControllerUpdateByIdBodyStatus;
+  content?: string;
   retryCount?: number;
   lastExecuted?: string;
   rateLimitedAt?: string;

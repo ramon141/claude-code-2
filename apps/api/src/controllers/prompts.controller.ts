@@ -14,6 +14,7 @@ import {
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
 import {QueueService, QUEUE_SERVICE_KEY} from '../services/queue.service';
+import {readConfig} from '../config/app-config';
 
 export type CreatePromptBody = Omit<
   Prompt,
@@ -193,6 +194,11 @@ export class PromptsController {
       this.evolutionService.sendText(updated.whatsappPhone, updated.output).catch(() => {});
     }
 
+    const notifyStatuses: PromptStatus[] = ['completed', 'failed'];
+    if (notifyStatuses.includes(updated.status)) {
+      this.sendCompletionNotifications(updated);
+    }
+
     return this.toResponse(updated, updated.contextFiles);
   }
 
@@ -202,6 +208,17 @@ export class PromptsController {
     const prompt = await this.promptRepo.findById(id).catch(() => null);
     if (!prompt) throw new HttpErrors.NotFound(`Prompt ${id} not found`);
     await this.promptRepo.updateById(id, {status: 'cancelled' as PromptStatus});
+  }
+
+  private sendCompletionNotifications(prompt: Prompt): void {
+    const cfg = readConfig();
+    if (!cfg.notificationsEnabled || cfg.notificationPhones.length === 0) return;
+    const chat = prompt.chatName ?? 'sem chat';
+    const preview = prompt.content.length > 200 ? `${prompt.content.substring(0, 200)}…` : prompt.content;
+    const message = `O Chat *${chat}* finalizou o prompt:\n\n${preview}`;
+    for (const phone of cfg.notificationPhones) {
+      this.evolutionService.sendText(phone, message).catch(() => {});
+    }
   }
 
   private async inferIsSessionStart(chatName: string | null): Promise<boolean> {

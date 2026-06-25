@@ -17,4 +17,6 @@ export type SetupControllerConfig200 = {
   ngrokEnabled: boolean;
   authConfigured: boolean;
   allowedPhones: string[];
+  notificationsEnabled: boolean;
+  notificationPhones: string[];
 };

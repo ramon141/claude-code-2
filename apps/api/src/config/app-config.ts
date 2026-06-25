@@ -19,6 +19,8 @@ export type AppConfig = {
   claudeRotationEnabled: boolean;
   apiAuthToken: string;
   allowedPhones: string[];
+  notificationsEnabled: boolean;
+  notificationPhones: string[];
   setupCompleted: boolean;
 };
 
@@ -57,6 +59,8 @@ function defaultConfig(): AppConfig {
     claudeRotationEnabled: false,
     apiAuthToken: '',
     allowedPhones: [],
+    notificationsEnabled: false,
+    notificationPhones: [],
     setupCompleted: false,
   };
 }
@@ -90,6 +94,8 @@ function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
     claudeRotationEnabled: parsed.claudeRotationEnabled ?? base.claudeRotationEnabled,
     apiAuthToken: parsed.apiAuthToken ?? base.apiAuthToken,
     allowedPhones: parsed.allowedPhones ?? base.allowedPhones,
+    notificationsEnabled: parsed.notificationsEnabled ?? base.notificationsEnabled,
+    notificationPhones: parsed.notificationPhones ?? base.notificationPhones,
     setupCompleted: parsed.setupCompleted ?? base.setupCompleted,
   };
 }

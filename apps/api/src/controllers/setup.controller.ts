@@ -14,11 +14,13 @@ import {
   NgrokUrlResult,
   NgrokWebhookBody,
   NgrokWebhookResult,
+  NotificationsBody,
   PhonesBody,
   SetupStatus,
   WebsocketSetupBody,
   appConfigViewSchema,
   authTokenSchema,
+  notificationsSchema,
   phonesSchema,
   claudeSetupSchema,
   completeResultSchema,
@@ -74,6 +76,8 @@ export class SetupController {
       ngrokEnabled: cfg.ngrokEnabled,
       authConfigured: cfg.apiAuthToken.length > 0,
       allowedPhones: cfg.allowedPhones,
+      notificationsEnabled: cfg.notificationsEnabled,
+      notificationPhones: cfg.notificationPhones,
     };
   }
 
@@ -86,6 +90,16 @@ export class SetupController {
       .map(p => normalizePhone(p))
       .filter(p => p.length > 0);
     writeConfig({allowedPhones: Array.from(new Set(normalized))});
+    return {success: true};
+  }
+
+  @post('/setup/notifications')
+  @response(OK, okSpec('Configuração de notificações atualizada', successResultSchema))
+  configureNotifications(
+    @requestBody(jsonBody(notificationsSchema)) body: NotificationsBody,
+  ): {success: boolean} {
+    const phones = body.phones.map(p => p.trim()).filter(p => p.length > 0);
+    writeConfig({notificationsEnabled: body.enabled, notificationPhones: phones});
     return {success: true};
   }
 

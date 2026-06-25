@@ -1,6 +1,7 @@
 import React from 'react'
 import EvolutionSection from './application/EvolutionSection'
 import PhoneAllowlistSection from './application/PhoneAllowlistSection'
+import NotificationSection from './application/NotificationSection'
 import { useSetupControllerConfig } from '../../../api/generated/api'
 
 const WhatsAppTab: React.FC = () => {
@@ -22,6 +23,10 @@ const WhatsAppTab: React.FC = () => {
         instanceName={data.evolutionInstanceName}
       />
       <PhoneAllowlistSection allowedPhones={data.allowedPhones} />
+      <NotificationSection
+        notificationsEnabled={data.notificationsEnabled}
+        notificationPhones={data.notificationPhones}
+      />
     </div>
   )
 }

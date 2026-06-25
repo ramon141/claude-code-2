@@ -48,6 +48,11 @@ export type PhonesBody = {
   phones: string[];
 };
 
+export type NotificationsBody = {
+  enabled: boolean;
+  phones: string[];
+};
+
 export type NgrokUrlResult = {
   url: string | null;
 };
@@ -63,6 +68,8 @@ export type AppConfigView = {
   ngrokEnabled: boolean;
   authConfigured: boolean;
   allowedPhones: string[];
+  notificationsEnabled: boolean;
+  notificationPhones: string[];
 };
 
 const TYPE_STRING = 'string';
@@ -182,6 +189,15 @@ export const phonesSchema: SchemaObject = {
   },
 };
 
+export const notificationsSchema: SchemaObject = {
+  type: 'object',
+  required: ['enabled', 'phones'],
+  properties: {
+    enabled: {type: TYPE_BOOLEAN},
+    phones: {type: 'array', items: {type: TYPE_STRING}},
+  },
+};
+
 export const ngrokUrlResultSchema: SchemaObject = {
   type: 'object',
   required: ['url'],
@@ -203,6 +219,8 @@ export const appConfigViewSchema: SchemaObject = {
     'ngrokEnabled',
     'authConfigured',
     'allowedPhones',
+    'notificationsEnabled',
+    'notificationPhones',
   ],
   properties: {
     databaseUrl: {type: TYPE_STRING},
@@ -215,5 +233,7 @@ export const appConfigViewSchema: SchemaObject = {
     ngrokEnabled: {type: TYPE_BOOLEAN},
     authConfigured: {type: TYPE_BOOLEAN},
     allowedPhones: {type: 'array', items: {type: TYPE_STRING}},
+    notificationsEnabled: {type: TYPE_BOOLEAN},
+    notificationPhones: {type: 'array', items: {type: TYPE_STRING}},
   },
 };

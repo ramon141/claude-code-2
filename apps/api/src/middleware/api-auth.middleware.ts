@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {Next, ValueOrPromise} from '@loopback/core';
 import {Middleware, MiddlewareContext} from '@loopback/express';
 import {HttpErrors} from '@loopback/rest';
@@ -59,7 +60,10 @@ export const apiAuthMiddleware: Middleware = (
   if (isTrustedLocal(request)) return next() as ValueOrPromise<object>;
 
   const provided = extractBearer(request.headers['authorization']);
-  if (provided !== token) {
+  const tokensMatch =
+    provided.length === token.length &&
+    crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(token));
+  if (!tokensMatch) {
     throw new HttpErrors.Unauthorized('Token de acesso inválido ou ausente');
   }
   return next() as ValueOrPromise<object>;

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {ClaudeCodeApiApplication} from '../application';
 import {NOTIFICATION_SERVICE, NotificationService} from './notification.service';
 import {DEFAULT_ALLOWED_ORIGINS, readConfig} from '../config/app-config';
@@ -64,8 +65,11 @@ function isWsAuthorized(req: http.IncomingMessage): boolean {
   const forwarded = req.headers['x-forwarded-for'] ?? req.headers['x-forwarded-host'];
   const isLocal = !forwarded && WS_LOOPBACK_IPS.includes(req.socket.remoteAddress ?? '');
   if (isLocal) return true;
-  const provided = new URL(req.url ?? '', 'http://localhost').searchParams.get('token');
-  return provided === token;
+  const provided = new URL(req.url ?? '', 'http://localhost').searchParams.get('token') ?? '';
+  return (
+    provided.length === token.length &&
+    crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(token))
+  );
 }
 
 function trackConnection(ip: string, ws: WebSocket): boolean {

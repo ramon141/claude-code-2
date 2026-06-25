@@ -6,6 +6,7 @@ export const securityHeadersMiddleware: Middleware = (
   next: Next,
 ): ValueOrPromise<object> => {
   const {response} = middlewareCtx;
+  response.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('X-Frame-Options', 'DENY');
   response.setHeader('X-XSS-Protection', '1; mode=block');

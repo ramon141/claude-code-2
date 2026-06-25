@@ -8,6 +8,6 @@
 
 export type SetupControllerConfigureEvolutionBody = {
   url: string;
-  token: string;
+  token?: string;
   instanceName: string;
 };

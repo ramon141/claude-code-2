@@ -80,7 +80,8 @@ export class ClaudeCodeInterface {
     if (prompt.claudeModel) args.push('--model', prompt.claudeModel);
     if (prompt.sessionId) args.push('--resume', prompt.sessionId);
     args.push(this.buildContextArgs(prompt, workingDir));
-    console.log(`[claude] spawn args: ${JSON.stringify(args)}`);
+    const safeArgs = args.map((a, i) => (args[i - 1] === '--resume' ? '[REDACTED]' : a));
+    console.log(`[claude] spawn args: ${JSON.stringify(safeArgs)}`);
     return args;
   }
 

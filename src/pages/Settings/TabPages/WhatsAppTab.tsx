@@ -19,7 +19,7 @@ const WhatsAppTab: React.FC = () => {
     <div className="flex flex-col gap-5">
       <EvolutionSection
         url={data.evolutionUrl}
-        token={data.evolutionToken}
+        tokenConfigured={data.evolutionTokenConfigured}
         instanceName={data.evolutionInstanceName}
       />
       <PhoneAllowlistSection allowedPhones={data.allowedPhones} />

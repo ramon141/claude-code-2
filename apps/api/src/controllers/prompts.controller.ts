@@ -44,6 +44,29 @@ type PatchPromptBody = {
   sessionId?: string | null;
 };
 
+const ALLOWED_CLAUDE_MODELS = new Set([
+  'claude-opus-4-8',
+  'claude-sonnet-4-6',
+  'claude-haiku-4-5-20251001',
+  'claude-fable-5',
+]);
+
+const SESSION_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
+
+function validateClaudeModel(model: string | null | undefined): void {
+  if (!model) return;
+  if (!ALLOWED_CLAUDE_MODELS.has(model)) {
+    throw new HttpErrors.UnprocessableEntity(`Modelo inválido: "${model}"`);
+  }
+}
+
+function validateSessionId(sessionId: string | null | undefined): void {
+  if (!sessionId) return;
+  if (!SESSION_ID_REGEX.test(sessionId)) {
+    throw new HttpErrors.UnprocessableEntity('sessionId inválido');
+  }
+}
+
 function validateWorkingDirectory(workingDirectory: string): void {
   if (!workingDirectory || workingDirectory.includes('\0')) {
     throw new HttpErrors.UnprocessableEntity('workingDirectory inválido');
@@ -100,6 +123,8 @@ export class PromptsController {
     const {contextFiles = [], chatName = null, claudeModel = null, waitForPromptId = null, useWaitResponse = false, ...promptData} = body;
     const workingDirectory = promptData.workingDirectory ?? '';
     validateWorkingDirectory(workingDirectory);
+    validateClaudeModel(claudeModel);
+    validateSessionId(promptData.sessionId);
     contextFiles.forEach(f => validateFilePath(f, workingDirectory));
     if (chatName !== null) {
       const session = await this.chatSessionRepo.findOne({where: {chatName}});

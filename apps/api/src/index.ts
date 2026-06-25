@@ -38,19 +38,23 @@ export async function main(options: ApplicationConfig = {}) {
 
 if (require.main === module) {
   // Run the application
+  const ALLOWED_CORS_ORIGINS = [
+    'tauri://localhost',
+    'http://127.0.0.1:1420',
+    'http://localhost:1420',
+  ];
+
   const config = {
     rest: {
       port: +(process.env.PORT ?? 7300),
       host: process.env.HOST || '127.0.0.1',
-      // The `gracePeriodForClose` provides a graceful close for http/https
-      // servers with keep-alive clients. The default value is `Infinity`
-      // (don't force-close). If you want to immediately destroy all sockets
-      // upon stop, set its value to `0`.
-      // See https://www.npmjs.com/package/stoppable
-      gracePeriodForClose: 5000, // 5 seconds
+      gracePeriodForClose: 5000,
       openApiSpec: {
-        // useful when used with OpenAPI-to-GraphQL to locate your application
         setServersFromRequest: true,
+      },
+      cors: {
+        origin: ALLOWED_CORS_ORIGINS,
+        credentials: true,
       },
     },
   };

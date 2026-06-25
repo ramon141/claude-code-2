@@ -35,12 +35,12 @@ type ConnectionStateResponse = {instance?: {state?: string}};
 
 function buildSetUrl(baseUrl: string, instanceName: string): string {
   const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-  return `${normalized}${WEBHOOK_SET_PATH}/${instanceName}`;
+  return `${normalized}${WEBHOOK_SET_PATH}/${encodeURIComponent(instanceName)}`;
 }
 
 function buildConnectionStateUrl(baseUrl: string, instanceName: string): string {
   const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
-  return `${normalized}${CONNECTION_STATE_PATH}/${instanceName}`;
+  return `${normalized}${CONNECTION_STATE_PATH}/${encodeURIComponent(instanceName)}`;
 }
 
 export function getEvolutionConnectionState(

@@ -24,7 +24,7 @@ const EvolutionStep: React.FC<EvolutionStepProps> = ({ onFinish, onBack, finishi
 
   const ngrokValues = (): SetupControllerGenerateNgrokWebhookBody => {
     const v = getValues()
-    return { url: v.url, token: v.token, instanceName: v.instanceName }
+    return { url: v.url, token: v.token ?? '', instanceName: v.instanceName }
   }
 
   const onSave = handleSubmit(async (data) => {

@@ -18,7 +18,7 @@ export type ClaudeSetupBody = {
 
 export type EvolutionSetupBody = {
   url: string;
-  token: string;
+  token?: string;
   instanceName: string;
 };
 
@@ -67,7 +67,7 @@ export type AppConfigView = {
   claudeCommand: string;
   timeout: number;
   evolutionUrl: string;
-  evolutionToken: string;
+  evolutionTokenConfigured: boolean;
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;
@@ -136,7 +136,7 @@ export const claudeSetupSchema: SchemaObject = {
 
 export const evolutionSetupSchema: SchemaObject = {
   type: 'object',
-  required: ['url', 'token', 'instanceName'],
+  required: ['url', 'instanceName'],
   properties: {
     url: {type: TYPE_STRING},
     token: {type: TYPE_STRING},
@@ -227,7 +227,7 @@ export const appConfigViewSchema: SchemaObject = {
     'claudeCommand',
     'timeout',
     'evolutionUrl',
-    'evolutionToken',
+    'evolutionTokenConfigured',
     'evolutionInstanceName',
     'websocketAllowedOrigins',
     'ngrokEnabled',
@@ -241,7 +241,7 @@ export const appConfigViewSchema: SchemaObject = {
     claudeCommand: {type: TYPE_STRING},
     timeout: {type: TYPE_NUMBER},
     evolutionUrl: {type: TYPE_STRING},
-    evolutionToken: {type: TYPE_STRING},
+    evolutionTokenConfigured: {type: TYPE_BOOLEAN},
     evolutionInstanceName: {type: TYPE_STRING},
     websocketAllowedOrigins: {type: 'array', items: {type: TYPE_STRING}},
     ngrokEnabled: {type: TYPE_BOOLEAN},

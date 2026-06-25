@@ -18,7 +18,7 @@ import type {
 
 interface EvolutionSectionProps {
   url: string
-  token: string
+  tokenConfigured: boolean
   instanceName: string
 }
 
@@ -67,9 +67,10 @@ function ConnectionBadge() {
   )
 }
 
-const EvolutionSection: React.FC<EvolutionSectionProps> = ({ url, token, instanceName }) => {
+const EvolutionSection: React.FC<EvolutionSectionProps> = ({ url, tokenConfigured, instanceName }) => {
+  const [editingToken, setEditingToken] = useState(!tokenConfigured)
   const { register, handleSubmit, getValues } = useForm<SetupControllerConfigureEvolutionBody>({
-    defaultValues: { url, token, instanceName },
+    defaultValues: { url, token: '', instanceName },
   })
   const [apiError, setApiError] = useState('')
   const [saved, setSaved] = useState(false)
@@ -77,15 +78,21 @@ const EvolutionSection: React.FC<EvolutionSectionProps> = ({ url, token, instanc
 
   const ngrokValues = (): SetupControllerGenerateNgrokWebhookBody => {
     const v = getValues()
-    return { url: v.url, token: v.token, instanceName: v.instanceName }
+    return { url: v.url, token: v.token ?? '', instanceName: v.instanceName }
   }
 
   const onSubmit = handleSubmit(async (data) => {
     setApiError('')
     setSaved(false)
     try {
-      await mutateAsync({ data })
+      const payload: SetupControllerConfigureEvolutionBody = {
+        url: data.url,
+        instanceName: data.instanceName,
+        ...(editingToken && data.token ? { token: data.token } : {}),
+      }
+      await mutateAsync({ data: payload })
       setSaved(true)
+      if (editingToken && data.token) setEditingToken(false)
     } catch (error) {
       setApiError(extractErrorMessage(error as ApiError))
     }
@@ -100,7 +107,30 @@ const EvolutionSection: React.FC<EvolutionSectionProps> = ({ url, token, instanc
     >
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field label="EVOLUTION_URL" placeholder="https://evolution.exemplo.com/" registration={register('url')} />
-        <Field label="EVOLUTION_TOKEN" placeholder="token" registration={register('token')} />
+
+        {editingToken ? (
+          <Field label="EVOLUTION_TOKEN" placeholder="token" registration={register('token')} />
+        ) : (
+          <div className="flex flex-col gap-1">
+            <label className="text-[#9A9A9A] text-xs font-medium uppercase tracking-wide">EVOLUTION_TOKEN</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value="••••••••"
+                disabled
+                className="flex-1 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-[#9A9A9A] text-sm opacity-60 cursor-not-allowed"
+              />
+              <button
+                type="button"
+                onClick={() => setEditingToken(true)}
+                className="text-[#D97757] text-xs hover:underline whitespace-nowrap"
+              >
+                Alterar
+              </button>
+            </div>
+          </div>
+        )}
+
         <Field label="EVOLUTION_INSTANCE_NAME" placeholder="instancia" registration={register('instanceName')} />
 
         <NgrokWebhook getValues={ngrokValues} />

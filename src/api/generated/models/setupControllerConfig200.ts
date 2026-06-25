@@ -11,7 +11,7 @@ export type SetupControllerConfig200 = {
   claudeCommand: string;
   timeout: number;
   evolutionUrl: string;
-  evolutionToken: string;
+  evolutionTokenConfigured: boolean;
   evolutionInstanceName: string;
   websocketAllowedOrigins: string[];
   ngrokEnabled: boolean;

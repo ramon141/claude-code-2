@@ -15,13 +15,18 @@ function isValidIp(ip: string): boolean {
   return IPV4_REGEX.test(ip) || IPV6_REGEX.test(ip);
 }
 
+const WS_TRUSTED_PROXY_IPS = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+
 function getClientIp(req: http.IncomingMessage): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    const candidate = forwarded.split(',')[0].trim();
-    if (isValidIp(candidate)) return candidate;
+  const socketIp = req.socket.remoteAddress ?? 'unknown';
+  if (WS_TRUSTED_PROXY_IPS.has(socketIp)) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string') {
+      const candidate = forwarded.split(',')[0].trim();
+      if (isValidIp(candidate)) return candidate;
+    }
   }
-  return req.socket.remoteAddress ?? 'unknown';
+  return socketIp;
 }
 
 const ORIGIN_SEPARATOR = ',';

@@ -38,9 +38,43 @@ import {
   websocketSetupSchema,
 } from './setup.schemas';
 
+function maskDatabaseUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    if (parsed.username) parsed.username = '***';
+    if (parsed.password) parsed.password = '***';
+    return parsed.toString();
+  } catch {
+    return url.length > 0 ? '***' : '';
+  }
+}
+
 const CONTENT_JSON = 'application/json';
 const OK = 200;
 const WEBHOOK_PATH = '/webhook/evolution';
+const ALLOWED_EVOLUTION_PROTOCOLS = new Set(['http:', 'https:']);
+const INSTANCE_NAME_MAX_LEN = 128;
+const INSTANCE_NAME_REGEX = /^[a-zA-Z0-9_\-\.]{1,128}$/;
+
+function validateEvolutionUrl(url: string): void {
+  if (!url) return;
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new HttpErrors.UnprocessableEntity('URL da Evolution inválida');
+  }
+  if (!ALLOWED_EVOLUTION_PROTOCOLS.has(parsed.protocol)) {
+    throw new HttpErrors.UnprocessableEntity('URL da Evolution deve usar http ou https');
+  }
+}
+
+function validateInstanceName(name: string): void {
+  if (!name) return;
+  if (name.length > INSTANCE_NAME_MAX_LEN || !INSTANCE_NAME_REGEX.test(name)) {
+    throw new HttpErrors.UnprocessableEntity('instanceName inválido: use apenas letras, números, hífens, pontos e underscores (máx 128)');
+  }
+}
 
 function okSpec(description: string, schema: SchemaObject) {
   return {description, content: {[CONTENT_JSON]: {schema}}};
@@ -68,11 +102,11 @@ export class SetupController {
   config(): AppConfigView {
     const cfg = readConfig();
     return {
-      databaseUrl: cfg.databaseUrl,
+      databaseUrl: maskDatabaseUrl(cfg.databaseUrl),
       claudeCommand: cfg.claudeCommand,
       timeout: cfg.timeout,
       evolutionUrl: cfg.evolution.url,
-      evolutionToken: cfg.evolution.token,
+      evolutionTokenConfigured: cfg.evolution.token.length > 0,
       evolutionInstanceName: cfg.evolution.instanceName,
       websocketAllowedOrigins: cfg.websocketAllowedOrigins,
       ngrokEnabled: cfg.ngrokEnabled,
@@ -153,8 +187,15 @@ export class SetupController {
   configureEvolution(
     @requestBody(jsonBody(evolutionSetupSchema)) body: EvolutionSetupBody,
   ): {success: boolean} {
+    validateEvolutionUrl(body.url);
+    validateInstanceName(body.instanceName);
+    const existing = readConfig().evolution;
     writeConfig({
-      evolution: {url: body.url, token: body.token, instanceName: body.instanceName},
+      evolution: {
+        url: body.url,
+        token: body.token !== undefined ? body.token : existing.token,
+        instanceName: body.instanceName,
+      },
     });
     return {success: true};
   }
@@ -200,6 +241,8 @@ export class SetupController {
   async generateNgrokWebhook(
     @requestBody(jsonBody(ngrokWebhookSchema)) body: NgrokWebhookBody,
   ): Promise<NgrokWebhookResult> {
+    validateEvolutionUrl(body.url);
+    validateInstanceName(body.instanceName);
     const publicUrl = await this.resolveNgrokUrl();
     const secret = ensureWebhookSecret();
     const webhookUrl = `${publicUrl}${WEBHOOK_PATH}?token=${encodeURIComponent(secret)}`;

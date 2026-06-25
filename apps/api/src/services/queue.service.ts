@@ -9,6 +9,7 @@ import {
 import {QueueManager} from '../queue/queueManager';
 import {LoopBackStorageRepository} from '../repositories/loopback-storage';
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
+import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
 
 const CLAUDE_COMMAND = process.env.CLAUDE_COMMAND ?? 'claude';
 const TIMEOUT_SECONDS = Number(process.env.TIMEOUT ?? '3600');
@@ -25,6 +26,7 @@ export class QueueService implements LifeCycleObserver {
     @repository(QueueStateRepository) private queueStateRepo: QueueStateRepository,
     @repository(ClaudeCodeApiKeyRepository) private apiKeyRepo: ClaudeCodeApiKeyRepository,
     @inject(NOTIFICATION_SERVICE) private notifier: NotificationService,
+    @inject(EVOLUTION_SERVICE) private evolutionService: EvolutionService,
   ) {
     const storageRepo = new LoopBackStorageRepository(
       promptRepo,
@@ -32,6 +34,7 @@ export class QueueService implements LifeCycleObserver {
       queueStateRepo,
       apiKeyRepo,
       notifier,
+      evolutionService,
     );
     this.manager = new QueueManager(storageRepo, CLAUDE_COMMAND, TIMEOUT_SECONDS);
   }

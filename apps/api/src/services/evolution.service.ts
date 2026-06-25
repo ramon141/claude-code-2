@@ -10,17 +10,15 @@ type SendTextBody = {
 
 @injectable({scope: BindingScope.SINGLETON})
 export class EvolutionService {
-  private readonly baseUrl: string;
-  private readonly token: string;
-  private readonly instance: string;
-
-  constructor() {
-    this.baseUrl = process.env.EVOLUTION_URL ?? '';
-    this.token = process.env.EVOLUTION_TOKEN ?? '';
-    this.instance = process.env.EVOLUTION_INSTANCE_NAME ?? '';
-  }
+  private get baseUrl(): string { return process.env.EVOLUTION_URL ?? ''; }
+  private get token(): string { return process.env.EVOLUTION_TOKEN ?? ''; }
+  private get instance(): string { return process.env.EVOLUTION_INSTANCE_NAME ?? ''; }
 
   async sendText(phone: string, text: string): Promise<void> {
+    if (!this.baseUrl || !this.token || !this.instance) {
+      console.warn('[evolution] sendText ignorado: Evolution não configurado');
+      return;
+    }
     const url = `${this.baseUrl}/message/sendText/${this.instance}`;
     await this.post(url, {number: phone, text});
   }

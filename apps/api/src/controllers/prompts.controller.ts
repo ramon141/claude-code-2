@@ -223,7 +223,9 @@ export class PromptsController {
     const preview = prompt.content.length > 200 ? `${prompt.content.substring(0, 200)}…` : prompt.content;
     const message = `O Chat *${chat}* finalizou o prompt:\n\n${preview}`;
     for (const phone of cfg.notificationPhones) {
-      this.evolutionService.sendText(phone, message).catch(() => {});
+      this.evolutionService.sendText(phone, message).catch((err: Error) => {
+        console.error(`[evolution] falha ao notificar ${phone}: ${err.message}`);
+      });
     }
   }
 

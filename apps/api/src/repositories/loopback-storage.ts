@@ -12,6 +12,7 @@ import {PromptContextFile} from '../models/prompt-context-file.model';
 import {ClaudeCredentials, IStorageRepository, QueueGlobalState, PromptPatch} from '../queue/IStorageRepository';
 import {QueuedPrompt, PromptStatus} from '../queue/queue.models';
 import {NotificationService} from '../services/notification.service';
+import {EvolutionService} from '../services/evolution.service';
 
 const COUNTER_COLUMNS: Record<string, string> = {
   totalProcessed: 'total_processed',
@@ -35,6 +36,8 @@ function compareRotationKeys(a: ClaudeCodeApiKey, b: ClaudeCodeApiKey): number {
   return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
 }
 
+const WHATSAPP_NOTIFY_STATUSES: PromptStatus[] = [PromptStatus.COMPLETED, PromptStatus.FAILED];
+
 export class LoopBackStorageRepository implements IStorageRepository {
   constructor(
     private promptRepo: PromptRepository,
@@ -42,6 +45,7 @@ export class LoopBackStorageRepository implements IStorageRepository {
     private queueStateRepo: QueueStateRepository,
     private apiKeyRepo: ClaudeCodeApiKeyRepository,
     private notifier: NotificationService,
+    private evolution: EvolutionService,
   ) {}
 
   // Emite prompt:updated no WebSocket com o snapshot atual (status + output),
@@ -96,6 +100,23 @@ export class LoopBackStorageRepository implements IStorageRepository {
     if (patch.sessionId !== undefined) update.sessionId = patch.sessionId;
     await this.promptRepo.updateById(Number(id), update);
     await this.emitPromptUpdate(id);
+    if (WHATSAPP_NOTIFY_STATUSES.includes(status)) {
+      const prompt = await this.promptRepo.findById(Number(id)).catch(() => null);
+      if (prompt) this.sendWhatsAppNotifications(prompt);
+    }
+  }
+
+  private sendWhatsAppNotifications(prompt: LbPrompt): void {
+    const cfg = readConfig();
+    if (!cfg.notificationsEnabled || cfg.notificationPhones.length === 0) return;
+    const chat = prompt.chatName ?? 'sem chat';
+    const preview = prompt.content.length > 200 ? `${prompt.content.substring(0, 200)}…` : prompt.content;
+    const message = `O Chat *${chat}* finalizou o prompt:\n\n${preview}`;
+    for (const phone of cfg.notificationPhones) {
+      this.evolution.sendText(phone, message).catch((err: Error) => {
+        console.error(`[evolution] falha ao notificar ${phone}: ${err.message}`);
+      });
+    }
   }
 
   async saveOutput(id: string, output: string): Promise<void> {

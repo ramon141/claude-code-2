@@ -6,7 +6,7 @@ use tokio::process::Command;
 use tokio::time::{sleep, Duration};
 
 const API_STARTUP_WAIT_SECS: u64 = 3;
-const API_PORT: u16 = 3000;
+const API_PORT: u16 = 7300;
 const API_HEALTH_RETRIES: u32 = 15;
 const API_HEALTH_RETRY_INTERVAL_SECS: u64 = 2;
 const API_RESTART_DELAY_SECS: u64 = 1;
@@ -52,7 +52,7 @@ fn is_ngrok_enabled(config_path: &PathBuf) -> bool {
         .unwrap_or(false)
 }
 
-// Mantém um túnel ngrok apontando pra API (porta 3000). A URL pública fica
+// Mantém um túnel ngrok apontando pra API (porta 7300). A URL pública fica
 // disponível na API local do ngrok em http://127.0.0.1:4040/api/tunnels, que o
 // endpoint /setup/webhook/ngrok consulta. Reinicia o túnel se cair.
 async fn start_ngrok(ngrok: String) {

@@ -58,6 +58,8 @@ export * from './setupControllerConfigurePhones200';
 export * from './setupControllerConfigurePhonesBody';
 export * from './setupControllerConfigureWebsocket200';
 export * from './setupControllerConfigureWebsocketBody';
+export * from './setupControllerEvolutionStatus200';
+export * from './setupControllerEvolutionStatus200State';
 export * from './setupControllerGenerateNgrokWebhook200';
 export * from './setupControllerGenerateNgrokWebhookBody';
 export * from './setupControllerNgrokUrl200';

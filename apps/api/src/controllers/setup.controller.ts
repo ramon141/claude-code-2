@@ -3,13 +3,14 @@ import {ensureWebhookSecret, readConfig, writeConfig} from '../config/app-config
 import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
 import {normalizePhone} from '../services/phone';
-import {registerEvolutionWebhook} from '../config/evolution-webhook';
+import {getEvolutionConnectionState, registerEvolutionWebhook} from '../config/evolution-webhook';
 import {
   AppConfigView,
   AuthTokenBody,
   ClaudeSetupBody,
   DatabaseSetupBody,
   EvolutionSetupBody,
+  EvolutionStatusResult,
   NgrokToggleBody,
   NgrokUrlResult,
   NgrokWebhookBody,
@@ -27,6 +28,7 @@ import {
   databaseResultSchema,
   databaseSetupSchema,
   evolutionSetupSchema,
+  evolutionStatusResultSchema,
   ngrokToggleSchema,
   ngrokUrlResultSchema,
   ngrokWebhookResultSchema,
@@ -220,6 +222,17 @@ export class SetupController {
       throw new HttpErrors.BadRequest('ngrok não está ativo. Verifique se o túnel subiu (authtoken configurado).');
     }
     return url;
+  }
+
+  @get('/setup/evolution/status')
+  @response(OK, okSpec('Estado da conexão WhatsApp', evolutionStatusResultSchema))
+  async evolutionStatus(): Promise<EvolutionStatusResult> {
+    const cfg = readConfig();
+    return getEvolutionConnectionState(
+      cfg.evolution.url,
+      cfg.evolution.token,
+      cfg.evolution.instanceName,
+    );
   }
 
   @post('/setup/complete')

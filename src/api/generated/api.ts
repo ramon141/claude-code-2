@@ -65,6 +65,7 @@ import type {
   SetupControllerConfigurePhonesBody,
   SetupControllerConfigureWebsocket200,
   SetupControllerConfigureWebsocketBody,
+  SetupControllerEvolutionStatus200,
   SetupControllerGenerateNgrokWebhook200,
   SetupControllerGenerateNgrokWebhookBody,
   SetupControllerNgrokUrl200,
@@ -2225,6 +2226,68 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const setupControllerEvolutionStatus = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerEvolutionStatus200>(
+      {url: `/setup/evolution/status`, method: 'GET', signal
+    },
+      );
+    }
+  
+
+
+
+export const getSetupControllerEvolutionStatusQueryKey = () => {
+    return [
+    `/setup/evolution/status`
+    ] as const;
+    }
+
+    
+export const getSetupControllerEvolutionStatusQueryOptions = <TData = Awaited<ReturnType<typeof setupControllerEvolutionStatus>>, TError = unknown>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerEvolutionStatus>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSetupControllerEvolutionStatusQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof setupControllerEvolutionStatus>>> = ({ signal }) => setupControllerEvolutionStatus(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof setupControllerEvolutionStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SetupControllerEvolutionStatusQueryResult = NonNullable<Awaited<ReturnType<typeof setupControllerEvolutionStatus>>>
+export type SetupControllerEvolutionStatusQueryError = unknown
+
+
+
+export function useSetupControllerEvolutionStatus<TData = Awaited<ReturnType<typeof setupControllerEvolutionStatus>>, TError = unknown>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof setupControllerEvolutionStatus>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSetupControllerEvolutionStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
 export const setupControllerConfigureEvolution = (
     setupControllerConfigureEvolutionBody: SetupControllerConfigureEvolutionBody,
  signal?: AbortSignal

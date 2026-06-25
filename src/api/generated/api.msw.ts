@@ -45,6 +45,7 @@ import type {
   SetupControllerConfigureNotifications200,
   SetupControllerConfigurePhones200,
   SetupControllerConfigureWebsocket200,
+  SetupControllerEvolutionStatus200,
   SetupControllerGenerateNgrokWebhook200,
   SetupControllerNgrokUrl200,
   SetupControllerRestart200,
@@ -115,6 +116,8 @@ export const getSetupControllerCompleteResponseMock = (overrideResponse: Partial
 export const getSetupControllerConfigResponseMock = (overrideResponse: Partial< SetupControllerConfig200 > = {}): SetupControllerConfig200 => ({databaseUrl: faker.string.alpha({length: {min: 10, max: 20}}), claudeCommand: faker.string.alpha({length: {min: 10, max: 20}}), timeout: faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), evolutionUrl: faker.string.alpha({length: {min: 10, max: 20}}), evolutionToken: faker.string.alpha({length: {min: 10, max: 20}}), evolutionInstanceName: faker.string.alpha({length: {min: 10, max: 20}}), websocketAllowedOrigins: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ngrokEnabled: faker.datatype.boolean(), authConfigured: faker.datatype.boolean(), allowedPhones: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), notificationsEnabled: faker.datatype.boolean(), notificationPhones: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), ...overrideResponse})
 
 export const getSetupControllerConfigureDatabaseResponseMock = (overrideResponse: Partial< SetupControllerConfigureDatabase200 > = {}): SetupControllerConfigureDatabase200 => ({success: faker.datatype.boolean(), migrated: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerEvolutionStatusResponseMock = (overrideResponse: Partial< SetupControllerEvolutionStatus200 > = {}): SetupControllerEvolutionStatus200 => ({state: faker.helpers.arrayElement(['open','close','connecting','notConfigured','error'] as const), error: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
 
 export const getSetupControllerConfigureEvolutionResponseMock = (overrideResponse: Partial< SetupControllerConfigureEvolution200 > = {}): SetupControllerConfigureEvolution200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
@@ -559,6 +562,18 @@ export const getSetupControllerConfigureDatabaseMockHandler = (overrideResponse?
   }, options)
 }
 
+export const getSetupControllerEvolutionStatusMockHandler = (overrideResponse?: SetupControllerEvolutionStatus200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<SetupControllerEvolutionStatus200> | SetupControllerEvolutionStatus200), options?: RequestHandlerOptions) => {
+  return http.get('*/setup/evolution/status', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerEvolutionStatusResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getSetupControllerConfigureEvolutionMockHandler = (overrideResponse?: SetupControllerConfigureEvolution200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureEvolution200> | SetupControllerConfigureEvolution200), options?: RequestHandlerOptions) => {
   return http.post('*/setup/evolution', async (info) => {await delay(1000);
   
@@ -715,6 +730,7 @@ export const getClaudeCodeApiMock = () => [
   getSetupControllerCompleteMockHandler(),
   getSetupControllerConfigMockHandler(),
   getSetupControllerConfigureDatabaseMockHandler(),
+  getSetupControllerEvolutionStatusMockHandler(),
   getSetupControllerConfigureEvolutionMockHandler(),
   getSetupControllerNgrokUrlMockHandler(),
   getSetupControllerToggleNgrokMockHandler(),

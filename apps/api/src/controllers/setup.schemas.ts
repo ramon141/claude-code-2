@@ -57,6 +57,11 @@ export type NgrokUrlResult = {
   url: string | null;
 };
 
+export type EvolutionStatusResult = {
+  state: 'open' | 'close' | 'connecting' | 'notConfigured' | 'error';
+  error?: string;
+};
+
 export type AppConfigView = {
   databaseUrl: string;
   claudeCommand: string;
@@ -203,6 +208,15 @@ export const ngrokUrlResultSchema: SchemaObject = {
   required: ['url'],
   properties: {
     url: {type: TYPE_STRING, nullable: true},
+  },
+};
+
+export const evolutionStatusResultSchema: SchemaObject = {
+  type: 'object',
+  required: ['state'],
+  properties: {
+    state: {type: TYPE_STRING, enum: ['open', 'close', 'connecting', 'notConfigured', 'error']},
+    error: {type: TYPE_STRING},
   },
 };
 

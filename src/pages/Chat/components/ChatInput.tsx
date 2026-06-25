@@ -4,9 +4,10 @@ import { open } from '@tauri-apps/plugin-dialog'
 import SlashCommandMenu from './SlashCommandMenu'
 import { useSlashCommands } from '../hooks/useSlashCommands'
 import type { SlashCommand } from '../constants/slashCommands'
+import { CLAUDE_MODELS, type ClaudeModelId } from '../constants/claudeModels'
 
 interface Props {
-  onSend: (content: string, contextFiles: string[]) => Promise<void>
+  onSend: (content: string, contextFiles: string[], claudeModel: string | null) => Promise<void>
   disabled: boolean
   attachedFiles: string[]
   onAttachFiles: (paths: string[]) => void
@@ -38,6 +39,7 @@ async function openFileDialog(): Promise<string[]> {
 export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFiles, onRemoveFile }: Props) {
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
+  const [selectedModel, setSelectedModel] = useState<ClaudeModelId | ''>('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const slash = useSlashCommands(value)
 
@@ -51,7 +53,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
     if (!trimmed || sending || disabled) return
     try {
       setSending(true)
-      await onSend(trimmed, attachedFiles)
+      await onSend(trimmed, attachedFiles, selectedModel || null)
       setValue('')
       if (textareaRef.current) textareaRef.current.style.height = 'auto'
     } finally {
@@ -128,6 +130,21 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
         >
           <Paperclip className="w-4 h-4" />
         </button>
+
+        <select
+          value={selectedModel}
+          onChange={(e) => setSelectedModel(e.target.value as ClaudeModelId | '')}
+          disabled={disabled || sending}
+          className="flex-shrink-0 bg-transparent text-[#9A9A9A] text-xs outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed self-center hover:text-[#F5F5F5] transition-colors"
+        >
+          <option value="">Modelo padrão</option>
+          {CLAUDE_MODELS.map((m) => (
+            <option key={m.id} value={m.id} className="bg-[#2A2A2A] text-[#F5F5F5]">
+              {m.label}
+            </option>
+          ))}
+        </select>
+
         <textarea
           ref={textareaRef}
           value={value}
@@ -138,6 +155,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           disabled={disabled || sending}
           className="flex-1 bg-transparent text-[#F5F5F5] text-sm outline-none focus:outline-none focus:ring-0 resize-none placeholder:text-[#9A9A9A] leading-relaxed disabled:opacity-50 min-h-[1.5rem] self-center"
         />
+
         <button
           type="button"
           onClick={handleSubmit}

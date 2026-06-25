@@ -17,6 +17,7 @@ export type PromptResponse = {
   isSessionStart: boolean;
   output: string;
   whatsappPhone: string | null;
+  claudeModel: string | null;
   createdAt: string;
   lastExecuted: string | null;
   rateLimitedAt: string | null;
@@ -43,6 +44,7 @@ export const createPromptSchema: SchemaObject = {
     estimatedTokens: {type: 'number', nullable: true},
     sessionId: {type: 'string', nullable: true},
     chatName: {type: 'string', nullable: true},
+    claudeModel: {type: 'string', nullable: true},
   },
 };
 

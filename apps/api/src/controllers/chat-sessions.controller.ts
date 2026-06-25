@@ -10,7 +10,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {ChatSession, Prompt, Project} from '../models';
+import {ChatSession, Prompt, Project, PromptWithRelations, PromptContextFile} from '../models';
 import {ChatSessionRepository, ProjectRepository, PromptRepository} from '../repositories';
 
 type ChatSessionResponse = {
@@ -31,6 +31,7 @@ type ChatPromptSummary = {
   output: string;
   createdAt: string;
   lastExecuted: string | null;
+  contextFiles: string[];
 };
 
 const chatSessionResponseSchema = {
@@ -170,6 +171,7 @@ export class ChatSessionsController {
               output: {type: 'string'},
               createdAt: {type: 'string', format: 'date-time'},
               lastExecuted: {type: 'string', format: 'date-time', nullable: true},
+              contextFiles: {type: 'array', items: {type: 'string'}},
             },
           },
         },
@@ -183,14 +185,16 @@ export class ChatSessionsController {
     const prompts = await this.promptRepo.find({
       where: {chatName: session.chatName},
       order: ['createdAt ASC'],
+      include: ['contextFiles'],
     });
-    return prompts.map((p: Prompt) => ({
+    return prompts.map((p: PromptWithRelations) => ({
       id: p.id,
       content: p.content,
       status: p.status,
       output: p.output,
       createdAt: p.createdAt,
       lastExecuted: p.lastExecuted,
+      contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
     }));
   }
 

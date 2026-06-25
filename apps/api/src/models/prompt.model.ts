@@ -142,6 +142,14 @@ export class Prompt extends Entity {
   whatsappPhone: string | null;
 
   @property({
+    type: 'string',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'claude_model', dataType: 'varchar'},
+  })
+  claudeModel: string | null;
+
+  @property({
     type: 'date',
     required: false,
     postgresql: {

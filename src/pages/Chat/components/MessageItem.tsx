@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
@@ -70,12 +70,33 @@ function isActive(status?: string): boolean {
   return status === 'queued' || status === 'executing'
 }
 
+function ContextFileTag({ path }: { path: string }) {
+  const name = path.split('/').pop() ?? path
+  return (
+    <div className="inline-flex items-center gap-1 bg-[#1A1A1A] border border-[#3A3A3A] rounded-md px-2 py-0.5 text-xs text-[#9A9A9A]" title={path}>
+      <Paperclip className="w-2.5 h-2.5 flex-shrink-0" />
+      <span className="truncate max-w-[160px]">{name}</span>
+    </div>
+  )
+}
+
 export default function MessageItem({ prompt }: Props) {
+  const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
+
   return (
     <div className="space-y-3">
       <div className="flex justify-end">
-        <div className="max-w-[80%] bg-[#D97757]/20 border border-[#D97757]/30 rounded-2xl rounded-tr-sm px-4 py-3">
-          <p className="text-[#F5F5F5] text-sm whitespace-pre-wrap">{prompt.content}</p>
+        <div className="max-w-[80%] space-y-2">
+          {hasFiles && (
+            <div className="flex flex-wrap gap-1 justify-end">
+              {prompt.contextFiles!.map((path) => (
+                <ContextFileTag key={path} path={path} />
+              ))}
+            </div>
+          )}
+          <div className="bg-[#D97757]/20 border border-[#D97757]/30 rounded-2xl rounded-tr-sm px-4 py-3">
+            <p className="text-[#F5F5F5] text-sm whitespace-pre-wrap">{prompt.content}</p>
+          </div>
         </div>
       </div>
 

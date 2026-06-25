@@ -163,7 +163,7 @@ export class QueueManager {
       worker.send({
         promptData: {
           id: prompt.id, content: prompt.content, workingDirectory: prompt.workingDirectory,
-          sessionId: prompt.sessionId, contextFiles: prompt.contextFiles, isSessionStart: prompt.isSessionStart,
+          sessionId: prompt.sessionId, contextFiles: prompt.contextFiles, isSessionStart: prompt.isSessionStart, claudeModel: prompt.claudeModel,
         },
         oauthToken,
         claudeCommand: this.claudeCommand,

@@ -2,7 +2,7 @@ import {ClaudeCodeInterface} from './claudeInterface';
 import {QueuedPrompt, ExecutionResult, RateLimitInfo} from './queue.models';
 
 type WorkerInput = {
-  promptData: Pick<QueuedPrompt, 'id' | 'content' | 'workingDirectory' | 'sessionId' | 'contextFiles' | 'isSessionStart'>;
+  promptData: Pick<QueuedPrompt, 'id' | 'content' | 'workingDirectory' | 'sessionId' | 'contextFiles' | 'isSessionStart' | 'claudeModel'>;
   oauthToken: string;
   claudeCommand: string;
   timeout: number;

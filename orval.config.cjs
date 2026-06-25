@@ -23,7 +23,7 @@ module.exports = {
             },
         },
         input: {
-            target: 'http://127.0.0.1:3000/openapi.json',
+            target: 'http://127.0.0.1:7300/openapi.json',
         },
     },
 }; 

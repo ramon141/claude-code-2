@@ -1,49 +1,36 @@
-import { useState, useCallback } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
-function extractPaths(e: React.DragEvent): string[] {
-  const uriList = e.dataTransfer.getData('text/uri-list')
-  if (uriList.trim()) {
-    const paths = uriList
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l && !l.startsWith('#'))
-      .map((uri) => {
-        const decoded = decodeURIComponent(uri)
-        return decoded.startsWith('file://') ? decoded.slice(7) : decoded
-      })
-    if (paths.length > 0) return paths
-  }
-
-  const plain = e.dataTransfer.getData('text/plain')
-  if (plain.trim()) return [plain.trim()]
-
-  return Array.from(e.dataTransfer.files).map((f) => f.name)
-}
+type DragDropPayload =
+  | { type: 'enter'; paths: string[] }
+  | { type: 'over'; paths?: string[] }
+  | { type: 'drop'; paths: string[] }
+  | { type: 'leave' }
 
 export function useFileDrop() {
   const [isDragging, setIsDragging] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<string[]>([])
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }, [])
+  useEffect(() => {
+    let unlisten: (() => void) | null = null
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return
-    setIsDragging(false)
-  }, [])
+    getCurrentWindow()
+      .onDragDropEvent((event) => {
+        const payload = event.payload as DragDropPayload
+        if (payload.type === 'enter') {
+          setIsDragging(true)
+        } else if (payload.type === 'drop') {
+          setIsDragging(false)
+          if (payload.paths.length > 0) {
+            setAttachedFiles((prev) => [...new Set([...prev, ...payload.paths])])
+          }
+        } else if (payload.type === 'leave') {
+          setIsDragging(false)
+        }
+      })
+      .then((u) => { unlisten = u })
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-    const paths = extractPaths(e)
-    if (paths.length === 0) return
-    setAttachedFiles((prev) => [...new Set([...prev, ...paths])])
+    return () => { unlisten?.() }
   }, [])
 
   const addFiles = useCallback((paths: string[]) => {
@@ -56,6 +43,21 @@ export function useFileDrop() {
 
   const clearFiles = useCallback(() => {
     setAttachedFiles([])
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
   }, [])
 
   return {

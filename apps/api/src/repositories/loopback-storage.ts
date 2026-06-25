@@ -7,7 +7,8 @@ import {
 import {decryptValue} from '../authentication/auth.utils';
 import {readConfig} from '../config/app-config';
 import {ClaudeCodeApiKey} from '../models/claude-code-api-key.model';
-import {Prompt as LbPrompt, PromptStatus as LbPromptStatus} from '../models/prompt.model';
+import {Prompt as LbPrompt, PromptStatus as LbPromptStatus, PromptWithRelations} from '../models/prompt.model';
+import {PromptContextFile} from '../models/prompt-context-file.model';
 import {ClaudeCredentials, IStorageRepository, QueueGlobalState, PromptPatch} from '../queue/IStorageRepository';
 import {QueuedPrompt, PromptStatus} from '../queue/queue.models';
 import {NotificationService} from '../services/notification.service';
@@ -56,7 +57,7 @@ export class LoopBackStorageRepository implements IStorageRepository {
     });
   }
 
-  private mapPrompt(p: LbPrompt): QueuedPrompt {
+  private mapPrompt(p: PromptWithRelations): QueuedPrompt {
     return new QueuedPrompt({
       id: String(p.id),
       content: p.content,
@@ -68,19 +69,20 @@ export class LoopBackStorageRepository implements IStorageRepository {
       sessionId: p.sessionId,
       chatName: p.chatName,
       isSessionStart: p.isSessionStart,
+      claudeModel: p.claudeModel,
       executionLog: p.output,
       estimatedTokens: p.estimatedTokens,
       createdAt: new Date(p.createdAt),
       lastExecuted: p.lastExecuted ? new Date(p.lastExecuted) : null,
       rateLimitedAt: p.rateLimitedAt ? new Date(p.rateLimitedAt) : null,
       resetTime: p.resetTime ? new Date(p.resetTime) : null,
+      contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
     });
   }
 
   async listPrompts(statusFilter?: PromptStatus): Promise<QueuedPrompt[]> {
-    const prompts = statusFilter
-      ? await this.promptRepo.find({where: {status: statusFilter as LbPromptStatus}})
-      : await this.promptRepo.find();
+    const filter = {include: ['contextFiles'], ...(statusFilter ? {where: {status: statusFilter as LbPromptStatus}} : {})};
+    const prompts = await this.promptRepo.find(filter);
     return prompts.map(p => this.mapPrompt(p));
   }
 

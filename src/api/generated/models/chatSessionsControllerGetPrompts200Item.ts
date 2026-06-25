@@ -14,4 +14,5 @@ export type ChatSessionsControllerGetPrompts200Item = {
   createdAt?: string;
   /** @nullable */
   lastExecuted?: string | null;
+  contextFiles?: string[];
 };

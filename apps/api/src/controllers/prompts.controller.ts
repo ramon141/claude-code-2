@@ -3,6 +3,7 @@ import {repository} from '@loopback/repository';
 import {HttpErrors, Response, RestBindings, del, get, param, patch, post, requestBody, response} from '@loopback/rest';
 import {getModelSchemaRef} from '@loopback/rest';
 import path from 'path';
+import fs from 'fs';
 import {Prompt, PromptContextFile, PromptStatus} from '../models';
 import {ChatSessionRepository, PromptContextFileRepository, PromptRepository} from '../repositories';
 import {
@@ -49,6 +50,10 @@ function validateFilePath(filePath: string): void {
   if (segments.some(s => s === '..')) {
     throw new HttpErrors.UnprocessableEntity(`Path traversal não permitido: "${filePath}"`);
   }
+  const resolved = path.resolve(filePath);
+  if (!fs.existsSync(resolved)) {
+    throw new HttpErrors.UnprocessableEntity(`Arquivo não encontrado: "${resolved}"`);
+  }
 }
 
 export class PromptsController {
@@ -73,7 +78,7 @@ export class PromptsController {
     @inject(RestBindings.Http.RESPONSE) res: Response,
   ): Promise<PromptResponse> {
     res.status(201);
-    const {contextFiles = [], chatName = null, ...promptData} = body;
+    const {contextFiles = [], chatName = null, claudeModel = null, ...promptData} = body;
     contextFiles.forEach(validateFilePath);
     if (chatName !== null) {
       const session = await this.chatSessionRepo.findOne({where: {chatName}});
@@ -84,6 +89,7 @@ export class PromptsController {
       new Prompt({
         ...promptData,
         chatName,
+        claudeModel,
         status: 'queued' as PromptStatus,
         isSessionStart,
         retryCount: 0,
@@ -250,6 +256,7 @@ export class PromptsController {
       isSessionStart: prompt.isSessionStart,
       output: prompt.output,
       whatsappPhone: prompt.whatsappPhone ?? null,
+      claudeModel: prompt.claudeModel ?? null,
       createdAt: prompt.createdAt,
       lastExecuted: prompt.lastExecuted,
       rateLimitedAt: prompt.rateLimitedAt,

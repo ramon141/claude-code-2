@@ -29,5 +29,7 @@ export interface PromptExcludingContextFiles {
   rateLimitedAt?: string;
   /** @nullable */
   whatsappPhone?: string | null;
+  /** @nullable */
+  claudeModel?: string | null;
   resetTime?: string;
 }

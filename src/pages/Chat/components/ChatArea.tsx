@@ -65,8 +65,8 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   } = useFileDrop()
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const handleSend = useCallback(async (content: string, contextFiles: string[]): Promise<void> => {
-    await sendPrompt(content, contextFiles)
+  const handleSend = useCallback(async (content: string, contextFiles: string[], claudeModel: string | null): Promise<void> => {
+    await sendPrompt(content, contextFiles, claudeModel)
     clearFiles()
   }, [sendPrompt, clearFiles])
 

@@ -63,15 +63,24 @@ export class ClaudeCodeInterface {
   private buildContextArgs(prompt: QueuedPrompt, workingDir: string): string {
     if (prompt.contextFiles.length === 0) return prompt.content;
     const refs = prompt.contextFiles
-      .filter(f => fs.existsSync(path.resolve(workingDir, f)))
+      .filter(f => {
+        const resolved = path.resolve(workingDir, f);
+        const exists = fs.existsSync(resolved);
+        if (!exists) console.warn(`[claude] arquivo não encontrado e ignorado: ${resolved}`);
+        return exists;
+      })
       .map(f => `@${f}`);
+    console.log(`[claude] contextFiles recebidos: ${JSON.stringify(prompt.contextFiles)}`);
+    console.log(`[claude] refs geradas: ${JSON.stringify(refs)}`);
     return refs.length > 0 ? `${refs.join(' ')} ${prompt.content}` : prompt.content;
   }
 
   private buildSpawnArgs(prompt: QueuedPrompt, workingDir: string): string[] {
     const args = ['--print', '--dangerously-skip-permissions', '--output-format', 'stream-json', '--include-partial-messages', '--verbose'];
+    if (prompt.claudeModel) args.push('--model', prompt.claudeModel);
     if (prompt.sessionId) args.push('--resume', prompt.sessionId);
     args.push(this.buildContextArgs(prompt, workingDir));
+    console.log(`[claude] spawn args: ${JSON.stringify(args)}`);
     return args;
   }
 

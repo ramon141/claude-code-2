@@ -18,4 +18,6 @@ export type PromptsControllerCreateBody = {
   sessionId?: string | null;
   /** @nullable */
   chatName?: string | null;
+  /** @nullable */
+  claudeModel?: string | null;
 };

@@ -30,7 +30,7 @@ export type CreatePromptBody = Omit<
   | 'resetTime'
   | 'contextFiles'
   | 'isSessionStart'
-> & {contextFiles?: string[]; chatName?: string | null; sessionId?: string | null};
+> & {contextFiles?: string[]; chatName?: string | null; sessionId?: string | null; waitForPromptId?: number | null; useWaitResponse?: boolean};
 
 type PatchPromptBody = {
   status?: PromptStatus;
@@ -80,11 +80,18 @@ export class PromptsController {
     @inject(RestBindings.Http.RESPONSE) res: Response,
   ): Promise<PromptResponse> {
     res.status(201);
-    const {contextFiles = [], chatName = null, claudeModel = null, ...promptData} = body;
+    const {contextFiles = [], chatName = null, claudeModel = null, waitForPromptId = null, useWaitResponse = false, ...promptData} = body;
     contextFiles.forEach(validateFilePath);
     if (chatName !== null) {
       const session = await this.chatSessionRepo.findOne({where: {chatName}});
       if (!session) throw new HttpErrors.UnprocessableEntity(`ChatSession "${chatName}" not found`);
+    }
+    if (waitForPromptId !== null) {
+      const dep = await this.promptRepo.findById(waitForPromptId).catch(() => null);
+      if (!dep) throw new HttpErrors.UnprocessableEntity(`Prompt ${waitForPromptId} não encontrado`);
+      if (dep.chatName === chatName && chatName !== null) {
+        throw new HttpErrors.UnprocessableEntity('waitForPromptId deve ser de outro chat');
+      }
     }
     const isSessionStart = await this.inferIsSessionStart(chatName);
     const prompt = await this.promptRepo.create(
@@ -92,6 +99,8 @@ export class PromptsController {
         ...promptData,
         chatName,
         claudeModel,
+        waitForPromptId,
+        useWaitResponse,
         status: 'queued' as PromptStatus,
         isSessionStart,
         retryCount: 0,
@@ -127,8 +136,11 @@ export class PromptsController {
     @param.query.number('offset') offset = 0,
     @param.query.string('orderBy') orderBy?: string,
   ): Promise<PromptResponse[]> {
-    const where: Record<string, string | number> = {};
-    if (status) where.status = status;
+    const where: Record<string, string | number | {inq: string[]}> = {};
+    if (status) {
+      const statuses = status.split(',').map(s => s.trim()).filter(Boolean);
+      where.status = statuses.length === 1 ? statuses[0] : {inq: statuses};
+    }
     if (sessionId) where.sessionId = sessionId;
 
     const order = orderBy === 'priority' ? ['priority ASC'] : ['createdAt ASC'];
@@ -199,6 +211,7 @@ export class PromptsController {
     this.notificationService.notify({
       event: 'prompt:updated',
       promptId: id,
+      chatName: updated.chatName ?? null,
       status: updated.status,
       output: updated.output ?? '',
     });
@@ -267,6 +280,8 @@ export class PromptsController {
       output: prompt.output,
       whatsappPhone: prompt.whatsappPhone ?? null,
       claudeModel: prompt.claudeModel ?? null,
+      waitForPromptId: prompt.waitForPromptId ?? null,
+      useWaitResponse: prompt.useWaitResponse ?? false,
       createdAt: prompt.createdAt,
       lastExecuted: prompt.lastExecuted,
       rateLimitedAt: prompt.rateLimitedAt,

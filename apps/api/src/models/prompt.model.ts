@@ -150,6 +150,21 @@ export class Prompt extends Entity {
   claudeModel: string | null;
 
   @property({
+    type: 'number',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'wait_for_prompt_id', dataType: 'integer'},
+  })
+  waitForPromptId: number | null;
+
+  @property({
+    type: 'boolean',
+    default: false,
+    postgresql: {columnName: 'use_wait_response', dataType: 'boolean'},
+  })
+  useWaitResponse: boolean;
+
+  @property({
     type: 'date',
     required: false,
     postgresql: {

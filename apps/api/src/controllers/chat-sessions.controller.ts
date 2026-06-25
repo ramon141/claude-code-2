@@ -32,6 +32,8 @@ type ChatPromptSummary = {
   createdAt: string;
   lastExecuted: string | null;
   contextFiles: string[];
+  waitForPromptId: number | null;
+  useWaitResponse: boolean;
 };
 
 const chatSessionResponseSchema = {
@@ -172,6 +174,8 @@ export class ChatSessionsController {
               createdAt: {type: 'string', format: 'date-time'},
               lastExecuted: {type: 'string', format: 'date-time', nullable: true},
               contextFiles: {type: 'array', items: {type: 'string'}},
+              waitForPromptId: {type: 'number', nullable: true},
+              useWaitResponse: {type: 'boolean'},
             },
           },
         },
@@ -195,6 +199,8 @@ export class ChatSessionsController {
       createdAt: p.createdAt,
       lastExecuted: p.lastExecuted,
       contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
+      waitForPromptId: p.waitForPromptId ?? null,
+      useWaitResponse: p.useWaitResponse ?? false,
     }));
   }
 

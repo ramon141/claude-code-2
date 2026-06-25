@@ -35,6 +35,8 @@ export interface IStorageRepository {
   patchLimitsByKeyId(keyId: number, sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
   markKeyRateLimited(keyId: number, until: Date): Promise<void>;
   canFailoverToAnotherKey(excludeKeyId: number): Promise<boolean>;
+  getPromptStatus(id: number): Promise<PromptStatus | null>;
+  getPromptOutput(id: number): Promise<string | null>;
   initialize(): Promise<void>;
   disconnect(): Promise<void>;
 }

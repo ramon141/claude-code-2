@@ -20,4 +20,7 @@ export type PromptsControllerCreateBody = {
   chatName?: string | null;
   /** @nullable */
   claudeModel?: string | null;
+  /** @nullable */
+  waitForPromptId?: number | null;
+  useWaitResponse?: boolean;
 };

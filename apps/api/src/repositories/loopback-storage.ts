@@ -56,6 +56,7 @@ export class LoopBackStorageRepository implements IStorageRepository {
     this.notifier.notify({
       event: 'prompt:updated',
       promptId: Number(id),
+      chatName: prompt.chatName ?? null,
       status: prompt.status,
       output: prompt.output ?? '',
     });
@@ -81,6 +82,8 @@ export class LoopBackStorageRepository implements IStorageRepository {
       rateLimitedAt: p.rateLimitedAt ? new Date(p.rateLimitedAt) : null,
       resetTime: p.resetTime ? new Date(p.resetTime) : null,
       contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
+      waitForPromptId: p.waitForPromptId ?? null,
+      useWaitResponse: p.useWaitResponse ?? false,
     });
   }
 
@@ -205,6 +208,17 @@ export class LoopBackStorageRepository implements IStorageRepository {
     if (!readConfig().claudeRotationEnabled) return false;
     const candidates = await this.apiKeyRepo.find({where: {rotationEnabled: true}});
     return candidates.some(k => k.id !== excludeKeyId && !isKeyRateLimited(k));
+  }
+
+  async getPromptStatus(id: number): Promise<PromptStatus | null> {
+    const prompt = await this.promptRepo.findById(id).catch(() => null);
+    if (!prompt) return null;
+    return prompt.status as PromptStatus;
+  }
+
+  async getPromptOutput(id: number): Promise<string | null> {
+    const prompt = await this.promptRepo.findById(id).catch(() => null);
+    return prompt?.output ?? null;
   }
 
   async initialize(): Promise<void> {

@@ -6,6 +6,7 @@ export type WsPromptStatus = 'queued' | 'executing' | 'completed' | 'failed' | '
 export interface WsPromptUpdate {
   event: 'prompt:updated'
   promptId: number
+  chatName: string | null
   status: WsPromptStatus
   output: string
 }

@@ -15,4 +15,7 @@ export type ChatSessionsControllerGetPrompts200Item = {
   /** @nullable */
   lastExecuted?: string | null;
   contextFiles?: string[];
+  /** @nullable */
+  waitForPromptId?: number | null;
+  useWaitResponse?: boolean;
 };

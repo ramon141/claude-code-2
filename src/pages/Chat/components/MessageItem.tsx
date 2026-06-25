@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { usePromptsControllerUpdateById } from '../../../api/generated/api'
@@ -151,6 +151,15 @@ function EditableContent({
   )
 }
 
+function WaitingBadge({ waitForPromptId }: { waitForPromptId: number }) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[#D97757]/10 text-[#D97757]/70 border border-[#D97757]/20">
+      <Link className="w-3 h-3" />
+      Aguardando #{waitForPromptId}
+    </span>
+  )
+}
+
 export default function MessageItem({ prompt, onUpdated }: Props) {
   const [editing, setEditing] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
@@ -196,11 +205,14 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
 
       <div className="flex justify-start">
         <div className="max-w-[90%] space-y-2.5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="w-6 h-6 rounded-full bg-[#D97757] flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs font-bold">C</span>
             </div>
             <StatusBadge status={prompt.status} />
+            {prompt.waitForPromptId != null && prompt.status === 'queued' && (
+              <WaitingBadge waitForPromptId={prompt.waitForPromptId} />
+            )}
           </div>
 
           {prompt.output && (

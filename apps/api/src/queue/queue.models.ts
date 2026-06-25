@@ -36,6 +36,8 @@ export class QueuedPrompt {
   isSessionStart: boolean;
   chatName: string | null;
   claudeModel: string | null;
+  waitForPromptId: number | null;
+  useWaitResponse: boolean;
 
   constructor(params: Partial<Omit<QueuedPrompt, 'addLog' | 'canRetry' | 'shouldExecuteNow'>> = {}) {
     this.id = params.id ?? uuidv4().substring(0, 8);
@@ -56,6 +58,8 @@ export class QueuedPrompt {
     this.chatName = params.chatName ?? null;
     this.isSessionStart = params.isSessionStart ?? false;
     this.claudeModel = params.claudeModel ?? null;
+    this.waitForPromptId = params.waitForPromptId ?? null;
+    this.useWaitResponse = params.useWaitResponse ?? false;
   }
 
   addLog(message: string): void {

@@ -5,6 +5,7 @@ import {PromptStatus} from '../models';
 export type PromptNotification = {
   event: 'prompt:updated';
   promptId: number;
+  chatName: string | null;
   status: PromptStatus;
   output: string;
 };

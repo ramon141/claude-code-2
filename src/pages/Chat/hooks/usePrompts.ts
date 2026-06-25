@@ -9,6 +9,13 @@ import {
 import type { ChatSessionsControllerFind200Item, ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
 import { useWebSocket, type WsPromptUpdate } from './useWebSocket'
 
+const PENDING_STATUSES = new Set(['queued', 'executing'])
+const POLL_INTERVAL_MS = 2000
+
+function hasPendingPrompts(data: ChatSessionsControllerGetPrompts200Item[] | undefined): boolean {
+  return (data ?? []).some(p => PENDING_STATUSES.has(p.status ?? ''))
+}
+
 export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
   const chatName = session?.chatName ?? ''
   const queryClient = useQueryClient()
@@ -18,26 +25,23 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
   })
 
   const { data: prompts = [], isLoading, refetch: refetchPrompts } = useChatSessionsControllerGetPrompts(chatName, {
-    query: { enabled: !!chatName },
+    query: {
+      enabled: !!chatName,
+      refetchInterval: (data) => hasPendingPrompts(data) ? POLL_INTERVAL_MS : false,
+    },
   })
 
   const handleWsUpdate = useCallback((data: WsPromptUpdate) => {
-    queryClient.setQueryData<ChatSessionsControllerGetPrompts200Item[]>(
-      getChatSessionsControllerGetPromptsQueryKey(chatName),
-      (prev) => {
-        if (!prev) return prev
-        return prev.map((p) =>
-          p.id === data.promptId ? { ...p, status: data.status, output: data.output } : p
-        )
-      }
-    )
+    const targetChat = data.chatName ?? chatName
+    const queryKey = getChatSessionsControllerGetPromptsQueryKey(targetChat)
+    void queryClient.refetchQueries({ queryKey, type: 'all' })
   }, [queryClient, chatName])
 
   useWebSocket(handleWsUpdate, !!chatName)
 
   const { mutateAsync: createPromptMutation, isLoading: isSending } = usePromptsControllerCreate()
 
-  const sendPrompt = async (content: string, contextFiles: string[] = [], claudeModel: string | null = null): Promise<void> => {
+  const sendPrompt = async (content: string, contextFiles: string[] = [], claudeModel: string | null = null, waitForPromptId: number | null = null, useWaitResponse = false): Promise<void> => {
     await createPromptMutation({
       data: {
         content,
@@ -45,6 +49,8 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
         chatName,
         contextFiles,
         claudeModel,
+        waitForPromptId,
+        useWaitResponse,
       },
     })
     queryClient.invalidateQueries({

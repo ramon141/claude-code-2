@@ -80,12 +80,28 @@ export class QueueManager {
       .finally(() => {this.processing = false;});
   }
 
+  private async isDependencyPending(prompt: QueuedPrompt): Promise<boolean> {
+    if (!prompt.waitForPromptId) return false;
+    const status = await this.repository.getPromptStatus(prompt.waitForPromptId);
+    return status !== PromptStatus.COMPLETED;
+  }
+
+  private async injectDependencyOutput(prompt: QueuedPrompt): Promise<void> {
+    if (!prompt.waitForPromptId || !prompt.useWaitResponse) return;
+    const output = await this.repository.getPromptOutput(prompt.waitForPromptId);
+    if (!output) return;
+    prompt.content = prompt.content.includes('{{resposta}}')
+      ? prompt.content.replace(/\{\{resposta\}\}/g, output)
+      : `${prompt.content}\n\n${output}`;
+  }
+
   private async processQueueIteration(): Promise<void> {
     const busyChats = await this.getExecutingChatNames();
     const queued = this.sortByPriorityAndDate(await this.repository.listPrompts(PromptStatus.QUEUED));
 
     for (const next of queued) {
       if (next.chatName && busyChats.has(next.chatName)) continue;
+      if (await this.isDependencyPending(next)) continue;
       const prompt = await this.resolveSessionId(next);
       if (!prompt) {
         if (next.chatName) busyChats.add(next.chatName);
@@ -184,6 +200,7 @@ export class QueueManager {
       console.error(`✗ Prompt ${prompt.id} failed — Claude token unavailable: ${error}`);
       return;
     }
+    await this.injectDependencyOutput(prompt);
     const onFlush = (text: string) => this.repository.saveOutput(prompt.id, text);
     const result = await this.runInFork(prompt, creds.token, onFlush);
     if (prompt.isSessionStart && result.sessionId && prompt.chatName) {

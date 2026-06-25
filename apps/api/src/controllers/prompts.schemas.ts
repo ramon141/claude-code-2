@@ -18,6 +18,8 @@ export type PromptResponse = {
   output: string;
   whatsappPhone: string | null;
   claudeModel: string | null;
+  waitForPromptId: number | null;
+  useWaitResponse: boolean;
   createdAt: string;
   lastExecuted: string | null;
   rateLimitedAt: string | null;
@@ -45,6 +47,8 @@ export const createPromptSchema: SchemaObject = {
     sessionId: {type: 'string', nullable: true},
     chatName: {type: 'string', nullable: true},
     claudeModel: {type: 'string', nullable: true},
+    waitForPromptId: {type: 'number', nullable: true},
+    useWaitResponse: {type: 'boolean', default: false},
   },
 };
 

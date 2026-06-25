@@ -28,5 +28,8 @@ export interface Prompt {
   whatsappPhone?: string | null;
   /** @nullable */
   claudeModel?: string | null;
+  /** @nullable */
+  waitForPromptId?: number | null;
+  useWaitResponse?: boolean;
   resetTime?: string;
 }

@@ -1,17 +1,19 @@
 import React, { useState, useRef } from 'react'
-import { Send, Paperclip, X } from 'lucide-react'
+import { Send, Paperclip, X, Timer, Link } from 'lucide-react'
 import { open } from '@tauri-apps/plugin-dialog'
 import SlashCommandMenu from './SlashCommandMenu'
+import WaitForDropdown from './WaitForDropdown'
 import { useSlashCommands } from '../hooks/useSlashCommands'
 import type { SlashCommand } from '../constants/slashCommands'
 import { CLAUDE_MODELS, type ClaudeModelId } from '../constants/claudeModels'
 
 interface Props {
-  onSend: (content: string, contextFiles: string[], claudeModel: string | null) => Promise<void>
+  onSend: (content: string, contextFiles: string[], claudeModel: string | null, waitForPromptId: number | null, useWaitResponse: boolean) => Promise<void>
   disabled: boolean
   attachedFiles: string[]
   onAttachFiles: (paths: string[]) => void
   onRemoveFile: (path: string) => void
+  currentChatName: string | null
 }
 
 function FileChip({ path, onRemove }: { path: string; onRemove: () => void }) {
@@ -36,10 +38,14 @@ async function openFileDialog(): Promise<string[]> {
   return Array.isArray(result) ? result : [result]
 }
 
-export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFiles, onRemoveFile }: Props) {
+export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFiles, onRemoveFile, currentChatName }: Props) {
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
   const [selectedModel, setSelectedModel] = useState<ClaudeModelId | ''>('')
+  const [waitForPromptId, setWaitForPromptId] = useState<number | null>(null)
+  const [waitForChatName, setWaitForChatName] = useState<string | null>(null)
+  const [waitDropdownOpen, setWaitDropdownOpen] = useState(false)
+  const [useWaitResponse, setUseWaitResponse] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const slash = useSlashCommands(value)
 
@@ -53,8 +59,11 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
     if (!trimmed || sending || disabled) return
     try {
       setSending(true)
-      await onSend(trimmed, attachedFiles, selectedModel || null)
+      await onSend(trimmed, attachedFiles, selectedModel || null, waitForPromptId, useWaitResponse)
       setValue('')
+      setWaitForPromptId(null)
+      setWaitForChatName(null)
+      setUseWaitResponse(false)
       if (textareaRef.current) textareaRef.current.style.height = 'auto'
     } finally {
       setSending(false)
@@ -112,6 +121,34 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
         />
       )}
 
+      {waitDropdownOpen && (
+        <WaitForDropdown
+          currentChatName={currentChatName}
+          selected={waitForPromptId}
+          useWaitResponse={useWaitResponse}
+          onSelect={(id, chatName) => { setWaitForPromptId(id); setWaitForChatName(chatName) }}
+          onToggleUseResponse={setUseWaitResponse}
+          onClose={() => setWaitDropdownOpen(false)}
+        />
+      )}
+
+      {waitForPromptId != null && (
+        <div className="flex items-center gap-1.5 mb-2">
+          <div className="inline-flex items-center gap-1.5 bg-[#D97757]/10 border border-[#D97757]/30 rounded-lg px-2 py-1 text-xs text-[#D97757]">
+            <Link className="w-3 h-3" />
+            Aguardando prompt #{waitForPromptId}
+            {waitForChatName && <span className="text-[#D97757]/70">({waitForChatName})</span>}
+            <button
+              type="button"
+              onClick={() => { setWaitForPromptId(null); setWaitForChatName(null) }}
+              className="ml-0.5 hover:text-white transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {attachedFiles.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2">
           {attachedFiles.map((path) => (
@@ -129,6 +166,16 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           className="flex-shrink-0 text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
         >
           <Paperclip className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setWaitDropdownOpen(prev => !prev)}
+          disabled={disabled || sending}
+          title="Aguardar prompt de outro chat"
+          className={`flex-shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center ${waitForPromptId != null ? 'text-[#D97757]' : 'text-[#9A9A9A] hover:text-[#F5F5F5]'}`}
+        >
+          <Timer className="w-4 h-4" />
         </button>
 
         <select

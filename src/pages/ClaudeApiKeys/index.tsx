@@ -42,22 +42,22 @@ function ClaudeApiKeysContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
-      <div className="border-b border-[#3A3A3A] px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-claude-bg">
+      <div className="border-b border-claude-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors"
+            className="text-claude-muted hover:text-claude-text transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-[#F5F5F5] font-semibold">Contas do Claude</h1>
+          <h1 className="text-claude-text font-semibold">Contas do Claude</h1>
         </div>
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D97757]/10 hover:bg-[#D97757]/20 border border-[#D97757]/30 rounded-lg text-[#D97757] text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-claude-primary/10 hover:bg-claude-primary/20 border border-claude-primary/30 rounded-lg text-claude-primary text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nova Conta
@@ -66,7 +66,7 @@ function ClaudeApiKeysContent() {
 
       <div className="max-w-4xl mx-auto p-6 space-y-4">
         <RotationHeader />
-        <div className="bg-[#2A2A2A] rounded-xl border border-[#3A3A3A] overflow-hidden">
+        <div className="bg-claude-surface rounded-xl border border-claude-border overflow-hidden">
           <ClaudeApiKeysTable
             apiKeys={apiKeys}
             activeApiKeyId={activeApiKeyId}

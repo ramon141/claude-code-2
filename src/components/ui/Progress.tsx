@@ -13,7 +13,7 @@ export function Progress({ value, className }: ProgressProps) {
     'bg-emerald-500'
 
   return (
-    <div className={cn('w-full h-1.5 rounded-full bg-[#3A3A3A]', className)}>
+    <div className={cn('w-full h-1.5 rounded-full bg-claude-border', className)}>
       <div
         className={cn('h-1.5 rounded-full transition-all', barColor)}
         style={{ width: `${pct}%` }}

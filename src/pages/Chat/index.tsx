@@ -30,7 +30,7 @@ function ChatContent() {
   }
 
   return (
-    <div className="flex h-screen bg-[#1A1A1A] overflow-hidden">
+    <div className="flex h-screen bg-claude-bg overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/50 md:hidden"

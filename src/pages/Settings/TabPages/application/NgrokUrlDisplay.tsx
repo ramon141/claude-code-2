@@ -33,7 +33,7 @@ const NgrokUrlDisplay: React.FC<NgrokUrlDisplayProps> = ({ polling = false, expe
 
   if (isLoading || (polling && !url)) {
     return (
-      <div className="mt-3 flex items-center gap-2 text-[#9A9A9A] text-sm">
+      <div className="mt-3 flex items-center gap-2 text-claude-muted text-sm">
         <RefreshCw className="w-4 h-4 animate-spin" />
         <span>Aguardando ngrok iniciar...</span>
       </div>
@@ -43,19 +43,19 @@ const NgrokUrlDisplay: React.FC<NgrokUrlDisplayProps> = ({ polling = false, expe
   if (!url) {
     return (
       <div className="mt-3 flex items-center gap-2">
-        <p className="text-[#9A9A9A] text-sm">Túnel ainda não disponível. Reinicie a API e aguarde.</p>
+        <p className="text-claude-muted text-sm">Túnel ainda não disponível. Reinicie a API e aguarde.</p>
         <RefreshButton onClick={() => void refetch()} spinning={isFetching} />
       </div>
     )
   }
 
   return (
-    <div className="mt-3 flex items-center gap-2 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg px-3 py-2">
+    <div className="mt-3 flex items-center gap-2 bg-claude-bg border border-claude-border rounded-lg px-3 py-2">
       <a
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="flex-1 min-w-0 text-[#D97757] text-sm truncate hover:underline"
+        className="flex-1 min-w-0 text-claude-primary text-sm truncate hover:underline"
         title={url}
       >
         {url}
@@ -63,7 +63,7 @@ const NgrokUrlDisplay: React.FC<NgrokUrlDisplayProps> = ({ polling = false, expe
       <IconButton onClick={() => void copy()} title="Copiar">
         {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
       </IconButton>
-      <a href={url} target="_blank" rel="noreferrer" title="Abrir" className="p-1.5 text-[#9A9A9A] hover:text-[#F5F5F5] rounded-lg transition-colors">
+      <a href={url} target="_blank" rel="noreferrer" title="Abrir" className="p-1.5 text-claude-muted hover:text-claude-text rounded-lg transition-colors">
         <ExternalLink className="w-4 h-4" />
       </a>
       <RefreshButton onClick={() => void refetch()} spinning={isFetching} />
@@ -72,7 +72,7 @@ const NgrokUrlDisplay: React.FC<NgrokUrlDisplayProps> = ({ polling = false, expe
 }
 
 const IconButton: React.FC<{ onClick: () => void; title: string; children: React.ReactNode }> = ({ onClick, title, children }) => (
-  <button type="button" onClick={onClick} title={title} className="p-1.5 text-[#9A9A9A] hover:text-[#F5F5F5] rounded-lg transition-colors">
+  <button type="button" onClick={onClick} title={title} className="p-1.5 text-claude-muted hover:text-claude-text rounded-lg transition-colors">
     {children}
   </button>
 )

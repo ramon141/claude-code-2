@@ -40,10 +40,10 @@ const EvolutionStep: React.FC<EvolutionStepProps> = ({ onFinish, onBack, finishi
   return (
     <form onSubmit={onSave} className="flex flex-col gap-5">
       <header className="flex items-center gap-3">
-        <MessageSquare className="w-5 h-5 text-[#D97757]" />
+        <MessageSquare className="w-5 h-5 text-claude-primary" />
         <div>
-          <h2 className="text-[#F5F5F5] font-semibold">Evolution (opcional)</h2>
-          <p className="text-[#9A9A9A] text-sm">Integração WhatsApp. Pode pular e configurar depois.</p>
+          <h2 className="text-claude-text font-semibold">Evolution (opcional)</h2>
+          <p className="text-claude-muted text-sm">Integração WhatsApp. Pode pular e configurar depois.</p>
         </div>
       </header>
 

@@ -27,11 +27,11 @@ const Setup: React.FC = () => {
   if (restarting) return <RestartScreen />
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center p-6">
-      <div className="w-full max-w-lg bg-[#222222] border border-[#3A3A3A] rounded-2xl p-8 flex flex-col gap-6">
+    <div className="min-h-screen bg-claude-bg flex items-center justify-center p-6">
+      <div className="w-full max-w-lg bg-claude-surface border border-claude-border rounded-2xl p-8 flex flex-col gap-6">
         <div>
-          <h1 className="text-[#F5F5F5] text-xl font-semibold">Configuração inicial</h1>
-          <p className="text-[#9A9A9A] text-sm">Configure a aplicação antes de começar.</p>
+          <h1 className="text-claude-text text-xl font-semibold">Configuração inicial</h1>
+          <p className="text-claude-muted text-sm">Configure a aplicação antes de começar.</p>
         </div>
 
         <Stepper labels={STEP_LABELS} current={step} />

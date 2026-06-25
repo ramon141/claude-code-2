@@ -19,12 +19,12 @@ interface Props {
 function FileChip({ path, onRemove }: { path: string; onRemove: () => void }) {
   const name = path.split('/').pop() ?? path
   return (
-    <div className="flex items-center gap-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg px-2 py-1 text-xs text-[#F5F5F5] max-w-[180px]">
+    <div className="flex items-center gap-1 bg-claude-surface border border-claude-border rounded-lg px-2 py-1 text-xs text-claude-text max-w-[180px]">
       <span className="truncate" title={path}>{name}</span>
       <button
         type="button"
         onClick={onRemove}
-        className="flex-shrink-0 text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors"
+        className="flex-shrink-0 text-claude-muted hover:text-claude-text transition-colors"
       >
         <X className="w-3 h-3" />
       </button>
@@ -111,7 +111,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
   const canSend = value.trim().length > 0 && !sending && !disabled
 
   return (
-    <div className="p-4 border-t border-[#3A3A3A] relative">
+    <div className="p-4 border-t border-claude-border relative">
       {menuOpen && (
         <SlashCommandMenu
           commands={slash.commands}
@@ -134,10 +134,10 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
 
       {waitForPromptId != null && (
         <div className="flex items-center gap-1.5 mb-2">
-          <div className="inline-flex items-center gap-1.5 bg-[#D97757]/10 border border-[#D97757]/30 rounded-lg px-2 py-1 text-xs text-[#D97757]">
+          <div className="inline-flex items-center gap-1.5 bg-claude-primary/10 border border-claude-primary/30 rounded-lg px-2 py-1 text-xs text-claude-primary">
             <Link className="w-3 h-3" />
             Aguardando prompt #{waitForPromptId}
-            {waitForChatName && <span className="text-[#D97757]/70">({waitForChatName})</span>}
+            {waitForChatName && <span className="text-claude-primary/70">({waitForChatName})</span>}
             <button
               type="button"
               onClick={() => { setWaitForPromptId(null); setWaitForChatName(null) }}
@@ -157,13 +157,13 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
         </div>
       )}
 
-      <div className="flex items-end gap-3 bg-[#2A2A2A] border border-[#3A3A3A] rounded-2xl px-4 py-3 focus-within:border-[#D97757]/50 transition-colors">
+      <div className="flex items-end gap-3 bg-claude-surface border border-claude-border rounded-2xl px-4 py-3 focus-within:border-claude-primary/50 transition-colors">
         <button
           type="button"
           onClick={handleAttachClick}
           disabled={disabled || sending}
           title="Anexar arquivo"
-          className="flex-shrink-0 text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
+          className="flex-shrink-0 text-claude-muted hover:text-claude-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
         >
           <Paperclip className="w-4 h-4" />
         </button>
@@ -173,7 +173,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           onClick={() => setWaitDropdownOpen(prev => !prev)}
           disabled={disabled || sending}
           title="Aguardar prompt de outro chat"
-          className={`flex-shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center ${waitForPromptId != null ? 'text-[#D97757]' : 'text-[#9A9A9A] hover:text-[#F5F5F5]'}`}
+          className={`flex-shrink-0 transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center ${waitForPromptId != null ? 'text-claude-primary' : 'text-claude-muted hover:text-claude-text'}`}
         >
           <Timer className="w-4 h-4" />
         </button>
@@ -182,11 +182,11 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           value={selectedModel}
           onChange={(e) => setSelectedModel(e.target.value as ClaudeModelId | '')}
           disabled={disabled || sending}
-          className="flex-shrink-0 bg-transparent text-[#9A9A9A] text-xs outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed self-center hover:text-[#F5F5F5] transition-colors"
+          className="flex-shrink-0 bg-transparent text-claude-muted text-xs outline-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed self-center hover:text-claude-text transition-colors"
         >
           <option value="">Modelo padrão</option>
           {CLAUDE_MODELS.map((m) => (
-            <option key={m.id} value={m.id} className="bg-[#2A2A2A] text-[#F5F5F5]">
+            <option key={m.id} value={m.id} className="bg-claude-surface text-claude-text">
               {m.label}
             </option>
           ))}
@@ -200,14 +200,14 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           placeholder="Digite seu prompt... (Enter para enviar, Shift+Enter para nova linha)"
           rows={1}
           disabled={disabled || sending}
-          className="flex-1 bg-transparent text-[#F5F5F5] text-sm outline-none focus:outline-none focus:ring-0 resize-none placeholder:text-[#9A9A9A] leading-relaxed disabled:opacity-50 min-h-[1.5rem] self-center"
+          className="flex-1 bg-transparent text-claude-text text-sm outline-none focus:outline-none focus:ring-0 resize-none placeholder:text-claude-muted leading-relaxed disabled:opacity-50 min-h-[1.5rem] self-center"
         />
 
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!canSend}
-          className="flex-shrink-0 w-9 h-9 bg-[#D97757] hover:bg-[#C4663F] rounded-xl flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="flex-shrink-0 w-9 h-9 bg-claude-primary hover:bg-claude-primary-hover rounded-xl flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           {sending
             ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -215,7 +215,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           }
         </button>
       </div>
-      <p className="text-center text-[#9A9A9A] text-xs mt-2">
+      <p className="text-center text-claude-muted text-xs mt-2">
         ClaudePanel pode cometer erros. Sempre revise o código gerado.
       </p>
     </div>

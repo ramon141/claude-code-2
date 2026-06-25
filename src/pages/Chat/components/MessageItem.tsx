@@ -22,12 +22,12 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
   queued: {
     icon: <Clock className="w-3.5 h-3.5" />,
     label: 'Na fila',
-    className: 'bg-[#3A3A3A] text-[#9A9A9A]',
+    className: 'bg-claude-border text-claude-muted',
   },
   executing: {
     icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
     label: 'Executando',
-    className: 'bg-[#D97757]/20 text-[#D97757]',
+    className: 'bg-claude-primary/20 text-claude-primary',
   },
   completed: {
     icon: <CheckCircle className="w-3.5 h-3.5" />,
@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
   cancelled: {
     icon: <Ban className="w-3.5 h-3.5" />,
     label: 'Cancelado',
-    className: 'bg-[#3A3A3A] text-[#9A9A9A]',
+    className: 'bg-claude-border text-claude-muted',
   },
   rate_limited: {
     icon: <Gauge className="w-3.5 h-3.5" />,
@@ -80,7 +80,7 @@ function isActive(status?: string): boolean {
 function ContextFileTag({ path }: { path: string }) {
   const name = path.split('/').pop() ?? path
   return (
-    <div className="inline-flex items-center gap-1 bg-[#1A1A1A] border border-[#3A3A3A] rounded-md px-2 py-0.5 text-xs text-[#9A9A9A]" title={path}>
+    <div className="inline-flex items-center gap-1 bg-claude-bg border border-claude-border rounded-md px-2 py-0.5 text-xs text-claude-muted" title={path}>
       <Paperclip className="w-2.5 h-2.5 flex-shrink-0" />
       <span className="truncate max-w-[160px]">{name}</span>
     </div>
@@ -126,13 +126,13 @@ function EditableContent({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKey}
         rows={Math.max(2, value.split('\n').length)}
-        className="w-full bg-[#1A1A1A] border border-[#D97757]/50 rounded-xl px-3 py-2 text-[#F5F5F5] text-sm resize-none focus:outline-none focus:border-[#D97757]"
+        className="w-full bg-claude-bg border border-claude-primary/50 rounded-xl px-3 py-2 text-claude-text text-sm resize-none focus:outline-none focus:border-claude-primary"
       />
       <div className="flex justify-end gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-claude-muted hover:text-claude-text transition-colors"
         >
           <X className="w-3.5 h-3.5" />
           Cancelar
@@ -141,7 +141,7 @@ function EditableContent({
           type="button"
           onClick={() => void save()}
           disabled={isPending || !value.trim()}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-[#D97757]/20 text-[#D97757] hover:bg-[#D97757]/30 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-claude-primary/20 text-claude-primary hover:bg-claude-primary/30 transition-colors disabled:opacity-50"
         >
           <Check className="w-3.5 h-3.5" />
           Salvar
@@ -153,7 +153,7 @@ function EditableContent({
 
 function WaitingBadge({ waitForPromptId }: { waitForPromptId: number }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[#D97757]/10 text-[#D97757]/70 border border-[#D97757]/20">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-claude-primary/10 text-claude-primary/70 border border-claude-primary/20">
       <Link className="w-3 h-3" />
       Aguardando #{waitForPromptId}
     </span>
@@ -176,7 +176,7 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
               ))}
             </div>
           )}
-          <div className="group relative bg-[#D97757]/20 border border-[#D97757]/30 rounded-2xl rounded-tr-sm px-4 py-3">
+          <div className="group relative bg-claude-primary/20 border border-claude-primary/30 rounded-2xl rounded-tr-sm px-4 py-3">
             {editing ? (
               <EditableContent
                 promptId={prompt.id!}
@@ -186,12 +186,12 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
               />
             ) : (
               <>
-                <p className="text-[#F5F5F5] text-sm whitespace-pre-wrap">{prompt.content}</p>
+                <p className="text-claude-text text-sm whitespace-pre-wrap">{prompt.content}</p>
                 {canEdit && (
                   <button
                     type="button"
                     onClick={() => setEditing(true)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-[#9A9A9A] hover:text-[#F5F5F5] hover:bg-[#3A3A3A] transition-all"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-all"
                     title="Editar prompt"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -206,7 +206,7 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
       <div className="flex justify-start">
         <div className="max-w-[90%] space-y-2.5">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="w-6 h-6 rounded-full bg-[#D97757] flex items-center justify-center flex-shrink-0">
+            <div className="w-6 h-6 rounded-full bg-claude-primary flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs font-bold">C</span>
             </div>
             <StatusBadge status={prompt.status} />
@@ -216,21 +216,21 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
           </div>
 
           {prompt.output && (
-            <div className="bg-[#2A2A2A] border border-[#3A3A3A] rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="bg-claude-surface border border-claude-border rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="prose prose-invert prose-sm max-w-none
-                prose-p:text-[#F5F5F5] prose-p:leading-relaxed prose-p:my-1
-                prose-headings:text-[#F5F5F5] prose-headings:font-semibold
+                prose-p:text-claude-text prose-p:leading-relaxed prose-p:my-1
+                prose-headings:text-claude-text prose-headings:font-semibold
                 prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                prose-strong:text-[#F5F5F5] prose-em:text-[#D0D0D0]
-                prose-code:text-[#D97757] prose-code:bg-[#1A1A1A] prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-                prose-pre:bg-[#1A1A1A] prose-pre:border prose-pre:border-[#3A3A3A] prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto
+                prose-strong:text-claude-text prose-em:text-claude-text-dim
+                prose-code:text-claude-primary prose-code:bg-claude-bg prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                prose-pre:bg-claude-bg prose-pre:border prose-pre:border-claude-border prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto
                 prose-pre:text-xs prose-pre:font-mono prose-pre:leading-relaxed
-                prose-ul:text-[#F5F5F5] prose-ul:my-1 prose-li:my-0.5
-                prose-ol:text-[#F5F5F5] prose-ol:my-1
-                prose-blockquote:border-l-[#D97757] prose-blockquote:text-[#9A9A9A] prose-blockquote:my-2
-                prose-hr:border-[#3A3A3A]
-                prose-a:text-[#D97757] prose-a:no-underline hover:prose-a:underline
-                prose-table:text-[#F5F5F5] prose-th:border-[#3A3A3A] prose-td:border-[#3A3A3A]">
+                prose-ul:text-claude-text prose-ul:my-1 prose-li:my-0.5
+                prose-ol:text-claude-text prose-ol:my-1
+                prose-blockquote:border-l-[#D97757] prose-blockquote:text-claude-muted prose-blockquote:my-2
+                prose-hr:border-claude-border
+                prose-a:text-claude-primary prose-a:no-underline hover:prose-a:underline
+                prose-table:text-claude-text prose-th:border-claude-border prose-td:border-claude-border">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {prompt.output}
                 </ReactMarkdown>
@@ -239,11 +239,11 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
           )}
 
           {isActive(prompt.status) && !prompt.output && (
-            <div className="bg-[#2A2A2A] border border-[#3A3A3A] rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className="bg-claude-surface border border-claude-border rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9A9A9A] animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9A9A9A] animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#9A9A9A] animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-claude-muted animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-claude-muted animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-claude-muted animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}

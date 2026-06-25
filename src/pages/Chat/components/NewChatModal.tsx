@@ -28,12 +28,12 @@ interface Props {
 }
 
 const inputClass =
-  'w-full h-10 px-3 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg text-[#F5F5F5] text-sm outline-none ' +
-  'focus:border-[#D97757] focus:ring-2 focus:ring-[#D97757]/20 placeholder:text-[#9A9A9A] transition-all'
+  'w-full h-10 px-3 bg-claude-bg border border-claude-border rounded-lg text-claude-text text-sm outline-none ' +
+  'focus:border-claude-primary focus:ring-2 focus:ring-claude-primary/20 placeholder:text-claude-muted transition-all'
 
 const selectClass =
-  'w-full h-10 px-3 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg text-[#F5F5F5] text-sm outline-none ' +
-  'focus:border-[#D97757] focus:ring-2 focus:ring-[#D97757]/20 transition-all appearance-none cursor-pointer'
+  'w-full h-10 px-3 bg-claude-bg border border-claude-border rounded-lg text-claude-text text-sm outline-none ' +
+  'focus:border-claude-primary focus:ring-2 focus:ring-claude-primary/20 transition-all appearance-none cursor-pointer'
 
 export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
   const [useExistingSession, setUseExistingSession] = useState(false)
@@ -94,23 +94,23 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-[#2A2A2A] rounded-2xl border border-[#3A3A3A] p-6 w-full max-w-md shadow-2xl">
+      <div className="relative bg-claude-surface rounded-2xl border border-claude-border p-6 w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-[#F5F5F5]">Novo Chat</h2>
-          <button onClick={onClose} className="text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors">
+          <h2 className="text-lg font-semibold text-claude-text">Novo Chat</h2>
+          <button onClick={onClose} className="text-claude-muted hover:text-claude-text transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">Nome do chat</label>
+            <label className="block text-xs font-semibold text-claude-muted uppercase tracking-wider mb-2">Nome do chat</label>
             <input type="text" placeholder="ex: meu-projeto" {...register('chatName')} className={inputClass} />
             {errors.chatName && <p className="text-xs text-red-400 mt-1">{errors.chatName.message}</p>}
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">Projeto</label>
+            <label className="block text-xs font-semibold text-claude-muted uppercase tracking-wider mb-2">Projeto</label>
             <Controller
               name="projectId"
               control={control}
@@ -138,9 +138,9 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
               type="checkbox"
               checked={useExistingSession}
               onChange={e => setUseExistingSession(e.target.checked)}
-              className="w-4 h-4 accent-[#D97757] cursor-pointer"
+              className="w-4 h-4 accent-claude-primary cursor-pointer"
             />
-            <span className="text-sm text-[#F5F5F5]">Usar chat já existente</span>
+            <span className="text-sm text-claude-text">Usar chat já existente</span>
           </label>
 
           {useExistingSession && (
@@ -160,14 +160,14 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 h-10 border border-[#3A3A3A] text-[#9A9A9A] hover:text-[#F5F5F5] hover:border-[#F5F5F5]/30 rounded-xl text-sm font-medium transition-colors"
+              className="flex-1 h-10 border border-claude-border text-claude-muted hover:text-claude-text hover:border-claude-text/30 rounded-xl text-sm font-medium transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={!isValid || isLoading}
-              className="flex-1 h-10 bg-[#D97757] hover:bg-[#C4663F] text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 h-10 bg-claude-primary hover:bg-claude-primary-hover text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading && <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
               Criar
@@ -202,7 +202,7 @@ function ExistingSessionField({
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">
+      <label className="block text-xs font-semibold text-claude-muted uppercase tracking-wider mb-2">
         Session ID do Claude
       </label>
       <div className="flex gap-2">
@@ -214,7 +214,7 @@ function ExistingSessionField({
             className={inputClass}
           />
           {isVerifying && (
-            <Loader className="absolute right-3 top-3 w-4 h-4 text-[#9A9A9A] animate-spin" />
+            <Loader className="absolute right-3 top-3 w-4 h-4 text-claude-muted animate-spin" />
           )}
           {!isVerifying && sessionExists === true && (
             <CheckCircle className="absolute right-3 top-3 w-4 h-4 text-emerald-400" />
@@ -229,8 +229,8 @@ function ExistingSessionField({
           disabled={!hasSessionId || isVerifying}
           className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed ${
             hasSessionId && !isVerifying
-              ? 'bg-[#D97757] hover:bg-[#C4663F] text-white'
-              : 'border border-[#3A3A3A] text-[#9A9A9A]'
+              ? 'bg-claude-primary hover:bg-claude-primary-hover text-white'
+              : 'border border-claude-border text-claude-muted'
           }`}
         >
           Verificar

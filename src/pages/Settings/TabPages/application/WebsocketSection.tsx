@@ -41,7 +41,7 @@ const WebsocketSection: React.FC<WebsocketSectionProps> = ({ origins }) => {
         rows={5}
         spellCheck={false}
         placeholder="tauri://localhost"
-        className="bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-[#F5F5F5] text-sm font-mono outline-none focus:border-[#D97757] transition-colors placeholder:text-[#6A6A6A] resize-y"
+        className="bg-claude-surface border border-claude-border rounded-lg px-3 py-2 text-claude-text text-sm font-mono outline-none focus:border-claude-primary transition-colors placeholder:text-claude-muted resize-y"
       />
       {apiError && <p className="text-red-400 text-sm">{apiError}</p>}
       {saved && <p className="text-green-400 text-sm">Origens salvas.</p>}

@@ -42,7 +42,7 @@ const NotificationSection: React.FC<NotificationSectionProps> = ({
       icon={<Bell className="w-5 h-5" />}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[#F5F5F5] text-sm">Ativar notificações ao finalizar prompt</span>
+        <span className="text-claude-text text-sm">Ativar notificações ao finalizar prompt</span>
         <Switch checked={enabled} onChange={setEnabled} />
       </div>
 
@@ -53,11 +53,11 @@ const NotificationSection: React.FC<NotificationSectionProps> = ({
         spellCheck={false}
         placeholder="11999998888"
         disabled={!enabled}
-        className="bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-[#F5F5F5] text-sm font-mono outline-none focus:border-[#D97757] transition-colors placeholder:text-[#6A6A6A] resize-y disabled:opacity-40"
+        className="bg-claude-surface border border-claude-border rounded-lg px-3 py-2 text-claude-text text-sm font-mono outline-none focus:border-claude-primary transition-colors placeholder:text-claude-muted resize-y disabled:opacity-40"
       />
 
-      <p className="text-[#9A9A9A] text-xs">
-        Mensagem enviada: <span className="font-mono text-[#D97757]">O Chat *nome* finalizou o prompt: texto…</span>
+      <p className="text-claude-muted text-xs">
+        Mensagem enviada: <span className="font-mono text-claude-primary">O Chat *nome* finalizou o prompt: texto…</span>
       </p>
 
       {apiError && <p className="text-red-400 text-sm">{apiError}</p>}

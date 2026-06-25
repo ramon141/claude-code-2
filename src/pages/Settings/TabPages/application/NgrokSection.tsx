@@ -61,7 +61,7 @@ const NgrokSection: React.FC<NgrokSectionProps> = ({ enabled, domain, onNeedRest
     >
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <span className="text-[#F5F5F5] text-sm">
+          <span className="text-claude-text text-sm">
             {checked ? 'Ativado' : 'Desativado'}
           </span>
           <button
@@ -71,7 +71,7 @@ const NgrokSection: React.FC<NgrokSectionProps> = ({ enabled, domain, onNeedRest
             disabled={isPending}
             onClick={toggle}
             className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 ${
-              checked ? 'bg-[#D97757]' : 'bg-[#3A3A3A]'
+              checked ? 'bg-claude-primary' : 'bg-claude-border'
             }`}
           >
             <span
@@ -83,10 +83,10 @@ const NgrokSection: React.FC<NgrokSectionProps> = ({ enabled, domain, onNeedRest
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[#9A9A9A] text-xs font-medium uppercase tracking-wide">
+          <label className="text-claude-muted text-xs font-medium uppercase tracking-wide">
             Domínio fixo (opcional)
           </label>
-          <p className="text-[#7A7A7A] text-xs">
+          <p className="text-claude-muted text-xs">
             URL reservada no ngrok free tier. Deixe em branco para usar URL aleatória.
           </p>
           <div className="flex gap-2">
@@ -95,13 +95,13 @@ const NgrokSection: React.FC<NgrokSectionProps> = ({ enabled, domain, onNeedRest
               value={domainValue}
               onChange={e => setDomainValue(e.target.value)}
               placeholder={NGROK_DOMAIN_PLACEHOLDER}
-              className="flex-1 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-[#F5F5F5] text-sm outline-none focus:border-[#D97757] transition-colors"
+              className="flex-1 bg-claude-bg border border-claude-border rounded-lg px-3 py-2 text-claude-text text-sm outline-none focus:border-claude-primary transition-colors"
             />
             <button
               type="button"
               disabled={isPending}
               onClick={saveDomain}
-              className="px-3 py-2 bg-[#D97757] hover:bg-[#c96647] disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors whitespace-nowrap"
+              className="px-3 py-2 bg-claude-primary hover:bg-claude-primary-hover disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
               Salvar
             </button>

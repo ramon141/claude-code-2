@@ -10,7 +10,7 @@ const WhatsAppTab: React.FC = () => {
   if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center py-16">
-        <span className="w-8 h-8 border-4 border-[#D97757] border-t-transparent rounded-full animate-spin" />
+        <span className="w-8 h-8 border-4 border-claude-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }

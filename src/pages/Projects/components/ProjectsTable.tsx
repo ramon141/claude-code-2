@@ -10,17 +10,17 @@ interface RowProps {
 
 function ProjectRow({ project, onEdit, onDelete, isDeleting }: RowProps) {
   return (
-    <tr className="border-b border-[#3A3A3A] last:border-0">
+    <tr className="border-b border-claude-border last:border-0">
       <td className="px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#D97757]/10 border border-[#D97757]/20 flex items-center justify-center flex-shrink-0">
-            <FolderOpen className="w-3.5 h-3.5 text-[#D97757]" />
+          <div className="w-7 h-7 rounded-lg bg-claude-primary/10 border border-claude-primary/20 flex items-center justify-center flex-shrink-0">
+            <FolderOpen className="w-3.5 h-3.5 text-claude-primary" />
           </div>
-          <span className="text-sm text-[#F5F5F5] font-medium">{project.name}</span>
+          <span className="text-sm text-claude-text font-medium">{project.name}</span>
         </div>
       </td>
-      <td className="px-4 py-3 text-sm font-mono text-[#9A9A9A] truncate max-w-xs">{project.workDir}</td>
-      <td className="px-4 py-3 text-sm text-[#9A9A9A]">
+      <td className="px-4 py-3 text-sm font-mono text-claude-muted truncate max-w-xs">{project.workDir}</td>
+      <td className="px-4 py-3 text-sm text-claude-muted">
         {project.createdAt ? new Date(project.createdAt).toLocaleDateString('pt-BR') : '—'}
       </td>
       <td className="px-4 py-3">
@@ -28,7 +28,7 @@ function ProjectRow({ project, onEdit, onDelete, isDeleting }: RowProps) {
           <button
             type="button"
             onClick={() => onEdit(project)}
-            className="p-1.5 text-[#9A9A9A] hover:text-[#F5F5F5] hover:bg-white/6 rounded-lg transition-colors"
+            className="p-1.5 text-claude-muted hover:text-claude-text hover:bg-white/6 rounded-lg transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
@@ -36,7 +36,7 @@ function ProjectRow({ project, onEdit, onDelete, isDeleting }: RowProps) {
             type="button"
             onClick={() => project.id !== undefined && onDelete(project.id)}
             disabled={isDeleting}
-            className="p-1.5 text-[#9A9A9A] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 text-claude-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -58,7 +58,7 @@ export default function ProjectsTable({ projects, isLoading, onEdit, onDelete, i
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="w-5 h-5 border-2 border-[#D97757] border-t-transparent rounded-full animate-spin" />
+        <span className="w-5 h-5 border-2 border-claude-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -66,10 +66,10 @@ export default function ProjectsTable({ projects, isLoading, onEdit, onDelete, i
   if (projects.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-12 h-12 rounded-xl bg-[#2A2A2A] border border-[#3A3A3A] flex items-center justify-center mb-3">
-          <FolderOpen className="w-6 h-6 text-[#9A9A9A]" />
+        <div className="w-12 h-12 rounded-xl bg-claude-surface border border-claude-border flex items-center justify-center mb-3">
+          <FolderOpen className="w-6 h-6 text-claude-muted" />
         </div>
-        <p className="text-[#9A9A9A] text-sm">Nenhum projeto ainda. Crie o primeiro!</p>
+        <p className="text-claude-muted text-sm">Nenhum projeto ainda. Crie o primeiro!</p>
       </div>
     )
   }
@@ -77,11 +77,11 @@ export default function ProjectsTable({ projects, isLoading, onEdit, onDelete, i
   return (
     <table className="w-full">
       <thead>
-        <tr className="border-b border-[#3A3A3A]">
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Nome</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Diretório</th>
-          <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Criado em</th>
-          <th className="text-right px-4 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Ações</th>
+        <tr className="border-b border-claude-border">
+          <th className="text-left px-4 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Nome</th>
+          <th className="text-left px-4 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Diretório</th>
+          <th className="text-left px-4 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Criado em</th>
+          <th className="text-right px-4 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Ações</th>
         </tr>
       </thead>
       <tbody>

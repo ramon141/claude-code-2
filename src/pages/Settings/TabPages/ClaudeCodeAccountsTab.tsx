@@ -68,13 +68,13 @@ export default function ClaudeCodeAccountsTab() {
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#D97757]/10 hover:bg-[#D97757]/20 border border-[#D97757]/30 rounded-lg text-[#D97757] text-sm font-medium transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-claude-primary/10 hover:bg-claude-primary/20 border border-claude-primary/30 rounded-lg text-claude-primary text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
           Nova Conta
         </button>
       </div>
-      <div className="bg-[#2A2A2A] rounded-xl border border-[#3A3A3A] overflow-hidden">
+      <div className="bg-claude-surface rounded-xl border border-claude-border overflow-hidden">
         <ClaudeApiKeysTable
           apiKeys={apiKeys}
           activeApiKeyId={activeApiKeyId}

@@ -42,14 +42,14 @@ const AuthSection: React.FC<AuthSectionProps> = ({ authConfigured }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={authConfigured ? '••••••••' : 'Nova senha'}
-          className="w-full px-3 py-2.5 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg text-[#F5F5F5] text-sm outline-none focus:border-[#D97757] transition-colors"
+          className="w-full px-3 py-2.5 bg-claude-bg border border-claude-border rounded-lg text-claude-text text-sm outline-none focus:border-claude-primary transition-colors"
         />
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => void save()}
             disabled={isPending}
-            className="px-4 py-2 bg-[#D97757] hover:bg-[#c96647] disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors"
+            className="px-4 py-2 bg-claude-primary hover:bg-claude-primary-hover disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors"
           >
             {isPending ? 'Salvando...' : 'Salvar senha'}
           </button>

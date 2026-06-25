@@ -34,18 +34,18 @@ const Login: React.FC<LoginProps> = ({ onAuthenticated }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-claude-bg flex items-center justify-center px-4">
       <form
         onSubmit={submit}
-        className="w-full max-w-sm bg-[#2A2A2A] rounded-2xl border border-[#3A3A3A] p-6 flex flex-col gap-5"
+        className="w-full max-w-sm bg-claude-surface rounded-2xl border border-claude-border p-6 flex flex-col gap-5"
       >
         <div className="flex flex-col items-center gap-3 text-center">
-          <div className="w-12 h-12 rounded-xl bg-[#D97757]/10 border border-[#D97757]/20 flex items-center justify-center">
-            <Lock className="w-6 h-6 text-[#D97757]" />
+          <div className="w-12 h-12 rounded-xl bg-claude-primary/10 border border-claude-primary/20 flex items-center justify-center">
+            <Lock className="w-6 h-6 text-claude-primary" />
           </div>
           <div>
-            <h1 className="text-[#F5F5F5] font-semibold">Acesso restrito</h1>
-            <p className="text-xs text-[#9A9A9A] mt-1">Informe a senha para acessar remotamente.</p>
+            <h1 className="text-claude-text font-semibold">Acesso restrito</h1>
+            <p className="text-xs text-claude-muted mt-1">Informe a senha para acessar remotamente.</p>
           </div>
         </div>
 
@@ -55,7 +55,7 @@ const Login: React.FC<LoginProps> = ({ onAuthenticated }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Senha"
-          className="w-full px-3 py-2.5 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg text-[#F5F5F5] text-sm outline-none focus:border-[#D97757] transition-colors"
+          className="w-full px-3 py-2.5 bg-claude-bg border border-claude-border rounded-lg text-claude-text text-sm outline-none focus:border-claude-primary transition-colors"
         />
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
@@ -63,7 +63,7 @@ const Login: React.FC<LoginProps> = ({ onAuthenticated }) => {
         <button
           type="submit"
           disabled={loading || password.length === 0}
-          className="w-full px-3 py-2.5 bg-[#D97757] hover:bg-[#c96647] disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors"
+          className="w-full px-3 py-2.5 bg-claude-primary hover:bg-claude-primary-hover disabled:opacity-50 rounded-lg text-white text-sm font-medium transition-colors"
         >
           {loading ? 'Verificando...' : 'Entrar'}
         </button>

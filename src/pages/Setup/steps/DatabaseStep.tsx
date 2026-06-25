@@ -29,10 +29,10 @@ const DatabaseStep: React.FC<DatabaseStepProps> = ({ onNext }) => {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
       <header className="flex items-center gap-3">
-        <Database className="w-5 h-5 text-[#D97757]" />
+        <Database className="w-5 h-5 text-claude-primary" />
         <div>
-          <h2 className="text-[#F5F5F5] font-semibold">Banco de dados</h2>
-          <p className="text-[#9A9A9A] text-sm">Testaremos a conexão e rodaremos as migrations.</p>
+          <h2 className="text-claude-text font-semibold">Banco de dados</h2>
+          <p className="text-claude-muted text-sm">Testaremos a conexão e rodaremos as migrations.</p>
         </div>
       </header>
 

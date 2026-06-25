@@ -16,12 +16,12 @@ interface LimitBarProps {
 
 function LimitBar({ value, label }: LimitBarProps) {
   if (value === null || value === undefined) {
-    return <span className="text-xs text-[#9A9A9A]">—</span>
+    return <span className="text-xs text-claude-muted">—</span>
   }
   const pct = Math.min(Math.max(value, 0), 100)
   return (
     <div className="flex flex-col gap-1 min-w-[60px]">
-      <span className="text-xs text-[#9A9A9A]">{label}: {pct.toFixed(1)}%</span>
+      <span className="text-xs text-claude-muted">{label}: {pct.toFixed(1)}%</span>
       <Progress value={pct} />
     </div>
   )
@@ -41,28 +41,28 @@ interface RowProps {
 
 function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRotation, isDeleting, isActivating, isTogglingRotation }: RowProps) {
   return (
-    <tr className="border-b border-[#3A3A3A] last:border-0">
+    <tr className="border-b border-claude-border last:border-0">
       <td className="px-3 py-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-[#D97757]/10 border border-[#D97757]/20 flex items-center justify-center flex-shrink-0">
-            <Key className="w-3.5 h-3.5 text-[#D97757]" />
+          <div className="w-7 h-7 rounded-lg bg-claude-primary/10 border border-claude-primary/20 flex items-center justify-center flex-shrink-0">
+            <Key className="w-3.5 h-3.5 text-claude-primary" />
           </div>
-          <span className="text-sm text-[#F5F5F5] font-medium truncate max-w-[150px]" title={apiKey.name}>{apiKey.name}</span>
+          <span className="text-sm text-claude-text font-medium truncate max-w-[150px]" title={apiKey.name}>{apiKey.name}</span>
         </div>
       </td>
-      <td className="px-3 py-3 text-sm font-mono text-[#9A9A9A]">{maskKey(apiKey.keyValue)}</td>
+      <td className="px-3 py-3 text-sm font-mono text-claude-muted">{maskKey(apiKey.keyValue)}</td>
       <td className="px-3 py-3">
         {isActive ? (
           <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-400">
             <CheckCircle className="w-3.5 h-3.5" /> Ativa
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-xs font-medium text-[#9A9A9A]">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-claude-muted">
             <XCircle className="w-3.5 h-3.5" /> Inativa
           </span>
         )}
       </td>
-      <td className="px-3 py-3 text-sm text-[#9A9A9A]">
+      <td className="px-3 py-3 text-sm text-claude-muted">
         {apiKey.createdAt ? new Date(apiKey.createdAt).toLocaleDateString('pt-BR') : '—'}
       </td>
       <td className="px-3 py-3">
@@ -87,7 +87,7 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
               onClick={() => apiKey.id !== undefined && onActivate(apiKey.id)}
               disabled={isActivating}
               title="Ativar"
-              className="p-1.5 text-[#9A9A9A] hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
+              className="p-1.5 text-claude-muted hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors disabled:opacity-50"
             >
               <Power className="w-3.5 h-3.5" />
             </button>
@@ -95,7 +95,7 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
           <button
             type="button"
             onClick={() => onEdit(apiKey)}
-            className="p-1.5 text-[#9A9A9A] hover:text-[#F5F5F5] hover:bg-white/6 rounded-lg transition-colors"
+            className="p-1.5 text-claude-muted hover:text-claude-text hover:bg-white/6 rounded-lg transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
@@ -103,7 +103,7 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
             type="button"
             onClick={() => apiKey.id !== undefined && onDelete(apiKey.id)}
             disabled={isDeleting}
-            className="p-1.5 text-[#9A9A9A] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 text-claude-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -130,7 +130,7 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <span className="w-5 h-5 border-2 border-[#D97757] border-t-transparent rounded-full animate-spin" />
+        <span className="w-5 h-5 border-2 border-claude-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -138,10 +138,10 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
   if (apiKeys.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-12 h-12 rounded-xl bg-[#2A2A2A] border border-[#3A3A3A] flex items-center justify-center mb-3">
-          <Key className="w-6 h-6 text-[#9A9A9A]" />
+        <div className="w-12 h-12 rounded-xl bg-claude-surface border border-claude-border flex items-center justify-center mb-3">
+          <Key className="w-6 h-6 text-claude-muted" />
         </div>
-        <p className="text-[#9A9A9A] text-sm">Nenhuma conta ainda. Adicione a primeira!</p>
+        <p className="text-claude-muted text-sm">Nenhuma conta ainda. Adicione a primeira!</p>
       </div>
     )
   }
@@ -149,14 +149,14 @@ export default function ClaudeApiKeysTable({ apiKeys, activeApiKeyId, isLoading,
   return (
     <table className="w-full">
       <thead>
-        <tr className="border-b border-[#3A3A3A]">
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Nome</th>
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Chave</th>
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Status</th>
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Criado em</th>
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Rodízio</th>
-          <th className="text-left px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Limites</th>
-          <th className="text-right px-3 py-2.5 text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider">Ações</th>
+        <tr className="border-b border-claude-border">
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Nome</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Chave</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Status</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Criado em</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Rodízio</th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Limites</th>
+          <th className="text-right px-3 py-2.5 text-xs font-semibold text-claude-muted uppercase tracking-wider">Ações</th>
         </tr>
       </thead>
       <tbody>

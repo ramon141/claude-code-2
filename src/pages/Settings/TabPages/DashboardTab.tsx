@@ -15,14 +15,14 @@ function formatLastProcessed(iso?: string): string {
 
 function DaemonStatus({ lastProcessed }: { lastProcessed?: string }) {
   return (
-    <div className="bg-[#2A2A2A] rounded-xl border border-[#3A3A3A] p-5">
+    <div className="bg-claude-surface rounded-xl border border-claude-border p-5">
       <div className="flex items-center gap-3 mb-4">
-        <Activity className="w-5 h-5 text-[#D97757]" />
-        <h3 className="text-[#F5F5F5] font-semibold">Status do Daemon</h3>
+        <Activity className="w-5 h-5 text-claude-primary" />
+        <h3 className="text-claude-text font-semibold">Status do Daemon</h3>
       </div>
       <div className="py-2 flex items-center justify-between">
-        <span className="text-[#9A9A9A] text-sm">Último processado</span>
-        <span className="text-[#F5F5F5] text-sm">{formatLastProcessed(lastProcessed)}</span>
+        <span className="text-claude-muted text-sm">Último processado</span>
+        <span className="text-claude-text text-sm">{formatLastProcessed(lastProcessed)}</span>
       </div>
     </div>
   )
@@ -36,7 +36,7 @@ export default function DashboardTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <span className="w-8 h-8 border-2 border-[#D97757] border-t-transparent rounded-full animate-spin" />
+        <span className="w-8 h-8 border-2 border-claude-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -44,7 +44,7 @@ export default function DashboardTab() {
   if (!state) {
     return (
       <div className="text-center py-20">
-        <p className="text-[#9A9A9A] text-sm">Não foi possível carregar os dados do daemon.</p>
+        <p className="text-claude-muted text-sm">Não foi possível carregar os dados do daemon.</p>
       </div>
     )
   }

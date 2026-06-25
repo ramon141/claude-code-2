@@ -10,14 +10,14 @@ interface StatCardProps {
 
 function StatCard({ title, value, icon, color }: StatCardProps) {
   return (
-    <div className="bg-[#2A2A2A] rounded-xl border border-[#3A3A3A] p-5">
+    <div className="bg-claude-surface rounded-xl border border-claude-border p-5">
       <div className="flex items-start justify-between mb-4">
-        <span className="text-[#9A9A9A] text-sm font-medium">{title}</span>
+        <span className="text-claude-muted text-sm font-medium">{title}</span>
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
           {icon}
         </div>
       </div>
-      <p className="text-3xl font-bold text-[#F5F5F5]">{value.toLocaleString('pt-BR')}</p>
+      <p className="text-3xl font-bold text-claude-text">{value.toLocaleString('pt-BR')}</p>
     </div>
   )
 }

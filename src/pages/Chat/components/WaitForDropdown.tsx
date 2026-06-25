@@ -74,25 +74,25 @@ export default function WaitForDropdown({ currentChatName, selected, useWaitResp
   return (
     <div
       ref={ref}
-      className="absolute bottom-full left-0 mb-2 w-80 bg-[#2A2A2A] border border-[#3A3A3A] rounded-xl shadow-xl z-20 overflow-hidden"
+      className="absolute bottom-full left-0 mb-2 w-80 bg-claude-surface border border-claude-border rounded-xl shadow-xl z-20 overflow-hidden"
     >
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[#3A3A3A]">
-        <span className="text-[#F5F5F5] text-xs font-medium flex items-center gap-1.5">
-          <Link className="w-3.5 h-3.5 text-[#D97757]" />
+      <div className="flex items-center justify-between px-3 py-2 border-b border-claude-border">
+        <span className="text-claude-text text-xs font-medium flex items-center gap-1.5">
+          <Link className="w-3.5 h-3.5 text-claude-primary" />
           Aguardar prompt de outro chat
         </span>
-        <button type="button" onClick={onClose} className="text-[#9A9A9A] hover:text-[#F5F5F5]">
+        <button type="button" onClick={onClose} className="text-claude-muted hover:text-claude-text">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       <div className="max-h-64 overflow-y-auto">
         {groups.size === 0 ? (
-          <p className="text-[#9A9A9A] text-xs text-center py-6">Nenhum prompt ativo em outros chats</p>
+          <p className="text-claude-muted text-xs text-center py-6">Nenhum prompt ativo em outros chats</p>
         ) : (
           Array.from(groups.entries()).map(([chatName, options]) => (
             <div key={chatName}>
-              <p className="px-3 pt-2 pb-1 text-[#9A9A9A] text-[10px] uppercase tracking-wider font-medium">
+              <p className="px-3 pt-2 pb-1 text-claude-muted text-[10px] uppercase tracking-wider font-medium">
                 {chatName}
               </p>
               {options.map(opt => (
@@ -100,10 +100,10 @@ export default function WaitForDropdown({ currentChatName, selected, useWaitResp
                   key={opt.id}
                   type="button"
                   onClick={() => { onSelect(opt.id, opt.chatName); onClose() }}
-                  className={`w-full text-left px-3 py-2 hover:bg-[#3A3A3A] transition-colors flex items-start gap-2 ${selected === opt.id ? 'bg-[#D97757]/10' : ''}`}
+                  className={`w-full text-left px-3 py-2 hover:bg-claude-border transition-colors flex items-start gap-2 ${selected === opt.id ? 'bg-claude-primary/10' : ''}`}
                 >
-                  <span className="flex-shrink-0 mt-0.5 text-[#9A9A9A]">{STATUS_ICONS[opt.status] ?? <Clock className="w-3 h-3" />}</span>
-                  <span className="flex-1 text-[#F5F5F5] text-xs leading-relaxed">{promptPreview(opt.content)}</span>
+                  <span className="flex-shrink-0 mt-0.5 text-claude-muted">{STATUS_ICONS[opt.status] ?? <Clock className="w-3 h-3" />}</span>
+                  <span className="flex-1 text-claude-text text-xs leading-relaxed">{promptPreview(opt.content)}</span>
                 </button>
               ))}
             </div>
@@ -112,13 +112,13 @@ export default function WaitForDropdown({ currentChatName, selected, useWaitResp
       </div>
 
       {selected != null && (
-        <div className="px-3 py-2 border-t border-[#3A3A3A] space-y-2">
+        <div className="px-3 py-2 border-t border-claude-border space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[#D97757] text-xs">Selecionado: #{selected}</span>
+            <span className="text-claude-primary text-xs">Selecionado: #{selected}</span>
             <button
               type="button"
               onClick={() => onSelect(null, null)}
-              className="text-[#9A9A9A] hover:text-[#F5F5F5] text-xs"
+              className="text-claude-muted hover:text-claude-text text-xs"
             >
               Limpar
             </button>
@@ -128,13 +128,13 @@ export default function WaitForDropdown({ currentChatName, selected, useWaitResp
               type="checkbox"
               checked={useWaitResponse}
               onChange={e => onToggleUseResponse(e.target.checked)}
-              className="w-3.5 h-3.5 accent-[#D97757]"
+              className="w-3.5 h-3.5 accent-claude-primary"
             />
-            <span className="text-[#F5F5F5] text-xs">Usar resposta no prompt</span>
+            <span className="text-claude-text text-xs">Usar resposta no prompt</span>
           </label>
           {useWaitResponse && (
-            <p className="text-[#9A9A9A] text-[11px] leading-relaxed">
-              Use <code className="text-[#D97757] bg-[#1A1A1A] px-1 rounded">{'{{resposta}}'}</code> no texto para inserir a resposta. Se omitido, ela é adicionada ao final.
+            <p className="text-claude-muted text-[11px] leading-relaxed">
+              Use <code className="text-claude-primary bg-claude-bg px-1 rounded">{'{{resposta}}'}</code> no texto para inserir a resposta. Se omitido, ela é adicionada ao final.
             </p>
           )}
         </div>

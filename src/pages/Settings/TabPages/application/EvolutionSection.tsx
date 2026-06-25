@@ -34,7 +34,7 @@ const STATE_COLORS: Record<SetupControllerEvolutionStatus200State, string> = {
   open: 'bg-green-500/20 text-green-400 border-green-500/30',
   close: 'bg-red-500/20 text-red-400 border-red-500/30',
   connecting: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  notConfigured: 'bg-[#2A2A2A] text-[#7A7A7A] border-[#3A3A3A]',
+  notConfigured: 'bg-claude-surface text-claude-muted border-claude-border',
   error: 'bg-red-500/20 text-red-400 border-red-500/30',
 }
 
@@ -58,7 +58,7 @@ function ConnectionBadge() {
         type="button"
         onClick={() => void refetch()}
         disabled={isFetching}
-        className="text-[#7A7A7A] hover:text-[#D97757] transition-colors"
+        className="text-claude-muted hover:text-claude-primary transition-colors"
         title="Atualizar status"
       >
         <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
@@ -112,18 +112,18 @@ const EvolutionSection: React.FC<EvolutionSectionProps> = ({ url, tokenConfigure
           <Field label="EVOLUTION_TOKEN" placeholder="token" registration={register('token')} />
         ) : (
           <div className="flex flex-col gap-1">
-            <label className="text-[#9A9A9A] text-xs font-medium uppercase tracking-wide">EVOLUTION_TOKEN</label>
+            <label className="text-claude-muted text-xs font-medium uppercase tracking-wide">EVOLUTION_TOKEN</label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 value="••••••••"
                 disabled
-                className="flex-1 bg-[#1A1A1A] border border-[#3A3A3A] rounded-lg px-3 py-2 text-[#9A9A9A] text-sm opacity-60 cursor-not-allowed"
+                className="flex-1 bg-claude-bg border border-claude-border rounded-lg px-3 py-2 text-claude-muted text-sm opacity-60 cursor-not-allowed"
               />
               <button
                 type="button"
                 onClick={() => setEditingToken(true)}
-                className="text-[#D97757] text-xs hover:underline whitespace-nowrap"
+                className="text-claude-primary text-xs hover:underline whitespace-nowrap"
               >
                 Alterar
               </button>

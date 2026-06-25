@@ -4,6 +4,24 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --claude-bg: #F8F8F8;
+  --claude-surface: #FFFFFF;
+  --claude-border: #DCDCDC;
+  --claude-text: #1A1A1A;
+  --claude-muted: #6B6B6B;
+  --claude-text-dim: #4A4A4A;
+}
+
+.dark {
+  --claude-bg: #1A1A1A;
+  --claude-surface: #2A2A2A;
+  --claude-border: #3A3A3A;
+  --claude-text: #F5F5F5;
+  --claude-muted: #9A9A9A;
+  --claude-text-dim: #D0D0D0;
+}
+
 *, *::before, *::after {
   font-family: 'Inter', 'Titillium Web', sans-serif;
   box-sizing: border-box;

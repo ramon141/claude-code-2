@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -48,11 +49,12 @@ export default {
         border: '#E2E8F0',
         muted: '#94A3B8',
         claude: {
-          bg: '#1A1A1A',
-          surface: '#2A2A2A',
-          border: '#3A3A3A',
-          text: '#F5F5F5',
-          muted: '#9A9A9A',
+          bg: 'var(--claude-bg)',
+          surface: 'var(--claude-surface)',
+          border: 'var(--claude-border)',
+          text: 'var(--claude-text)',
+          muted: 'var(--claude-muted)',
+          'text-dim': 'var(--claude-text-dim)',
           primary: '#D97757',
           'primary-hover': '#C4663F',
         },

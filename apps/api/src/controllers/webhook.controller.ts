@@ -37,10 +37,29 @@ type WhatsappMode =
   | {kind: 'selecting'}
   | {kind: 'active'; projectId: number};
 
+const PHONE_STATE_TTL_MS = 24 * 60 * 60 * 1000;
 const phoneState = new Map<string, WhatsappMode>();
+const phoneStateTimestamps = new Map<string, number>();
+
+function setPhoneState(phone: string, mode: WhatsappMode): void {
+  phoneState.set(phone, mode);
+  phoneStateTimestamps.set(phone, Date.now());
+  evictStalePhoneStates();
+}
+
+function evictStalePhoneStates(): void {
+  const cutoff = Date.now() - PHONE_STATE_TTL_MS;
+  for (const [phone, ts] of phoneStateTimestamps) {
+    if (ts < cutoff) {
+      phoneState.delete(phone);
+      phoneStateTimestamps.delete(phone);
+    }
+  }
+}
 
 function validateWebhookSecret(req: Request): void {
-  const secret = process.env.EVOLUTION_WEBHOOK_SECRET!;
+  const secret = process.env.EVOLUTION_WEBHOOK_SECRET;
+  if (!secret) throw new HttpErrors.Unauthorized('Webhook not configured');
   const token = req.query['token'];
   if (typeof token !== 'string' || token.length === 0) {
     throw new HttpErrors.Unauthorized('Missing webhook token');
@@ -162,7 +181,7 @@ export class WebhookController {
       phone,
       `Seus projetos:\n${list}\n\nResponda com o número do projeto.\n\n${SWITCH_PROJECT_HINT}`,
     );
-    phoneState.set(phone, {kind: 'selecting'});
+    setPhoneState(phone, {kind: 'selecting'});
   }
 
   private async handleSelection(phone: string, text: string): Promise<void> {
@@ -175,7 +194,7 @@ export class WebhookController {
       return;
     }
     await this.upsertChatSession(phone, project.id);
-    phoneState.set(phone, {kind: 'active', projectId: project.id});
+    setPhoneState(phone, {kind: 'active', projectId: project.id});
     await this.evolutionService.sendText(
       phone,
       `Projeto *${project.name}* selecionado! Pode enviar seu prompt.\n\n${SWITCH_PROJECT_HINT}`,

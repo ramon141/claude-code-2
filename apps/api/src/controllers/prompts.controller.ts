@@ -44,7 +44,20 @@ type PatchPromptBody = {
   sessionId?: string | null;
 };
 
-function validateFilePath(filePath: string): void {
+function validateWorkingDirectory(workingDirectory: string): void {
+  if (!workingDirectory || workingDirectory.includes('\0')) {
+    throw new HttpErrors.UnprocessableEntity('workingDirectory inválido');
+  }
+  if (!path.isAbsolute(workingDirectory)) {
+    throw new HttpErrors.UnprocessableEntity('workingDirectory deve ser um caminho absoluto');
+  }
+  const segments = workingDirectory.replace(/\\/g, '/').split('/');
+  if (segments.some(s => s === '..')) {
+    throw new HttpErrors.UnprocessableEntity('Path traversal não permitido em workingDirectory');
+  }
+}
+
+function validateFilePath(filePath: string, workingDirectory: string): void {
   if (filePath.includes('\0')) {
     throw new HttpErrors.UnprocessableEntity(`Caminho inválido: null byte em "${filePath}"`);
   }
@@ -52,7 +65,11 @@ function validateFilePath(filePath: string): void {
   if (segments.some(s => s === '..')) {
     throw new HttpErrors.UnprocessableEntity(`Path traversal não permitido: "${filePath}"`);
   }
-  const resolved = path.resolve(filePath);
+  const resolved = path.resolve(workingDirectory, filePath);
+  const normalizedWorkDir = path.resolve(workingDirectory);
+  if (!resolved.startsWith(normalizedWorkDir + path.sep) && resolved !== normalizedWorkDir) {
+    throw new HttpErrors.UnprocessableEntity(`Arquivo fora do diretório do projeto não permitido: "${filePath}"`);
+  }
   if (!fs.existsSync(resolved)) {
     throw new HttpErrors.UnprocessableEntity(`Arquivo não encontrado: "${resolved}"`);
   }
@@ -81,7 +98,9 @@ export class PromptsController {
   ): Promise<PromptResponse> {
     res.status(201);
     const {contextFiles = [], chatName = null, claudeModel = null, waitForPromptId = null, useWaitResponse = false, ...promptData} = body;
-    contextFiles.forEach(validateFilePath);
+    const workingDirectory = promptData.workingDirectory ?? '';
+    validateWorkingDirectory(workingDirectory);
+    contextFiles.forEach(f => validateFilePath(f, workingDirectory));
     if (chatName !== null) {
       const session = await this.chatSessionRepo.findOne({where: {chatName}});
       if (!session) throw new HttpErrors.UnprocessableEntity(`ChatSession "${chatName}" not found`);

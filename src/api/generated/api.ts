@@ -29,6 +29,8 @@ import type {
   ChatSessionsControllerUpdateLastUsed200,
   ChatSessionsControllerUpdateSessionId200,
   ChatSessionsControllerUpdateSessionIdBody,
+  ChatSessionsControllerVerifySession200,
+  ChatSessionsControllerVerifySessionParams,
   ClaudeCodeApiKey,
   ClaudeCodeApiKeysControllerCreateBody,
   ClaudeCodeApiKeysControllerGetRotation200,
@@ -133,6 +135,69 @@ export function useAuthControllerGetClaudeToken<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getAuthControllerGetClaudeTokenQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const chatSessionsControllerVerifySession = (
+    params?: ChatSessionsControllerVerifySessionParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<ChatSessionsControllerVerifySession200>(
+      {url: `/chat-sessions/verify-session`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getChatSessionsControllerVerifySessionQueryKey = (params?: ChatSessionsControllerVerifySessionParams,) => {
+    return [
+    `/chat-sessions/verify-session`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getChatSessionsControllerVerifySessionQueryOptions = <TData = Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>, TError = unknown>(params?: ChatSessionsControllerVerifySessionParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatSessionsControllerVerifySessionQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>> = ({ signal }) => chatSessionsControllerVerifySession(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ChatSessionsControllerVerifySessionQueryResult = NonNullable<Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>>
+export type ChatSessionsControllerVerifySessionQueryError = unknown
+
+
+
+export function useChatSessionsControllerVerifySession<TData = Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>, TError = unknown>(
+ params?: ChatSessionsControllerVerifySessionParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerVerifySession>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getChatSessionsControllerVerifySessionQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

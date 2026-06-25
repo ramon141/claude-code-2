@@ -9,4 +9,6 @@
 export type ChatSessionsControllerCreateBody = {
   chatName: string;
   projectId: number;
+  /** @nullable */
+  sessionId?: string | null;
 };

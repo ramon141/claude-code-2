@@ -12,7 +12,7 @@ const API_HEALTH_RETRY_INTERVAL_SECS: u64 = 2;
 const API_RESTART_DELAY_SECS: u64 = 1;
 const ENCRYPTION_KEY_BYTES: usize = 32;
 const CONFIG_FILE_NAME: &str = "app-config.json";
-const NGROK_RESTART_DELAY_SECS: u64 = 3;
+
 
 fn resolve_apps_root(app: &AppHandle) -> PathBuf {
     if cfg!(debug_assertions) {
@@ -60,29 +60,24 @@ fn read_ngrok_config(config_path: &PathBuf) -> NgrokConfig {
     NgrokConfig { enabled, domain }
 }
 
-// Mantém um túnel ngrok apontando pra API (porta 7300). A URL pública fica
-// disponível na API local do ngrok em http://127.0.0.1:4040/api/tunnels, que o
-// endpoint /setup/webhook/ngrok consulta. Reinicia o túnel se cair.
+// Inicia ngrok uma vez. A API gerencia restarts via /setup/ngrok.
 async fn start_ngrok(ngrok: String, domain: Option<String>) {
-    loop {
-        let mut cmd = Command::new(&ngrok);
-        cmd.arg("http")
-            .arg(API_PORT.to_string())
-            .arg("--log=stdout");
-        if let Some(ref d) = domain {
-            cmd.arg(format!("--url={}", d));
+    let mut cmd = Command::new(&ngrok);
+    cmd.arg("http")
+        .arg(API_PORT.to_string())
+        .arg("--log=stdout");
+    if let Some(ref d) = domain {
+        cmd.arg(format!("--url={}", d));
+    }
+    cmd.stdout(Stdio::null())
+        .stderr(Stdio::null());
+    match cmd.spawn() {
+        Ok(mut child) => {
+            println!("[sidecar] ngrok started (pid={})", child.id().unwrap_or(0));
+            let _ = child.wait().await;
+            println!("[sidecar] ngrok exited");
         }
-        cmd.stdout(Stdio::null())
-            .stderr(Stdio::null());
-        match cmd.spawn() {
-            Ok(mut child) => {
-                println!("[sidecar] ngrok started (pid={})", child.id().unwrap_or(0));
-                let _ = child.wait().await;
-                eprintln!("[sidecar] ngrok exited — restarting");
-            }
-            Err(e) => eprintln!("[sidecar] Failed to start ngrok: {}", e),
-        }
-        sleep(Duration::from_secs(NGROK_RESTART_DELAY_SECS)).await;
+        Err(e) => eprintln!("[sidecar] Failed to start ngrok: {}", e),
     }
 }
 

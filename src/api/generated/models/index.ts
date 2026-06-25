@@ -15,6 +15,8 @@ export * from './chatSessionsControllerGetPrompts200Item';
 export * from './chatSessionsControllerUpdateLastUsed200';
 export * from './chatSessionsControllerUpdateSessionId200';
 export * from './chatSessionsControllerUpdateSessionIdBody';
+export * from './chatSessionsControllerVerifySession200';
+export * from './chatSessionsControllerVerifySessionParams';
 export * from './claudeCodeApiKey';
 export * from './claudeCodeApiKeysControllerCreateBody';
 export * from './claudeCodeApiKeysControllerGetRotation200';

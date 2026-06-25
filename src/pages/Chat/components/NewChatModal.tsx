@@ -1,14 +1,25 @@
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { X } from 'lucide-react'
+import { X, CheckCircle, XCircle, Loader } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import type { ChatSessionsControllerCreateBody } from '../../../api/generated/models'
-import { useProjectsControllerFind } from '../../../api/generated/api'
+import {
+  useProjectsControllerFind,
+  useChatSessionsControllerVerifySession,
+} from '../../../api/generated/api'
 
 const schema = yup.object({
   chatName: yup.string().min(2, 'Mínimo 2 caracteres').required('Nome obrigatório'),
   projectId: yup.number().required('Projeto obrigatório').positive('Selecione um projeto'),
+  sessionId: yup.string().trim().nullable().optional(),
 })
+
+type FormValues = {
+  chatName: string
+  projectId: number
+  sessionId?: string | null
+}
 
 interface Props {
   onConfirm: (data: ChatSessionsControllerCreateBody) => Promise<void>
@@ -25,12 +36,56 @@ const selectClass =
   'focus:border-[#D97757] focus:ring-2 focus:ring-[#D97757]/20 transition-all appearance-none cursor-pointer'
 
 export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
-  const { register, handleSubmit, control, formState: { errors, isValid } } = useForm<ChatSessionsControllerCreateBody>({
+  const [useExistingSession, setUseExistingSession] = useState(false)
+  const [sessionIdError, setSessionIdError] = useState('')
+  const [verifyParams, setVerifyParams] = useState<{sessionId: string; workDir: string} | undefined>()
+
+  const { register, handleSubmit, control, watch, setValue, formState: { errors, isValid } } = useForm<FormValues>({
     resolver: yupResolver(schema),
     mode: 'onChange',
   })
 
   const { data: projects = [] } = useProjectsControllerFind()
+  const sessionIdValue = watch('sessionId')
+  const projectIdValue = watch('projectId')
+
+  const selectedProject = projects.find(p => p.id === Number(projectIdValue))
+
+  const { data: verifyData, isFetching: isVerifying } = useChatSessionsControllerVerifySession(
+    verifyParams,
+    { query: { enabled: !!verifyParams } },
+  )
+
+  const sessionExists = verifyData?.exists ?? null
+
+  useEffect(() => {
+    if (!useExistingSession) {
+      setValue('sessionId', null)
+      setVerifyParams(undefined)
+      setSessionIdError('')
+    }
+  }, [useExistingSession, setValue])
+
+  const handleVerify = () => {
+    const sid = sessionIdValue?.trim()
+    const workDir = selectedProject?.workDir
+    if (sid && workDir) {
+      setVerifyParams({ sessionId: sid, workDir })
+    }
+  }
+
+  const onSubmit = async (data: FormValues) => {
+    if (useExistingSession && !data.sessionId?.trim()) {
+      setSessionIdError('Session ID obrigatório')
+      return
+    }
+    setSessionIdError('')
+    await onConfirm({
+      chatName: data.chatName,
+      projectId: data.projectId,
+      sessionId: useExistingSession ? (data.sessionId?.trim() ?? null) : null,
+    })
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -43,7 +98,7 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onConfirm)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">Nome do chat</label>
             <input type="text" placeholder="ex: meu-projeto" {...register('chatName')} className={inputClass} />
@@ -74,6 +129,28 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
             {errors.projectId && <p className="text-xs text-red-400 mt-1">{errors.projectId.message}</p>}
           </div>
 
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={useExistingSession}
+              onChange={e => setUseExistingSession(e.target.checked)}
+              className="w-4 h-4 accent-[#D97757] cursor-pointer"
+            />
+            <span className="text-sm text-[#F5F5F5]">Usar chat já existente</span>
+          </label>
+
+          {useExistingSession && (
+            <ExistingSessionField
+              register={register}
+              sessionIdValue={sessionIdValue}
+              selectedWorkDir={selectedProject?.workDir}
+              isVerifying={isVerifying}
+              sessionExists={sessionExists}
+              sessionIdError={sessionIdError}
+              onVerify={handleVerify}
+            />
+          )}
+
           <div className="flex gap-3 pt-2">
             <button
               type="button"
@@ -93,6 +170,68 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
           </div>
         </form>
       </div>
+    </div>
+  )
+}
+
+interface ExistingSessionFieldProps {
+  register: ReturnType<typeof useForm<FormValues>>['register']
+  sessionIdValue?: string | null
+  selectedWorkDir?: string
+  isVerifying: boolean
+  sessionExists: boolean | null
+  sessionIdError: string
+  onVerify: () => void
+}
+
+function ExistingSessionField({
+  register,
+  sessionIdValue,
+  selectedWorkDir,
+  isVerifying,
+  sessionExists,
+  sessionIdError,
+  onVerify,
+}: ExistingSessionFieldProps) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">
+        Session ID do Claude
+      </label>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="ex: 74e1c2c6-ea70-4805-8301-641845ca30c8"
+            {...register('sessionId')}
+            className={inputClass}
+          />
+          {isVerifying && (
+            <Loader className="absolute right-3 top-3 w-4 h-4 text-[#9A9A9A] animate-spin" />
+          )}
+          {!isVerifying && sessionExists === true && (
+            <CheckCircle className="absolute right-3 top-3 w-4 h-4 text-emerald-400" />
+          )}
+          {!isVerifying && sessionExists === false && (
+            <XCircle className="absolute right-3 top-3 w-4 h-4 text-red-400" />
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onVerify}
+          disabled={!sessionIdValue?.trim() || !selectedWorkDir}
+          className="px-3 py-2 border border-[#3A3A3A] text-[#9A9A9A] hover:text-[#F5F5F5] hover:border-[#F5F5F5]/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm transition-colors whitespace-nowrap"
+        >
+          Verificar
+        </button>
+      </div>
+      {sessionIdError && <p className="text-xs text-red-400 mt-1">{sessionIdError}</p>}
+      {!isVerifying && sessionExists === true && (
+        <p className="text-xs text-emerald-400 mt-1">Sessão encontrada.</p>
+      )}
+      {!isVerifying && sessionExists === false && (
+        <p className="text-xs text-red-400 mt-1">Sessão não encontrada neste projeto.</p>
+      )}
     </div>
   )
 }

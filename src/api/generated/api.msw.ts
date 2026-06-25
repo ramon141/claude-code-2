@@ -26,6 +26,7 @@ import type {
   ChatSessionsControllerGetPrompts200Item,
   ChatSessionsControllerUpdateLastUsed200,
   ChatSessionsControllerUpdateSessionId200,
+  ChatSessionsControllerVerifySession200,
   ClaudeCodeApiKey,
   ClaudeCodeApiKeysControllerGetRotation200,
   ClaudeCodeApiKeysControllerSetRotation200,
@@ -56,6 +57,8 @@ import type {
 
 
 export const getAuthControllerGetClaudeTokenResponseMock = (overrideResponse: Partial< AuthControllerGetClaudeToken200 > = {}): AuthControllerGetClaudeToken200 => ({claudeOAuthToken: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), ...overrideResponse})
+
+export const getChatSessionsControllerVerifySessionResponseMock = (overrideResponse: Partial< ChatSessionsControllerVerifySession200 > = {}): ChatSessionsControllerVerifySession200 => ({exists: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), ...overrideResponse})
 
 export const getChatSessionsControllerUpdateLastUsedResponseMock = (overrideResponse: Partial< ChatSessionsControllerUpdateLastUsed200 > = {}): ChatSessionsControllerUpdateLastUsed200 => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), chatName: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), sessionId: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), projectId: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), workingDirectory: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), totalPrompts: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), lastUsed: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), ...overrideResponse})
 
@@ -146,6 +149,18 @@ export const getAuthControllerGetClaudeTokenMockHandler = (overrideResponse?: Au
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getAuthControllerGetClaudeTokenResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getChatSessionsControllerVerifySessionMockHandler = (overrideResponse?: ChatSessionsControllerVerifySession200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ChatSessionsControllerVerifySession200> | ChatSessionsControllerVerifySession200), options?: RequestHandlerOptions) => {
+  return http.get('*/chat-sessions/verify-session', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getChatSessionsControllerVerifySessionResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -695,6 +710,7 @@ export const getWebhookControllerReceiveMockHandler = (overrideResponse?: Webhoo
 }
 export const getClaudeCodeApiMock = () => [
   getAuthControllerGetClaudeTokenMockHandler(),
+  getChatSessionsControllerVerifySessionMockHandler(),
   getChatSessionsControllerUpdateLastUsedMockHandler(),
   getChatSessionsControllerGetPromptsMockHandler(),
   getChatSessionsControllerUpdateSessionIdMockHandler(),

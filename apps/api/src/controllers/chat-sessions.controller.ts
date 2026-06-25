@@ -1,3 +1,6 @@
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs';
 import {repository} from '@loopback/repository';
 import {inject} from '@loopback/core';
 import {HttpErrors, Response, RestBindings} from '@loopback/rest';
@@ -74,12 +77,13 @@ export class ChatSessionsController {
             properties: {
               chatName: {type: 'string'},
               projectId: {type: 'number'},
+              sessionId: {type: 'string', nullable: true},
             },
           },
         },
       },
     })
-    body: {chatName: string; projectId: number},
+    body: {chatName: string; projectId: number; sessionId?: string | null},
     @inject(RestBindings.Http.RESPONSE) res: Response,
   ): Promise<ChatSessionResponse> {
     res.status(201);
@@ -92,13 +96,38 @@ export class ChatSessionsController {
       new ChatSession({
         chatName: body.chatName,
         projectId: body.projectId,
-        sessionId: null,
+        sessionId: body.sessionId ?? null,
         totalPrompts: 0,
         lastUsed: null,
         createdAt: new Date().toISOString(),
       }),
     );
     return this.toResponse(session, project);
+  }
+
+  @get('/chat-sessions/verify-session')
+  @response(200, {
+    description: 'Verifica se session_id existe no projeto',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {exists: {type: 'boolean'}},
+        },
+      },
+    },
+  })
+  async verifySession(
+    @param.query.string('sessionId') sessionId: string,
+    @param.query.string('workDir') workDir: string,
+  ): Promise<{exists: boolean}> {
+    if (!sessionId || !workDir) {
+      throw new HttpErrors.BadRequest('sessionId e workDir são obrigatórios');
+    }
+    const sanitized = workDir.replace(/\//g, '-');
+    const filePath = path.join(os.homedir(), '.claude', 'projects', sanitized, `${sessionId}.jsonl`);
+    const exists = fs.existsSync(filePath);
+    return {exists};
   }
 
   @patch('/chat-sessions/{chatName}/session-id')

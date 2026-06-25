@@ -69,9 +69,13 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
   const handleVerify = () => {
     const sid = sessionIdValue?.trim()
     const workDir = selectedProject?.workDir
-    if (sid && workDir) {
-      setVerifyParams({ sessionId: sid, workDir })
+    if (!sid) return
+    if (!workDir) {
+      setSessionIdError('Selecione um projeto antes de verificar')
+      return
     }
+    setSessionIdError('')
+    setVerifyParams({ sessionId: sid, workDir })
   }
 
   const onSubmit = async (data: FormValues) => {
@@ -148,6 +152,7 @@ export default function NewChatModal({ onConfirm, onClose, isLoading }: Props) {
               sessionExists={sessionExists}
               sessionIdError={sessionIdError}
               onVerify={handleVerify}
+              noProjectWarning={!selectedProject && !!sessionIdValue?.trim()}
             />
           )}
 
@@ -182,17 +187,19 @@ interface ExistingSessionFieldProps {
   sessionExists: boolean | null
   sessionIdError: string
   onVerify: () => void
+  noProjectWarning: boolean
 }
 
 function ExistingSessionField({
   register,
   sessionIdValue,
-  selectedWorkDir,
   isVerifying,
   sessionExists,
   sessionIdError,
   onVerify,
 }: ExistingSessionFieldProps) {
+  const hasSessionId = !!sessionIdValue?.trim()
+
   return (
     <div>
       <label className="block text-xs font-semibold text-[#9A9A9A] uppercase tracking-wider mb-2">
@@ -219,8 +226,12 @@ function ExistingSessionField({
         <button
           type="button"
           onClick={onVerify}
-          disabled={!sessionIdValue?.trim() || !selectedWorkDir}
-          className="px-3 py-2 border border-[#3A3A3A] text-[#9A9A9A] hover:text-[#F5F5F5] hover:border-[#F5F5F5]/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg text-sm transition-colors whitespace-nowrap"
+          disabled={!hasSessionId || isVerifying}
+          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed ${
+            hasSessionId && !isVerifying
+              ? 'bg-[#D97757] hover:bg-[#C4663F] text-white'
+              : 'border border-[#3A3A3A] text-[#9A9A9A]'
+          }`}
         >
           Verificar
         </button>

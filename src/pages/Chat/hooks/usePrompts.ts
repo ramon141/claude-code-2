@@ -37,12 +37,13 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
 
   const { mutateAsync: createPromptMutation, isLoading: isSending } = usePromptsControllerCreate()
 
-  const sendPrompt = async (content: string): Promise<void> => {
+  const sendPrompt = async (content: string, contextFiles: string[] = []): Promise<void> => {
     await createPromptMutation({
       data: {
         content,
         workingDirectory: project?.workDir ?? '',
         chatName,
+        contextFiles,
       },
     })
     queryClient.invalidateQueries({

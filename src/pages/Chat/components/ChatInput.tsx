@@ -1,17 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Send } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Send, Paperclip, X } from 'lucide-react'
+import { open } from '@tauri-apps/plugin-dialog'
 import SlashCommandMenu from './SlashCommandMenu'
 import { useSlashCommands } from '../hooks/useSlashCommands'
 import type { SlashCommand } from '../constants/slashCommands'
 
 interface Props {
-  onSend: (content: string) => Promise<void>
+  onSend: (content: string, contextFiles: string[]) => Promise<void>
   disabled: boolean
-  injectedText?: string | null
-  onInjectedConsumed?: () => void
+  attachedFiles: string[]
+  onAttachFiles: (paths: string[]) => void
+  onRemoveFile: (path: string) => void
 }
 
-export default function ChatInput({ onSend, disabled, injectedText, onInjectedConsumed }: Props) {
+function FileChip({ path, onRemove }: { path: string; onRemove: () => void }) {
+  const name = path.split('/').pop() ?? path
+  return (
+    <div className="flex items-center gap-1 bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg px-2 py-1 text-xs text-[#F5F5F5] max-w-[180px]">
+      <span className="truncate" title={path}>{name}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="flex-shrink-0 text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors"
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </div>
+  )
+}
+
+async function openFileDialog(): Promise<string[]> {
+  const result = await open({ multiple: true, directory: false })
+  if (!result) return []
+  return Array.isArray(result) ? result : [result]
+}
+
+export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFiles, onRemoveFile }: Props) {
   const [value, setValue] = useState('')
   const [sending, setSending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -22,24 +46,22 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
     textareaRef.current?.focus()
   }
 
-  useEffect(() => {
-    if (!injectedText) return
-    setValue((prev) => (prev ? `${prev} ${injectedText}` : injectedText))
-    textareaRef.current?.focus()
-    onInjectedConsumed?.()
-  }, [injectedText, onInjectedConsumed])
-
   const handleSubmit = async () => {
     const trimmed = value.trim()
     if (!trimmed || sending || disabled) return
     try {
       setSending(true)
-      await onSend(trimmed)
+      await onSend(trimmed, attachedFiles)
       setValue('')
       if (textareaRef.current) textareaRef.current.style.height = 'auto'
     } finally {
       setSending(false)
     }
+  }
+
+  const handleAttachClick = async () => {
+    const paths = await openFileDialog()
+    if (paths.length > 0) onAttachFiles(paths)
   }
 
   const [menuDismissed, setMenuDismissed] = useState(false)
@@ -87,7 +109,25 @@ export default function ChatInput({ onSend, disabled, injectedText, onInjectedCo
           onHover={slash.setActiveIndex}
         />
       )}
+
+      {attachedFiles.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {attachedFiles.map((path) => (
+            <FileChip key={path} path={path} onRemove={() => onRemoveFile(path)} />
+          ))}
+        </div>
+      )}
+
       <div className="flex items-end gap-3 bg-[#2A2A2A] border border-[#3A3A3A] rounded-2xl px-4 py-3 focus-within:border-[#D97757]/50 transition-colors">
+        <button
+          type="button"
+          onClick={handleAttachClick}
+          disabled={disabled || sending}
+          title="Anexar arquivo"
+          className="flex-shrink-0 text-[#9A9A9A] hover:text-[#F5F5F5] transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
+        >
+          <Paperclip className="w-4 h-4" />
+        </button>
         <textarea
           ref={textareaRef}
           value={value}

@@ -53,12 +53,22 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     query: { enabled: !!session?.projectId },
   })
   const { prompts, sendPrompt, isSending } = usePrompts(session)
-  const { isDragging, injectedText, consumeInjected, handleDragOver, handleDragLeave, handleDrop } = useFileDrop()
+  const {
+    isDragging,
+    attachedFiles,
+    addFiles,
+    removeFile,
+    clearFiles,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+  } = useFileDrop()
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const handleSend = useCallback((content: string): Promise<void> => {
-    return sendPrompt(content)
-  }, [sendPrompt])
+  const handleSend = useCallback(async (content: string, contextFiles: string[]): Promise<void> => {
+    await sendPrompt(content, contextFiles)
+    clearFiles()
+  }, [sendPrompt, clearFiles])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -85,7 +95,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     >
       {isDragging && (
         <div className="absolute inset-0 z-10 bg-[#D97757]/10 border-2 border-dashed border-[#D97757] rounded-lg pointer-events-none flex items-center justify-center">
-          <p className="text-[#D97757] text-sm font-medium">Solte o arquivo para inserir o caminho</p>
+          <p className="text-[#D97757] text-sm font-medium">Solte para anexar arquivo</p>
         </div>
       )}
 
@@ -114,8 +124,9 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
       <ChatInput
         onSend={handleSend}
         disabled={isSending}
-        injectedText={injectedText}
-        onInjectedConsumed={consumeInjected}
+        attachedFiles={attachedFiles}
+        onAttachFiles={addFiles}
+        onRemoveFile={removeFile}
       />
     </div>
   )

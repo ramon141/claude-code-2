@@ -1,11 +1,13 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { MessageSquare, Menu, Search } from 'lucide-react'
+import { MessageSquare, Menu, Search, Bell, BellOff, BellRing } from 'lucide-react'
+import { Tooltip } from '../../../components/ui/Tooltip'
 import MessageItem from './MessageItem'
 import ChatInput from './ChatInput'
 import ChatSearch from './ChatSearch'
 import { usePrompts } from '../hooks/usePrompts'
 import { useFileDrop } from '../hooks/useFileDrop'
 import { useChatSearch } from '../hooks/useChatSearch'
+import { useChatAlert } from '../hooks/useChatAlert'
 import { useProjectsControllerFindById } from '../../../api/generated/api'
 import type { ChatSessionsControllerFind200Item } from '../../../api/generated/models'
 
@@ -38,6 +40,53 @@ function NoSessionInput() {
   )
 }
 
+interface AlertButtonProps {
+  alertEnabled: boolean
+  isAlarming: boolean
+  onToggle: () => void
+  onDismiss: () => void
+}
+
+function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertButtonProps) {
+  if (isAlarming) {
+    return (
+      <Tooltip text="Fila finalizada! Clique para parar" position="bottom" align="right">
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="p-1.5 rounded-lg transition-colors text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 animate-pulse"
+        >
+          <BellRing className="w-4 h-4" />
+        </button>
+      </Tooltip>
+    )
+  }
+  if (alertEnabled) {
+    return (
+      <Tooltip text="Alerta ativado — clique para desativar" position="bottom" align="right">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="p-1.5 rounded-lg transition-colors text-claude-primary bg-claude-primary/10 hover:bg-claude-primary/20"
+        >
+          <Bell className="w-4 h-4" />
+        </button>
+      </Tooltip>
+    )
+  }
+  return (
+    <Tooltip text="Ativar alerta ao fim da fila" position="bottom" align="right">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border"
+      >
+        <BellOff className="w-4 h-4" />
+      </button>
+    </Tooltip>
+  )
+}
+
 function HamburgerButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -55,6 +104,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     query: { enabled: !!session?.projectId },
   })
   const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt } = usePrompts(session)
+  const { alertEnabled, toggleAlert, isAlarming, dismissAlarm } = useChatAlert(session?.chatName, prompts)
   const {
     isDragging, attachedFiles, addFiles, removeFile, clearFiles,
     handleDragOver, handleDragLeave, handleDrop,
@@ -122,6 +172,12 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
             <p className="text-claude-muted text-xs font-mono mt-0.5 truncate">{project.workDir}</p>
           )}
         </div>
+        <AlertButton
+          alertEnabled={alertEnabled}
+          isAlarming={isAlarming}
+          onToggle={toggleAlert}
+          onDismiss={dismissAlarm}
+        />
         <button
           type="button"
           onClick={handleToggleSearch}

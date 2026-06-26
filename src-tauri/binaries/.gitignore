@@ -1,0 +1,3 @@
+# Real binaries gerados pelo CI (pkg) — não commitar
+api-*
+!.gitignore

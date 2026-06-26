@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useClaudeApiKeys } from '../../ClaudeApiKeys/hooks/useClaudeApiKeys'
 import ClaudeApiKeyModal from '../../ClaudeApiKeys/components/ClaudeApiKeyModal'
 import ClaudeApiKeysTable from '../../ClaudeApiKeys/components/ClaudeApiKeysTable'
@@ -45,6 +45,7 @@ export default function ClaudeCodeAccountsTab() {
     deleteApiKey, isDeleting,
     activateApiKey, isActivating,
     toggleRotation, isTogglingRotation,
+    refreshLimits, isRefreshingLimits,
   } = useClaudeApiKeys()
 
   const [editingKey, setEditingKey] = useState<ClaudeCodeApiKey | null>(null)
@@ -64,7 +65,16 @@ export default function ClaudeCodeAccountsTab() {
   return (
     <div className="space-y-4">
       <RotationHeader />
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => void refreshLimits()}
+          disabled={isRefreshingLimits}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-claude-surface hover:bg-claude-border border border-claude-border rounded-lg text-claude-muted hover:text-claude-text text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshingLimits ? 'animate-spin' : ''}`} />
+          Atualizar Limites
+        </button>
         <button
           type="button"
           onClick={() => setShowCreateModal(true)}

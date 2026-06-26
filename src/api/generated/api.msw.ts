@@ -77,6 +77,8 @@ export const getChatSessionsControllerFindResponseMock = (): ChatSessionsControl
 
 export const getClaudeCodeApiKeysControllerUpdateActiveLimitsResponseMock = (overrideResponse: Partial< ClaudeCodeApiKey > = {}): ClaudeCodeApiKey => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), keyValue: faker.string.alpha({length: {min: 10, max: 20}}), isActive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), updatedAt: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), lastUpdatedLimits: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), sessionLimitPercentage: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), null]), undefined]), weeklyLimitPercentage: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), null]), undefined]), rotationEnabled: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), lastUsedAt: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), rateLimitedUntil: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), ...overrideResponse})
 
+export const getClaudeCodeApiKeysControllerRefreshAllLimitsResponseMock = (): ClaudeCodeApiKey[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), keyValue: faker.string.alpha({length: {min: 10, max: 20}}), isActive: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), updatedAt: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), lastUpdatedLimits: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), sessionLimitPercentage: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), null]), undefined]), weeklyLimitPercentage: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), null]), undefined]), rotationEnabled: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), lastUsedAt: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined]), rateLimitedUntil: faker.helpers.arrayElement([faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), undefined])})))
+
 export const getClaudeCodeApiKeysControllerSetRotationResponseMock = (overrideResponse: Partial< ClaudeCodeApiKeysControllerSetRotation200 > = {}): ClaudeCodeApiKeysControllerSetRotation200 => ({enabled: faker.datatype.boolean(), ...overrideResponse})
 
 export const getClaudeCodeApiKeysControllerGetRotationResponseMock = (overrideResponse: Partial< ClaudeCodeApiKeysControllerGetRotation200 > = {}): ClaudeCodeApiKeysControllerGetRotation200 => ({enabled: faker.datatype.boolean(), ...overrideResponse})
@@ -270,6 +272,18 @@ export const getClaudeCodeApiKeysControllerUpdateActiveLimitsMockHandler = (over
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined
     ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
     : getClaudeCodeApiKeysControllerUpdateActiveLimitsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
+export const getClaudeCodeApiKeysControllerRefreshAllLimitsMockHandler = (overrideResponse?: ClaudeCodeApiKey[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ClaudeCodeApiKey[]> | ClaudeCodeApiKey[]), options?: RequestHandlerOptions) => {
+  return http.post('*/claude-code-api-keys/refresh-limits', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getClaudeCodeApiKeysControllerRefreshAllLimitsResponseMock()),
       { status: 200,
         headers: { 'Content-Type': 'application/json' }
       })
@@ -735,6 +749,7 @@ export const getClaudeCodeApiMock = () => [
   getChatSessionsControllerCreateMockHandler(),
   getChatSessionsControllerFindMockHandler(),
   getClaudeCodeApiKeysControllerUpdateActiveLimitsMockHandler(),
+  getClaudeCodeApiKeysControllerRefreshAllLimitsMockHandler(),
   getClaudeCodeApiKeysControllerSetRotationMockHandler(),
   getClaudeCodeApiKeysControllerGetRotationMockHandler(),
   getClaudeCodeApiKeysControllerActivateMockHandler(),

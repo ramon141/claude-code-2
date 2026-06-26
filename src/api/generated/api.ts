@@ -748,6 +748,63 @@ const {mutation: mutationOptions} = options ?
       return useMutation(mutationOptions);
     }
     
+export const claudeCodeApiKeysControllerRefreshAllLimits = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<ClaudeCodeApiKey[]>(
+      {url: `/claude-code-api-keys/refresh-limits`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getClaudeCodeApiKeysControllerRefreshAllLimitsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>, TError,void, TContext> => {
+
+const mutationKey = ['claudeCodeApiKeysControllerRefreshAllLimits'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>, void> = () => {
+          
+
+          return  claudeCodeApiKeysControllerRefreshAllLimits()
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClaudeCodeApiKeysControllerRefreshAllLimitsMutationResult = NonNullable<Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>>
+    
+    export type ClaudeCodeApiKeysControllerRefreshAllLimitsMutationError = unknown
+
+    export const useClaudeCodeApiKeysControllerRefreshAllLimits = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>, TError,void, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof claudeCodeApiKeysControllerRefreshAllLimits>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getClaudeCodeApiKeysControllerRefreshAllLimitsMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const claudeCodeApiKeysControllerSetRotation = (
     claudeCodeApiKeysControllerSetRotationBody: ClaudeCodeApiKeysControllerSetRotationBody,
  signal?: AbortSignal

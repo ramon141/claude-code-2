@@ -6,6 +6,7 @@ import {
   useClaudeCodeApiKeysControllerUpdateById,
   useClaudeCodeApiKeysControllerDeleteById,
   useClaudeCodeApiKeysControllerActivate,
+  useClaudeCodeApiKeysControllerRefreshAllLimits,
   getClaudeCodeApiKeysControllerFindQueryKey,
 } from '../../../api/generated/api'
 import type {
@@ -48,6 +49,9 @@ export function useClaudeApiKeys() {
   const { mutateAsync: rotationMutation, isLoading: isTogglingRotation } =
     useClaudeCodeApiKeysControllerUpdateById(mutationOpts('Erro ao atualizar rodízio da conta.'))
 
+  const { mutateAsync: refreshLimitsMutation, isLoading: isRefreshingLimits } =
+    useClaudeCodeApiKeysControllerRefreshAllLimits(mutationOpts('Erro ao atualizar limites.'))
+
   const createApiKey = (data: ClaudeCodeApiKeysControllerCreateBody) =>
     createMutation({ data })
 
@@ -63,6 +67,8 @@ export function useClaudeApiKeys() {
   const toggleRotation = (id: number, enabled: boolean) =>
     rotationMutation({ id, data: { rotationEnabled: enabled } })
 
+  const refreshLimits = () => refreshLimitsMutation()
+
   return {
     apiKeys,
     isLoading,
@@ -77,5 +83,7 @@ export function useClaudeApiKeys() {
     isActivating,
     toggleRotation,
     isTogglingRotation,
+    refreshLimits,
+    isRefreshingLimits,
   }
 }

@@ -24,16 +24,18 @@ function resolveOauthBeta(): string {
 const OAUTH_BETA = resolveOauthBeta();
 const PERCENTAGE_FACTOR = 100;
 
-function safeParseRatio(value: string | string[] | undefined): number {
-  const n = parseFloat(String(value ?? '0'));
-  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+function safeParseRatio(value: string | string[] | undefined): number | null {
+  if (value === undefined || value === null || value === '') return null;
+  const n = parseFloat(String(value));
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
 }
+
 const HEADER_5H_UTILIZATION = 'anthropic-ratelimit-unified-5h-utilization';
 const HEADER_7D_UTILIZATION = 'anthropic-ratelimit-unified-7d-utilization';
 
 export interface RateLimitPercentages {
-  sessionLimitPercentage: number;
-  weeklyLimitPercentage: number;
+  sessionLimitPercentage: number | null;
+  weeklyLimitPercentage: number | null;
 }
 
 export async function fetchRateLimits(oauthToken: string): Promise<RateLimitPercentages> {
@@ -54,7 +56,7 @@ export async function fetchRateLimits(oauthToken: string): Promise<RateLimitPerc
   const fiveH = safeParseRatio(response.headers[HEADER_5H_UTILIZATION]);
   const sevenD = safeParseRatio(response.headers[HEADER_7D_UTILIZATION]);
   return {
-    sessionLimitPercentage: Math.round(fiveH * PERCENTAGE_FACTOR),
-    weeklyLimitPercentage: Math.round(sevenD * PERCENTAGE_FACTOR),
+    sessionLimitPercentage: fiveH !== null ? Math.round(fiveH * PERCENTAGE_FACTOR) : null,
+    weeklyLimitPercentage: sevenD !== null ? Math.round(sevenD * PERCENTAGE_FACTOR) : null,
   };
 }

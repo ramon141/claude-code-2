@@ -109,6 +109,10 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     clearSelection()
   }, [deleteMultiple, selectedIds, clearSelection])
 
+  const handleRetry = useCallback(async (content: string, contextFiles: string[]) => {
+    await sendPrompt(content, contextFiles, null, null, false)
+  }, [sendPrompt])
+
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [prompts])
 
   useEffect(() => {
@@ -199,6 +203,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
             prompt={prompt}
             onUpdated={refetchPrompts}
             onDelete={deletePrompt}
+            onRetry={handleRetry}
             searchQuery={query}
             isCurrentMatch={prompt.id === currentMatchId}
             selectMode={selectMode}

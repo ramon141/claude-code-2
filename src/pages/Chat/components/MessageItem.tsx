@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link, Trash2 } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link, Trash2, RotateCcw } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { usePromptsControllerUpdateById } from '../../../api/generated/api'
@@ -11,6 +11,7 @@ interface Props {
   prompt: ChatSessionsControllerGetPrompts200Item
   onUpdated?: () => void
   onDelete?: (id: number) => void
+  onRetry?: (content: string, contextFiles: string[]) => void
   searchQuery?: string
   isCurrentMatch?: boolean
   selectMode?: boolean
@@ -38,10 +39,12 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
 const KNOWN_STATUSES = new Set<string>(['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'])
 const EDITABLE_STATUSES = new Set(['queued', 'rate_limited'])
 const DELETABLE_STATUSES = new Set(['completed', 'failed', 'cancelled', 'rate_limited'])
+const RETRYABLE_STATUSES = new Set(['failed', 'cancelled'])
 
 function isKnownStatus(s: string): s is KnownStatus { return KNOWN_STATUSES.has(s) }
 function isEditable(status?: string): boolean { return !!status && EDITABLE_STATUSES.has(status) }
 function isDeletable(status?: string): boolean { return !!status && DELETABLE_STATUSES.has(status) }
+function isRetryable(status?: string): boolean { return !!status && RETRYABLE_STATUSES.has(status) }
 
 function StatusBadge({ status }: { status?: string }) {
   if (!status || !isKnownStatus(status)) return null
@@ -148,12 +151,13 @@ function PromptOutput({ output, highlight }: { output: string; highlight: boolea
   )
 }
 
-export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
+export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
   const canEdit = isEditable(prompt.status)
   const canDelete = isDeletable(prompt.status)
+  const canRetry = isRetryable(prompt.status)
   const outputMatchesQuery = !!searchQuery.trim() && (prompt.output ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   const selectable = selectMode && canDelete
 
@@ -195,6 +199,11 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
                     {canEdit && (
                       <button type="button" onClick={() => setEditing(true)} className="p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-colors" title="Editar prompt">
                         <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {canRetry && (
+                      <button type="button" onClick={() => onRetry?.(prompt.content ?? '', prompt.contextFiles ?? [])} className="p-1 rounded-md text-claude-muted hover:text-claude-primary hover:bg-claude-border transition-colors" title="Reenviar prompt">
+                        <RotateCcw className="w-3.5 h-3.5" />
                       </button>
                     )}
                     {canDelete && (

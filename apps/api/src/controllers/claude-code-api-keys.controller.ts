@@ -2,10 +2,11 @@ import {repository} from '@loopback/repository';
 import {HttpErrors, Response, RestBindings, SchemaObject} from '@loopback/rest';
 import {del, get, getModelSchemaRef, param, patch, post, requestBody, response} from '@loopback/rest';
 import {inject} from '@loopback/core';
-import {encryptValue} from '../authentication/auth.utils';
+import {encryptValue, decryptValue} from '../authentication/auth.utils';
 import {readConfig, writeConfig} from '../config/app-config';
 import {ClaudeCodeApiKey} from '../models';
 import {ClaudeCodeApiKeyRepository} from '../repositories';
+import {fetchRateLimits} from '../queue/rateLimitsService';
 
 type CreateBody = {name: string; keyValue: string};
 type PatchBody = {name?: string; isActive?: boolean; rotationEnabled?: boolean};
@@ -113,6 +114,32 @@ export class ClaudeCodeApiKeysController {
   ): RotationView {
     writeConfig({claudeRotationEnabled: body.enabled});
     return {enabled: body.enabled};
+  }
+
+  @post('/claude-code-api-keys/refresh-limits')
+  @response(200, {
+    description: 'Limites atualizados para todas as contas',
+    content: {'application/json': {schema: {type: 'array', items: getModelSchemaRef(ClaudeCodeApiKey)}}},
+  })
+  async refreshAllLimits(): Promise<ClaudeCodeApiKey[]> {
+    const allKeys = await this.claudeCodeApiKeyRepository.find();
+    await Promise.all(
+      allKeys.map(async (key) => {
+        try {
+          const token = decryptValue(key.keyValue);
+          const limits = await fetchRateLimits(token);
+          if (limits.sessionLimitPercentage === null && limits.weeklyLimitPercentage === null) return;
+          await this.claudeCodeApiKeyRepository.updateById(key.id, {
+            sessionLimitPercentage: limits.sessionLimitPercentage ?? 0,
+            weeklyLimitPercentage: limits.weeklyLimitPercentage ?? 0,
+            lastUpdatedLimits: new Date().toISOString(),
+          });
+        } catch {
+          console.warn(`⚠ Falha ao atualizar limites da conta ${key.id}`);
+        }
+      }),
+    );
+    return this.claudeCodeApiKeyRepository.find({order: ['createdAt DESC']});
   }
 
   @get('/claude-code-api-keys/{id}')

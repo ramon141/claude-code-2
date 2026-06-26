@@ -1,13 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link, Trash2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { usePromptsControllerUpdateById } from '../../../api/generated/api'
 import type { ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
+import HighlightText from './HighlightText'
 
 interface Props {
   prompt: ChatSessionsControllerGetPrompts200Item
   onUpdated?: () => void
+  onDelete?: (id: number) => void
+  searchQuery?: string
+  isCurrentMatch?: boolean
 }
 
 type KnownStatus = 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
@@ -53,6 +57,7 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
 
 const KNOWN_STATUSES: KnownStatus[] = ['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited']
 const EDITABLE_STATUSES: KnownStatus[] = ['queued', 'rate_limited']
+const DELETABLE_STATUSES: KnownStatus[] = ['completed', 'failed', 'cancelled', 'rate_limited']
 
 function isKnownStatus(s: string): s is KnownStatus {
   return (KNOWN_STATUSES as string[]).includes(s)
@@ -60,6 +65,10 @@ function isKnownStatus(s: string): s is KnownStatus {
 
 function isEditable(status?: string): boolean {
   return !!status && (EDITABLE_STATUSES as string[]).includes(status)
+}
+
+function isDeletable(status?: string): boolean {
+  return !!status && (DELETABLE_STATUSES as string[]).includes(status)
 }
 
 function StatusBadge({ status }: { status?: string }) {
@@ -160,13 +169,21 @@ function WaitingBadge({ waitForPromptId }: { waitForPromptId: number }) {
   )
 }
 
-export default function MessageItem({ prompt, onUpdated }: Props) {
+export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery = '', isCurrentMatch = false }: Props) {
   const [editing, setEditing] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
   const canEdit = isEditable(prompt.status)
+  const canDelete = isDeletable(prompt.status)
+  const outputMatchesQuery = !!searchQuery.trim() && (prompt.output ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+
+  const handleDeleteConfirm = () => {
+    onDelete?.(prompt.id!)
+    setConfirmDelete(false)
+  }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-prompt-id={prompt.id}>
       <div className="flex justify-end">
         <div className="max-w-[80%] space-y-2">
           {hasFiles && (
@@ -176,7 +193,7 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
               ))}
             </div>
           )}
-          <div className="group relative bg-claude-primary/20 border border-claude-primary/30 rounded-2xl rounded-tr-sm px-4 py-3">
+          <div className={`group relative bg-claude-primary/20 border rounded-2xl rounded-tr-sm px-4 py-3 transition-all ${isCurrentMatch ? 'border-yellow-400/70 ring-2 ring-yellow-400/30' : 'border-claude-primary/30'}`}>
             {editing ? (
               <EditableContent
                 promptId={prompt.id!}
@@ -184,19 +201,40 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
                 onCancel={() => setEditing(false)}
                 onSaved={() => { setEditing(false); onUpdated?.() }}
               />
+            ) : confirmDelete ? (
+              <div className="space-y-2">
+                <p className="text-claude-text text-sm whitespace-pre-wrap">{prompt.content}</p>
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <span className="text-xs text-red-400">Deletar este prompt?</span>
+                  <button type="button" onClick={handleDeleteConfirm} className="text-xs px-2 py-0.5 rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">Sim</button>
+                  <button type="button" onClick={() => setConfirmDelete(false)} className="text-xs px-2 py-0.5 rounded text-claude-muted hover:text-claude-text transition-colors">Não</button>
+                </div>
+              </div>
             ) : (
               <>
-                <p className="text-claude-text text-sm whitespace-pre-wrap">{prompt.content}</p>
-                {canEdit && (
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-all"
-                    title="Editar prompt"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <HighlightText text={prompt.content ?? ''} query={searchQuery} className="text-claude-text text-sm whitespace-pre-wrap" />
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => setEditing(true)}
+                      className="p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-colors"
+                      title="Editar prompt"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDelete(true)}
+                      className="p-1 rounded-md text-claude-muted hover:text-red-400 hover:bg-claude-border transition-colors"
+                      title="Deletar prompt"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
@@ -216,7 +254,7 @@ export default function MessageItem({ prompt, onUpdated }: Props) {
           </div>
 
           {prompt.output && (
-            <div className="bg-claude-surface border border-claude-border rounded-2xl rounded-tl-sm px-4 py-3">
+            <div className={`bg-claude-surface border rounded-2xl rounded-tl-sm px-4 py-3 transition-all ${outputMatchesQuery ? 'border-yellow-400/50 ring-1 ring-yellow-400/20' : 'border-claude-border'}`}>
               <div className="prose prose-invert prose-sm max-w-none
                 prose-p:text-claude-text prose-p:leading-relaxed prose-p:my-1
                 prose-headings:text-claude-text prose-headings:font-semibold

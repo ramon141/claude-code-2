@@ -1,9 +1,6 @@
 import {inject} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {HttpErrors, Response, RestBindings, del, get, param, patch, post, requestBody, response} from '@loopback/rest';
-import {getModelSchemaRef} from '@loopback/rest';
-import path from 'path';
-import fs from 'fs';
+import {HttpErrors, Response, RestBindings, del, get, getModelSchemaRef, param, patch, post, requestBody, response} from '@loopback/rest';
 import {Prompt, PromptContextFile, PromptStatus} from '../models';
 import {ChatSessionRepository, PromptContextFileRepository, PromptRepository} from '../repositories';
 import {
@@ -12,7 +9,9 @@ import {
   promptResponseSchema,
   PromptResponse,
   EDITABLE_STATUSES,
+  ACTIVE_STATUSES,
 } from './prompts.schemas';
+import {validateClaudeModel, validateSessionId, validateWorkingDirectory, validateFilePath} from './prompts.validators';
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
 import {QueueService, QUEUE_SERVICE_KEY} from '../services/queue.service';
@@ -44,59 +43,6 @@ type PatchPromptBody = {
   sessionId?: string | null;
 };
 
-const ALLOWED_CLAUDE_MODELS = new Set([
-  'claude-opus-4-8',
-  'claude-sonnet-4-6',
-  'claude-haiku-4-5-20251001',
-  'claude-fable-5',
-]);
-
-const SESSION_ID_REGEX = /^[a-zA-Z0-9_-]{1,128}$/;
-
-function validateClaudeModel(model: string | null | undefined): void {
-  if (!model) return;
-  if (!ALLOWED_CLAUDE_MODELS.has(model)) {
-    throw new HttpErrors.UnprocessableEntity(`Modelo inválido: "${model}"`);
-  }
-}
-
-function validateSessionId(sessionId: string | null | undefined): void {
-  if (!sessionId) return;
-  if (!SESSION_ID_REGEX.test(sessionId)) {
-    throw new HttpErrors.UnprocessableEntity('sessionId inválido');
-  }
-}
-
-function validateWorkingDirectory(workingDirectory: string): void {
-  if (!workingDirectory || workingDirectory.includes('\0')) {
-    throw new HttpErrors.UnprocessableEntity('workingDirectory inválido');
-  }
-  if (!path.isAbsolute(workingDirectory)) {
-    throw new HttpErrors.UnprocessableEntity('workingDirectory deve ser um caminho absoluto');
-  }
-  const segments = workingDirectory.replace(/\\/g, '/').split('/');
-  if (segments.some(s => s === '..')) {
-    throw new HttpErrors.UnprocessableEntity('Path traversal não permitido em workingDirectory');
-  }
-}
-
-function validateFilePath(filePath: string, workingDirectory: string): void {
-  if (filePath.includes('\0')) {
-    throw new HttpErrors.UnprocessableEntity(`Caminho inválido: null byte em "${filePath}"`);
-  }
-  const segments = filePath.replace(/\\/g, '/').split('/');
-  if (segments.some(s => s === '..')) {
-    throw new HttpErrors.UnprocessableEntity(`Path traversal não permitido: "${filePath}"`);
-  }
-  const resolved = path.resolve(workingDirectory, filePath);
-  const normalizedWorkDir = path.resolve(workingDirectory);
-  if (!resolved.startsWith(normalizedWorkDir + path.sep) && resolved !== normalizedWorkDir) {
-    throw new HttpErrors.UnprocessableEntity(`Arquivo fora do diretório do projeto não permitido: "${filePath}"`);
-  }
-  if (!fs.existsSync(resolved)) {
-    throw new HttpErrors.UnprocessableEntity(`Arquivo não encontrado: "${resolved}"`);
-  }
-}
 
 export class PromptsController {
   constructor(
@@ -274,11 +220,17 @@ export class PromptsController {
   }
 
   @del('/prompts/{id}')
-  @response(204, {description: 'Prompt cancelado (soft delete)'})
+  @response(204, {description: 'Prompt deletado'})
   async deleteById(@param.path.number('id') id: number): Promise<void> {
     const prompt = await this.promptRepo.findById(id).catch(() => null);
     if (!prompt) throw new HttpErrors.NotFound(`Prompt ${id} not found`);
-    await this.promptRepo.updateById(id, {status: 'cancelled' as PromptStatus});
+    if (ACTIVE_STATUSES.includes(prompt.status)) {
+      throw new HttpErrors.UnprocessableEntity(
+        `Prompt com status "${prompt.status}" não pode ser deletado`,
+      );
+    }
+    await this.contextFileRepo.deleteAll({promptId: id});
+    await this.promptRepo.deleteById(id);
   }
 
   private sendCompletionNotifications(prompt: Prompt): void {

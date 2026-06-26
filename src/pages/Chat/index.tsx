@@ -16,7 +16,7 @@ function ChatContent() {
   const [activeSession, setActiveSession] = useState<ChatSessionsControllerFind200Item | null>(null)
   const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { sessions, isLoading, createSession, isCreating } = useSessions()
+  const { sessions, isLoading, createSession, isCreating, deleteSession } = useSessions()
 
   const handleCreateSession = async (data: ChatSessionsControllerCreateBody) => {
     const session = await createSession(data)
@@ -27,6 +27,18 @@ function ChatContent() {
   const handleSelectSession = (session: ChatSessionsControllerFind200Item) => {
     setActiveSession(session)
     setSidebarOpen(false)
+  }
+
+  const handleSelectByChatName = (chatName: string) => {
+    const found = sessions.find(s => s.chatName === chatName) ?? null
+    if (found) { setActiveSession(found); setSidebarOpen(false) }
+  }
+
+  const handleDeleteSession = async (chatName: string) => {
+    await deleteSession(chatName)
+    if (activeSession?.chatName === chatName) {
+      setActiveSession(null)
+    }
   }
 
   return (
@@ -42,7 +54,9 @@ function ChatContent() {
         sessions={sessions}
         activeSessionId={activeSession?.id}
         onSelectSession={handleSelectSession}
+        onSelectByChatName={handleSelectByChatName}
         onNewChat={() => setShowNewChatModal(true)}
+        onDeleteSession={handleDeleteSession}
         isLoading={isLoading}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

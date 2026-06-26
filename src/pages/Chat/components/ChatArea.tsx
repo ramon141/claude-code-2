@@ -1,9 +1,11 @@
-import { useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, Menu } from 'lucide-react'
+import { useEffect, useRef, useCallback, useState } from 'react'
+import { MessageSquare, Menu, Search } from 'lucide-react'
 import MessageItem from './MessageItem'
 import ChatInput from './ChatInput'
+import ChatSearch from './ChatSearch'
 import { usePrompts } from '../hooks/usePrompts'
 import { useFileDrop } from '../hooks/useFileDrop'
+import { useChatSearch } from '../hooks/useChatSearch'
 import { useProjectsControllerFindById } from '../../../api/generated/api'
 import type { ChatSessionsControllerFind200Item } from '../../../api/generated/models'
 
@@ -52,17 +54,13 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const { data: project } = useProjectsControllerFindById(session?.projectId ?? 0, {
     query: { enabled: !!session?.projectId },
   })
-  const { prompts, sendPrompt, isSending, refetchPrompts } = usePrompts(session)
+  const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt } = usePrompts(session)
   const {
-    isDragging,
-    attachedFiles,
-    addFiles,
-    removeFile,
-    clearFiles,
-    handleDragOver,
-    handleDragLeave,
-    handleDrop,
+    isDragging, attachedFiles, addFiles, removeFile, clearFiles,
+    handleDragOver, handleDragLeave, handleDrop,
   } = useFileDrop()
+  const [showSearch, setShowSearch] = useState(false)
+  const { query, setQuery, currentMatchId, currentIndex, totalMatches, goNext, goPrev } = useChatSearch(prompts)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const handleSend = useCallback(async (content: string, contextFiles: string[], claudeModel: string | null, waitForPromptId: number | null, useWaitResponse: boolean): Promise<void> => {
@@ -73,6 +71,23 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [prompts])
+
+  useEffect(() => {
+    if (currentMatchId === null) return
+    const el = document.querySelector(`[data-prompt-id="${currentMatchId}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [currentMatchId])
+
+  useEffect(() => {
+    if (!showSearch) setQuery('')
+  }, [showSearch, setQuery])
+
+  const handleCloseSearch = () => {
+    setShowSearch(false)
+    setQuery('')
+  }
+
+  const handleToggleSearch = () => setShowSearch(v => !v)
 
   if (!session) {
     return (
@@ -99,15 +114,35 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
         </div>
       )}
 
-      <div className="px-4 py-3 border-b border-claude-border flex-shrink-0 flex items-center">
+      <div className="px-4 py-3 border-b border-claude-border flex-shrink-0 flex items-center gap-2">
         <HamburgerButton onClick={onOpenSidebar} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <h2 className="text-claude-text font-semibold text-sm truncate">{session.chatName}</h2>
           {project && (
             <p className="text-claude-muted text-xs font-mono mt-0.5 truncate">{project.workDir}</p>
           )}
         </div>
+        <button
+          type="button"
+          onClick={handleToggleSearch}
+          className={`p-1.5 rounded-lg transition-colors ${showSearch ? 'text-claude-primary bg-claude-primary/10' : 'text-claude-muted hover:text-claude-text hover:bg-claude-border'}`}
+          title="Buscar no chat (Ctrl+F)"
+        >
+          <Search className="w-4 h-4" />
+        </button>
       </div>
+
+      {showSearch && (
+        <ChatSearch
+          query={query}
+          onQueryChange={setQuery}
+          totalMatches={totalMatches}
+          currentIndex={currentIndex}
+          onNext={goNext}
+          onPrev={goPrev}
+          onClose={handleCloseSearch}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {prompts.length === 0 && (
@@ -116,7 +151,14 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
           </div>
         )}
         {prompts.map((prompt, index) => (
-          <MessageItem key={prompt.id ?? index} prompt={prompt} onUpdated={refetchPrompts} />
+          <MessageItem
+            key={prompt.id ?? index}
+            prompt={prompt}
+            onUpdated={refetchPrompts}
+            onDelete={deletePrompt}
+            searchQuery={query}
+            isCurrentMatch={prompt.id === currentMatchId}
+          />
         ))}
         <div ref={bottomRef} />
       </div>

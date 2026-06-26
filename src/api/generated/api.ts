@@ -26,6 +26,8 @@ import type {
   ChatSessionsControllerFind200Item,
   ChatSessionsControllerFindByChatName200,
   ChatSessionsControllerGetPrompts200Item,
+  ChatSessionsControllerSearch200Item,
+  ChatSessionsControllerSearchParams,
   ChatSessionsControllerUpdateLastUsed200,
   ChatSessionsControllerUpdateSessionId200,
   ChatSessionsControllerUpdateSessionIdBody,
@@ -81,6 +83,10 @@ import type {
 
 import { mutator } from '../mutator';
 
+type AwaitedInput<T> = PromiseLike<T> | T;
+
+      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
+
 
 
 
@@ -135,6 +141,69 @@ export function useAuthControllerGetClaudeToken<TData = Awaited<ReturnType<typeo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getAuthControllerGetClaudeTokenQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+export const chatSessionsControllerSearch = (
+    params?: ChatSessionsControllerSearchParams,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<ChatSessionsControllerSearch200Item[]>(
+      {url: `/chat-sessions/search`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+
+
+export const getChatSessionsControllerSearchQueryKey = (params?: ChatSessionsControllerSearchParams,) => {
+    return [
+    `/chat-sessions/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getChatSessionsControllerSearchQueryOptions = <TData = Awaited<ReturnType<typeof chatSessionsControllerSearch>>, TError = unknown>(params?: ChatSessionsControllerSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerSearch>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getChatSessionsControllerSearchQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof chatSessionsControllerSearch>>> = ({ signal }) => chatSessionsControllerSearch(params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerSearch>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ChatSessionsControllerSearchQueryResult = NonNullable<Awaited<ReturnType<typeof chatSessionsControllerSearch>>>
+export type ChatSessionsControllerSearchQueryError = unknown
+
+
+
+export function useChatSessionsControllerSearch<TData = Awaited<ReturnType<typeof chatSessionsControllerSearch>>, TError = unknown>(
+ params?: ChatSessionsControllerSearchParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof chatSessionsControllerSearch>>, TError, TData>, }
+  
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getChatSessionsControllerSearchQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

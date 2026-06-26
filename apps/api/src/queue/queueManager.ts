@@ -33,9 +33,20 @@ export class QueueManager {
       console.error(`[queue] Storage connection failed: ${e}`);
       return;
     }
+    await this.recoverStuckExecuting();
     await this.triggerIteration();
     this.startRateLimitSweep();
     console.log('[queue] Ready — waiting for events');
+  }
+
+  private async recoverStuckExecuting(): Promise<void> {
+    const executing = await this.repository.listPrompts(PromptStatus.EXECUTING);
+    if (executing.length === 0) return;
+    console.log(`[queue] Recovering ${executing.length} prompt(s) stuck in executing...`);
+    for (const prompt of executing) {
+      await this.repository.updatePromptStatus(prompt.id, PromptStatus.QUEUED, {});
+      console.log(`↻ Prompt ${prompt.id} recovered executing → queued`);
+    }
   }
 
   stop(): void {

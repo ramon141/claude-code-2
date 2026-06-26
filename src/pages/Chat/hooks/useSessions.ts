@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   useChatSessionsControllerFind,
   useChatSessionsControllerCreate,
+  useChatSessionsControllerDeleteByChatName,
   getChatSessionsControllerFindQueryKey,
 } from '../../../api/generated/api'
 import type { ChatSessionsControllerCreateBody } from '../../../api/generated/models'
@@ -19,8 +20,21 @@ export function useSessions() {
     },
   })
 
+  const { mutateAsync: deleteSessionMutation, isLoading: isDeleting } =
+    useChatSessionsControllerDeleteByChatName({
+      mutation: {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getChatSessionsControllerFindQueryKey() })
+        },
+      },
+    })
+
   const handleCreate = async (data: ChatSessionsControllerCreateBody) => {
     return createSession({ data })
+  }
+
+  const handleDelete = async (chatName: string) => {
+    await deleteSessionMutation({ chatName })
   }
 
   return {
@@ -28,5 +42,7 @@ export function useSessions() {
     isLoading,
     createSession: handleCreate,
     isCreating,
+    deleteSession: handleDelete,
+    isDeleting,
   }
 }

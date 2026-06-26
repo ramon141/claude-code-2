@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import {
   useChatSessionsControllerGetPrompts,
   usePromptsControllerCreate,
+  usePromptsControllerDeleteById,
   getChatSessionsControllerGetPromptsQueryKey,
   useProjectsControllerFindById,
 } from '../../../api/generated/api'
@@ -40,6 +41,7 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
   useWebSocket(handleWsUpdate, !!chatName)
 
   const { mutateAsync: createPromptMutation, isLoading: isSending } = usePromptsControllerCreate()
+  const { mutateAsync: deletePromptMutation } = usePromptsControllerDeleteById()
 
   const sendPrompt = async (content: string, contextFiles: string[] = [], claudeModel: string | null = null, waitForPromptId: number | null = null, useWaitResponse = false): Promise<void> => {
     await createPromptMutation({
@@ -58,5 +60,12 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     })
   }
 
-  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts }
+  const deletePrompt = async (id: number): Promise<void> => {
+    await deletePromptMutation({ id })
+    queryClient.invalidateQueries({
+      queryKey: getChatSessionsControllerGetPromptsQueryKey(chatName),
+    })
+  }
+
+  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts, deletePrompt }
 }

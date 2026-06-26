@@ -72,3 +72,5 @@ export const patchPromptSchema: SchemaObject = {
 };
 
 export const EDITABLE_STATUSES: PromptStatus[] = ['queued' as PromptStatus, 'rate_limited' as PromptStatus];
+
+export const ACTIVE_STATUSES: PromptStatus[] = ['queued' as PromptStatus, 'executing' as PromptStatus];

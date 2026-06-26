@@ -125,7 +125,7 @@ export class ChatSessionsController {
       if (agg?.matches_output) matchedIn.push('output');
       const project = projectMap.get(session.projectId);
       const snippet = snippetMap.get(session.chatName) ?? '';
-      return {chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, workingDirectory: project?.workDir ?? '', totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt, matchedIn, snippet};
+      return {chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project?.name ?? '', workingDirectory: project?.workDir ?? '', totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt, matchedIn, snippet};
     });
 
     console.log('[search] result:', JSON.stringify(result));
@@ -219,6 +219,6 @@ export class ChatSessionsController {
   }
 
   private toResponse(session: ChatSession, project: Project): ChatSessionResponse {
-    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt};
+    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project.name, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt};
   }
 }

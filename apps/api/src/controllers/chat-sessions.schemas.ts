@@ -3,6 +3,7 @@ export type ChatSessionResponse = {
   chatName: string;
   sessionId: string | null;
   projectId: number;
+  projectName: string;
   workingDirectory: string;
   totalPrompts: number;
   lastUsed: string | null;
@@ -25,6 +26,7 @@ export type ChatSearchResult = {
   chatName: string;
   sessionId: string | null;
   projectId: number;
+  projectName: string;
   workingDirectory: string;
   totalPrompts: number;
   lastUsed: string | null;
@@ -40,6 +42,7 @@ export const chatSessionResponseSchema = {
     chatName: {type: 'string'},
     sessionId: {type: 'string', nullable: true},
     projectId: {type: 'number'},
+    projectName: {type: 'string'},
     workingDirectory: {type: 'string'},
     totalPrompts: {type: 'number'},
     lastUsed: {type: 'string', format: 'date-time', nullable: true},
@@ -72,6 +75,7 @@ export const chatSearchResultSchema = {
     totalPrompts: {type: 'number'},
     lastUsed: {type: 'string', format: 'date-time', nullable: true},
     createdAt: {type: 'string', format: 'date-time'},
+    projectName: {type: 'string'},
     matchedIn: {type: 'array', items: {type: 'string', enum: ['chatName', 'content', 'output']}},
     snippet: {type: 'string'},
   },

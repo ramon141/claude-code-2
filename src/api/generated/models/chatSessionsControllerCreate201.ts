@@ -12,6 +12,7 @@ export type ChatSessionsControllerCreate201 = {
   /** @nullable */
   sessionId?: string | null;
   projectId?: number;
+  projectName?: string;
   workingDirectory?: string;
   totalPrompts?: number;
   /** @nullable */

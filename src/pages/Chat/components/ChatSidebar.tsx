@@ -71,12 +71,12 @@ function SessionItem({ session, isActive, onSelect, onDelete }: SessionItemProps
           isActive ? 'bg-white/10 text-claude-text' : 'text-claude-muted hover:bg-white/6 hover:text-claude-text'
         )}
       >
-        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 self-start" />
+        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 self-center" />
         <div className="min-w-0">
           <span className="truncate block">{session.chatName}</span>
-          {session.workingDirectory && (
-            <span className="truncate block text-xs text-claude-muted/70 font-mono mt-0.5">
-              {session.workingDirectory.split('/').filter(Boolean).pop()}
+          {session.projectName && (
+            <span className="truncate block text-xs text-claude-muted/70 mt-0.5">
+              {session.projectName}
             </span>
           )}
         </div>

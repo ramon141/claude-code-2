@@ -12,12 +12,12 @@ export type ChatSessionsControllerSearch200Item = {
   /** @nullable */
   sessionId?: string | null;
   projectId?: number;
-  projectName?: string;
   workingDirectory?: string;
   totalPrompts?: number;
   /** @nullable */
   lastUsed?: string | null;
   createdAt?: string;
+  projectName?: string;
   matchedIn?: ChatSessionsControllerSearch200ItemMatchedInItem[];
   snippet?: string;
 };

@@ -18,4 +18,6 @@ export type ChatSessionsControllerUpdateSessionId200 = {
   /** @nullable */
   lastUsed?: string | null;
   createdAt?: string;
+  hasPendingPrompts?: boolean;
+  hasGit?: boolean;
 };

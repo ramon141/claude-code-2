@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { MessageSquare, Menu, Search, Bell, BellOff, BellRing, Download, CheckSquare, Square, Trash2 } from 'lucide-react'
+import { MessageSquare, Menu, Search, Bell, BellOff, BellRing, Download, CheckSquare, Square, Trash2, GitBranch } from 'lucide-react'
 import { Tooltip } from '../../../components/ui/Tooltip'
 import MessageItem from './MessageItem'
 import ChatInput from './ChatInput'
@@ -95,6 +95,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const { selectMode, selectedIds, toggleSelectMode, toggleId, clearSelection } = useMultiSelect()
   const { isDragging, attachedFiles, addFiles, removeFile, clearFiles, handleDragOver, handleDragLeave, handleDrop } = useFileDrop()
   const [showSearch, setShowSearch] = useState(false)
+  const hasGit = session?.hasGit ?? false
   const { query, setQuery, currentMatchId, currentIndex, totalMatches, goNext, goPrev } = useChatSearch(prompts)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -151,6 +152,11 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
             className={`p-1.5 rounded-lg transition-colors ${selectMode ? 'text-claude-primary bg-claude-primary/10' : 'text-claude-muted hover:text-claude-text hover:bg-claude-border'}`}>
             {selectMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
           </button>
+        </Tooltip>
+        <Tooltip text={hasGit ? 'Git disponível neste projeto' : 'Projeto sem git — diff não disponível'} position="bottom" align="right">
+          <span className={`p-1.5 rounded-lg ${hasGit ? 'text-claude-primary' : 'text-claude-muted opacity-40'}`}>
+            <GitBranch className="w-4 h-4" />
+          </span>
         </Tooltip>
         <Tooltip text="Exportar como Markdown" position="bottom" align="right">
           <button type="button" onClick={exportAsMarkdown} disabled={!prompts.length}

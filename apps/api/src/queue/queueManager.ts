@@ -3,6 +3,7 @@ import * as path from 'path';
 import {QueuedPrompt, PromptStatus, ExecutionResult} from './queue.models';
 import {ClaudeCredentials, IStorageRepository, PromptPatch} from './IStorageRepository';
 import {fetchRateLimits} from './rateLimitsService';
+import {getGitDiff} from './gitDiff';
 import type {WorkerMessage, WorkerResultData} from './claudeWorker';
 
 const CHAT_INITIAL_PRIORITY = -1;
@@ -248,6 +249,8 @@ export class QueueManager {
   private async handleSuccess(prompt: QueuedPrompt, result: ExecutionResult): Promise<void> {
     await this.repository.updatePromptStatus(prompt.id, PromptStatus.COMPLETED, {isSessionStart: false});
     if (result.output) await this.repository.saveOutput(prompt.id, result.output);
+    const diff = await getGitDiff(prompt.workingDirectory);
+    if (diff) await this.repository.saveDiff(prompt.id, diff);
     await this.repository.incrementCounter('totalProcessed');
     console.log(`✓ Prompt ${prompt.id} completed in ${result.executionTime.toFixed(1)}s`);
   }

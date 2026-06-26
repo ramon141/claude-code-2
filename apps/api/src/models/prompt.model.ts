@@ -174,6 +174,14 @@ export class Prompt extends Entity {
   })
   resetTime: string | null;
 
+  @property({
+    type: 'string',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'diff', dataType: 'text'},
+  })
+  diff: string | null;
+
   @hasMany(() => PromptContextFile, {keyTo: 'promptId'})
   contextFiles: PromptContextFile[];
 

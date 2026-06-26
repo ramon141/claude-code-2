@@ -18,6 +18,21 @@ import {
 
 const MIN_SEARCH_LENGTH = 2;
 
+function detectGit(workDir: string): boolean {
+  try {
+    let dir = workDir
+    for (let i = 0; i < 10; i++) {
+      if (fs.existsSync(path.join(dir, '.git'))) return true
+      const parent = path.dirname(dir)
+      if (parent === dir) break
+      dir = parent
+    }
+    return false
+  } catch {
+    return false
+  }
+}
+
 export class ChatSessionsController {
   constructor(
     @repository(ChatSessionRepository)
@@ -186,7 +201,7 @@ export class ChatSessionsController {
     const session = await this.requireSession(chatName);
     const prompts = await this.promptRepo.find({where: {chatName: session.chatName}, order: ['createdAt ASC'], include: ['contextFiles']});
     return prompts.map((p: PromptWithRelations) => ({
-      id: p.id, content: p.content, status: p.status, output: p.output, createdAt: p.createdAt,
+      id: p.id, content: p.content, status: p.status, output: p.output, diff: p.diff ?? null, createdAt: p.createdAt,
       lastExecuted: p.lastExecuted, contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
       waitForPromptId: p.waitForPromptId ?? null, useWaitResponse: p.useWaitResponse ?? false,
     }));
@@ -226,6 +241,6 @@ export class ChatSessionsController {
   }
 
   private toResponse(session: ChatSession, project: Project, hasPendingPrompts = false): ChatSessionResponse {
-    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project.name, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt, hasPendingPrompts};
+    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project.name, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt, hasPendingPrompts, hasGit: detectGit(project.workDir)};
   }
 }

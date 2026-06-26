@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm'
 import { usePromptsControllerUpdateById } from '../../../api/generated/api'
 import type { ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
 import HighlightText from './HighlightText'
+import DiffBlock from './DiffBlock'
 
 interface Props {
   prompt: ChatSessionsControllerGetPrompts200Item
@@ -129,7 +130,19 @@ function PromptOutput({ output, highlight }: { output: string; highlight: boolea
         prose-hr:border-claude-border
         prose-a:text-claude-primary prose-a:no-underline hover:prose-a:underline
         prose-table:text-claude-text prose-th:border-claude-border prose-td:border-claude-border">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code(props) {
+              const { className, children } = props
+              const lang = (className ?? '').replace('language-', '')
+              if (lang === 'diff') return <DiffBlock content={String(children)} />
+              return <code className={className}>{children}</code>
+            },
+          }}
+        >
+          {output}
+        </ReactMarkdown>
       </div>
     </div>
   )
@@ -152,7 +165,7 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
 
   return (
     <div className="space-y-3" data-prompt-id={prompt.id}>
-      <div className="flex justify-end">
+      <div className="flex justify-end items-center gap-2">
         <div className="max-w-[80%] space-y-2">
           {hasFiles && (
             <div className="flex flex-wrap gap-1 justify-end">
@@ -163,11 +176,6 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
             className={`group relative bg-claude-primary/20 border rounded-2xl rounded-tr-sm px-4 py-3 transition-all ${bubbleBorder} ${selectable ? 'cursor-pointer' : ''}`}
             onClick={selectable ? () => onToggleSelect?.(prompt.id!) : undefined}
           >
-            {selectable && (
-              <div className={`absolute -left-7 top-1/2 -translate-y-1/2 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-claude-primary border-claude-primary' : 'border-claude-muted bg-claude-bg'}`}>
-                {isSelected && <Check className="w-3 h-3 text-white" />}
-              </div>
-            )}
             {editing ? (
               <EditableContent promptId={prompt.id!} content={prompt.content ?? ''} onCancel={() => setEditing(false)} onSaved={() => { setEditing(false); onUpdated?.() }} />
             ) : confirmDelete ? (
@@ -200,6 +208,14 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
             )}
           </div>
         </div>
+        {selectable && (
+          <div
+            className={`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center cursor-pointer ${isSelected ? 'bg-claude-primary border-claude-primary' : 'border-claude-muted bg-claude-bg'}`}
+            onClick={() => onToggleSelect?.(prompt.id!)}
+          >
+            {isSelected && <Check className="w-3 h-3 text-white" />}
+          </div>
+        )}
       </div>
 
       <div className="flex justify-start">
@@ -214,6 +230,7 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
             )}
           </div>
           {prompt.output && <PromptOutput output={prompt.output} highlight={outputMatchesQuery} />}
+          {prompt.diff && <DiffBlock content={prompt.diff} />}
           {isActive(prompt.status) && !prompt.output && (
             <div className="bg-claude-surface border border-claude-border rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex gap-1.5">

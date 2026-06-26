@@ -19,4 +19,5 @@ export type ChatSessionsControllerFind200Item = {
   lastUsed?: string | null;
   createdAt?: string;
   hasPendingPrompts?: boolean;
+  hasGit?: boolean;
 };

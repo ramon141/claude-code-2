@@ -83,10 +83,6 @@ import type {
 
 import { mutator } from '../mutator';
 
-type AwaitedInput<T> = PromiseLike<T> | T;
-
-      type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
-
 
 
 

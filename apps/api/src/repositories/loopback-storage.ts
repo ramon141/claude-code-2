@@ -127,6 +127,11 @@ export class LoopBackStorageRepository implements IStorageRepository {
     await this.emitPromptUpdate(id);
   }
 
+  async saveDiff(id: string, diff: string): Promise<void> {
+    await this.promptRepo.updateById(Number(id), {diff});
+    await this.emitPromptUpdate(id);
+  }
+
   async cancelPrompt(id: string): Promise<boolean> {
     const prompt = await this.promptRepo.findById(Number(id)).catch(() => null);
     if (!prompt) return false;

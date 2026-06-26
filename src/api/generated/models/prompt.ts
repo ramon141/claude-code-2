@@ -32,4 +32,6 @@ export interface Prompt {
   waitForPromptId?: number | null;
   useWaitResponse?: boolean;
   resetTime?: string;
+  /** @nullable */
+  diff?: string | null;
 }

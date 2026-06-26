@@ -9,6 +9,7 @@ export type ChatSessionResponse = {
   lastUsed: string | null;
   createdAt: string;
   hasPendingPrompts: boolean;
+  hasGit: boolean;
 };
 
 export type ChatPromptSummary = {
@@ -16,6 +17,7 @@ export type ChatPromptSummary = {
   content: string;
   status: string;
   output: string;
+  diff: string | null;
   createdAt: string;
   lastExecuted: string | null;
   contextFiles: string[];
@@ -49,6 +51,7 @@ export const chatSessionResponseSchema = {
     lastUsed: {type: 'string', format: 'date-time', nullable: true},
     createdAt: {type: 'string', format: 'date-time'},
     hasPendingPrompts: {type: 'boolean'},
+    hasGit: {type: 'boolean'},
   },
 };
 
@@ -59,6 +62,7 @@ export const chatPromptSummarySchema = {
     content: {type: 'string'},
     status: {type: 'string'},
     output: {type: 'string'},
+    diff: {type: 'string', nullable: true},
     createdAt: {type: 'string', format: 'date-time'},
     lastExecuted: {type: 'string', format: 'date-time', nullable: true},
     contextFiles: {type: 'array', items: {type: 'string'}},

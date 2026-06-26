@@ -12,6 +12,9 @@ interface Props {
   onDelete?: (id: number) => void
   searchQuery?: string
   isCurrentMatch?: boolean
+  selectMode?: boolean
+  isSelected?: boolean
+  onToggleSelect?: (id: number) => void
 }
 
 type KnownStatus = 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
@@ -23,53 +26,21 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
-  queued: {
-    icon: <Clock className="w-3.5 h-3.5" />,
-    label: 'Na fila',
-    className: 'bg-claude-border text-claude-muted',
-  },
-  executing: {
-    icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />,
-    label: 'Executando',
-    className: 'bg-claude-primary/20 text-claude-primary',
-  },
-  completed: {
-    icon: <CheckCircle className="w-3.5 h-3.5" />,
-    label: 'Concluído',
-    className: 'bg-green-500/20 text-green-400',
-  },
-  failed: {
-    icon: <XCircle className="w-3.5 h-3.5" />,
-    label: 'Falhou',
-    className: 'bg-red-500/20 text-red-400',
-  },
-  cancelled: {
-    icon: <Ban className="w-3.5 h-3.5" />,
-    label: 'Cancelado',
-    className: 'bg-claude-border text-claude-muted',
-  },
-  rate_limited: {
-    icon: <Gauge className="w-3.5 h-3.5" />,
-    label: 'Rate limit',
-    className: 'bg-yellow-500/20 text-yellow-400',
-  },
+  queued: { icon: <Clock className="w-3.5 h-3.5" />, label: 'Na fila', className: 'bg-claude-border text-claude-muted' },
+  executing: { icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />, label: 'Executando', className: 'bg-claude-primary/20 text-claude-primary' },
+  completed: { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Concluído', className: 'bg-green-500/20 text-green-400' },
+  failed: { icon: <XCircle className="w-3.5 h-3.5" />, label: 'Falhou', className: 'bg-red-500/20 text-red-400' },
+  cancelled: { icon: <Ban className="w-3.5 h-3.5" />, label: 'Cancelado', className: 'bg-claude-border text-claude-muted' },
+  rate_limited: { icon: <Gauge className="w-3.5 h-3.5" />, label: 'Rate limit', className: 'bg-yellow-500/20 text-yellow-400' },
 }
 
-const KNOWN_STATUSES: KnownStatus[] = ['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited']
-const EDITABLE_STATUSES: KnownStatus[] = ['queued', 'rate_limited']
-const DELETABLE_STATUSES: KnownStatus[] = ['completed', 'failed', 'cancelled', 'rate_limited']
+const KNOWN_STATUSES = new Set<string>(['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'])
+const EDITABLE_STATUSES = new Set(['queued', 'rate_limited'])
+const DELETABLE_STATUSES = new Set(['completed', 'failed', 'cancelled', 'rate_limited'])
 
-function isKnownStatus(s: string): s is KnownStatus {
-  return (KNOWN_STATUSES as string[]).includes(s)
-}
-
-function isEditable(status?: string): boolean {
-  return !!status && (EDITABLE_STATUSES as string[]).includes(status)
-}
-
-function isDeletable(status?: string): boolean {
-  return !!status && (DELETABLE_STATUSES as string[]).includes(status)
-}
+function isKnownStatus(s: string): s is KnownStatus { return KNOWN_STATUSES.has(s) }
+function isEditable(status?: string): boolean { return !!status && EDITABLE_STATUSES.has(status) }
+function isDeletable(status?: string): boolean { return !!status && DELETABLE_STATUSES.has(status) }
 
 function StatusBadge({ status }: { status?: string }) {
   if (!status || !isKnownStatus(status)) return null
@@ -82,9 +53,7 @@ function StatusBadge({ status }: { status?: string }) {
   )
 }
 
-function isActive(status?: string): boolean {
-  return status === 'queued' || status === 'executing'
-}
+function isActive(status?: string): boolean { return status === 'queued' || status === 'executing' }
 
 function ContextFileTag({ path }: { path: string }) {
   const name = path.split('/').pop() ?? path
@@ -96,17 +65,7 @@ function ContextFileTag({ path }: { path: string }) {
   )
 }
 
-function EditableContent({
-  promptId,
-  content,
-  onCancel,
-  onSaved,
-}: {
-  promptId: number
-  content: string
-  onCancel: () => void
-  onSaved: () => void
-}) {
+function EditableContent({ promptId, content, onCancel, onSaved }: { promptId: number; content: string; onCancel: () => void; onSaved: () => void }) {
   const [value, setValue] = useState(content)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { mutateAsync, isPending } = usePromptsControllerUpdateById()
@@ -129,31 +88,16 @@ function EditableContent({
 
   return (
     <div className="space-y-2">
-      <textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKey}
+      <textarea ref={textareaRef} value={value} onChange={(e) => setValue(e.target.value)} onKeyDown={handleKey}
         rows={Math.max(2, value.split('\n').length)}
-        className="w-full bg-claude-bg border border-claude-primary/50 rounded-xl px-3 py-2 text-claude-text text-sm resize-none focus:outline-none focus:border-claude-primary"
-      />
+        className="w-full bg-claude-bg border border-claude-primary/50 rounded-xl px-3 py-2 text-claude-text text-sm resize-none focus:outline-none focus:border-claude-primary" />
       <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-claude-muted hover:text-claude-text transition-colors"
-        >
-          <X className="w-3.5 h-3.5" />
-          Cancelar
+        <button type="button" onClick={onCancel} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-claude-muted hover:text-claude-text transition-colors">
+          <X className="w-3.5 h-3.5" />Cancelar
         </button>
-        <button
-          type="button"
-          onClick={() => void save()}
-          disabled={isPending || !value.trim()}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-claude-primary/20 text-claude-primary hover:bg-claude-primary/30 transition-colors disabled:opacity-50"
-        >
-          <Check className="w-3.5 h-3.5" />
-          Salvar
+        <button type="button" onClick={() => void save()} disabled={isPending || !value.trim()}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs bg-claude-primary/20 text-claude-primary hover:bg-claude-primary/30 transition-colors disabled:opacity-50">
+          <Check className="w-3.5 h-3.5" />Salvar
         </button>
       </div>
     </div>
@@ -163,24 +107,48 @@ function EditableContent({
 function WaitingBadge({ waitForPromptId }: { waitForPromptId: number }) {
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-claude-primary/10 text-claude-primary/70 border border-claude-primary/20">
-      <Link className="w-3 h-3" />
-      Aguardando #{waitForPromptId}
+      <Link className="w-3 h-3" />Aguardando #{waitForPromptId}
     </span>
   )
 }
 
-export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery = '', isCurrentMatch = false }: Props) {
+function PromptOutput({ output, highlight }: { output: string; highlight: boolean }) {
+  return (
+    <div className={`bg-claude-surface border rounded-2xl rounded-tl-sm px-4 py-3 transition-all ${highlight ? 'border-yellow-400/50 ring-1 ring-yellow-400/20' : 'border-claude-border'}`}>
+      <div className="prose prose-invert prose-sm max-w-none
+        prose-p:text-claude-text prose-p:leading-relaxed prose-p:my-1
+        prose-headings:text-claude-text prose-headings:font-semibold
+        prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
+        prose-strong:text-claude-text prose-em:text-claude-text-dim
+        prose-code:text-claude-primary prose-code:bg-claude-bg prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+        prose-pre:bg-claude-bg prose-pre:border prose-pre:border-claude-border prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto
+        prose-pre:text-xs prose-pre:font-mono prose-pre:leading-relaxed
+        prose-ul:text-claude-text prose-ul:my-1 prose-li:my-0.5
+        prose-ol:text-claude-text prose-ol:my-1
+        prose-blockquote:border-l-[#D97757] prose-blockquote:text-claude-muted prose-blockquote:my-2
+        prose-hr:border-claude-border
+        prose-a:text-claude-primary prose-a:no-underline hover:prose-a:underline
+        prose-table:text-claude-text prose-th:border-claude-border prose-td:border-claude-border">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
+      </div>
+    </div>
+  )
+}
+
+export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
   const canEdit = isEditable(prompt.status)
   const canDelete = isDeletable(prompt.status)
   const outputMatchesQuery = !!searchQuery.trim() && (prompt.output ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+  const selectable = selectMode && canDelete
 
-  const handleDeleteConfirm = () => {
-    onDelete?.(prompt.id!)
-    setConfirmDelete(false)
-  }
+  const handleDeleteConfirm = () => { onDelete?.(prompt.id!); setConfirmDelete(false) }
+
+  const bubbleBorder = isCurrentMatch
+    ? 'border-yellow-400/70 ring-2 ring-yellow-400/30'
+    : isSelected ? 'border-claude-primary ring-2 ring-claude-primary/30' : 'border-claude-primary/30'
 
   return (
     <div className="space-y-3" data-prompt-id={prompt.id}>
@@ -188,19 +156,20 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
         <div className="max-w-[80%] space-y-2">
           {hasFiles && (
             <div className="flex flex-wrap gap-1 justify-end">
-              {prompt.contextFiles!.map((path) => (
-                <ContextFileTag key={path} path={path} />
-              ))}
+              {prompt.contextFiles!.map((path) => <ContextFileTag key={path} path={path} />)}
             </div>
           )}
-          <div className={`group relative bg-claude-primary/20 border rounded-2xl rounded-tr-sm px-4 py-3 transition-all ${isCurrentMatch ? 'border-yellow-400/70 ring-2 ring-yellow-400/30' : 'border-claude-primary/30'}`}>
+          <div
+            className={`group relative bg-claude-primary/20 border rounded-2xl rounded-tr-sm px-4 py-3 transition-all ${bubbleBorder} ${selectable ? 'cursor-pointer' : ''}`}
+            onClick={selectable ? () => onToggleSelect?.(prompt.id!) : undefined}
+          >
+            {selectable && (
+              <div className={`absolute -left-7 top-1/2 -translate-y-1/2 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-claude-primary border-claude-primary' : 'border-claude-muted bg-claude-bg'}`}>
+                {isSelected && <Check className="w-3 h-3 text-white" />}
+              </div>
+            )}
             {editing ? (
-              <EditableContent
-                promptId={prompt.id!}
-                content={prompt.content ?? ''}
-                onCancel={() => setEditing(false)}
-                onSaved={() => { setEditing(false); onUpdated?.() }}
-              />
+              <EditableContent promptId={prompt.id!} content={prompt.content ?? ''} onCancel={() => setEditing(false)} onSaved={() => { setEditing(false); onUpdated?.() }} />
             ) : confirmDelete ? (
               <div className="space-y-2">
                 <p className="text-claude-text text-sm whitespace-pre-wrap">{prompt.content}</p>
@@ -213,28 +182,20 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
             ) : (
               <>
                 <HighlightText text={prompt.content ?? ''} query={searchQuery} className="text-claude-text text-sm whitespace-pre-wrap" />
-                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                  {canEdit && (
-                    <button
-                      type="button"
-                      onClick={() => setEditing(true)}
-                      className="p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-colors"
-                      title="Editar prompt"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                  {canDelete && (
-                    <button
-                      type="button"
-                      onClick={() => setConfirmDelete(true)}
-                      className="p-1 rounded-md text-claude-muted hover:text-red-400 hover:bg-claude-border transition-colors"
-                      title="Deletar prompt"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
+                {!selectMode && (
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                    {canEdit && (
+                      <button type="button" onClick={() => setEditing(true)} className="p-1 rounded-md text-claude-muted hover:text-claude-text hover:bg-claude-border transition-colors" title="Editar prompt">
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button type="button" onClick={() => setConfirmDelete(true)} className="p-1 rounded-md text-claude-muted hover:text-red-400 hover:bg-claude-border transition-colors" title="Deletar prompt">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -252,30 +213,7 @@ export default function MessageItem({ prompt, onUpdated, onDelete, searchQuery =
               <WaitingBadge waitForPromptId={prompt.waitForPromptId} />
             )}
           </div>
-
-          {prompt.output && (
-            <div className={`bg-claude-surface border rounded-2xl rounded-tl-sm px-4 py-3 transition-all ${outputMatchesQuery ? 'border-yellow-400/50 ring-1 ring-yellow-400/20' : 'border-claude-border'}`}>
-              <div className="prose prose-invert prose-sm max-w-none
-                prose-p:text-claude-text prose-p:leading-relaxed prose-p:my-1
-                prose-headings:text-claude-text prose-headings:font-semibold
-                prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                prose-strong:text-claude-text prose-em:text-claude-text-dim
-                prose-code:text-claude-primary prose-code:bg-claude-bg prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-                prose-pre:bg-claude-bg prose-pre:border prose-pre:border-claude-border prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto
-                prose-pre:text-xs prose-pre:font-mono prose-pre:leading-relaxed
-                prose-ul:text-claude-text prose-ul:my-1 prose-li:my-0.5
-                prose-ol:text-claude-text prose-ol:my-1
-                prose-blockquote:border-l-[#D97757] prose-blockquote:text-claude-muted prose-blockquote:my-2
-                prose-hr:border-claude-border
-                prose-a:text-claude-primary prose-a:no-underline hover:prose-a:underline
-                prose-table:text-claude-text prose-th:border-claude-border prose-td:border-claude-border">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {prompt.output}
-                </ReactMarkdown>
-              </div>
-            </div>
-          )}
-
+          {prompt.output && <PromptOutput output={prompt.output} highlight={outputMatchesQuery} />}
           {isActive(prompt.status) && !prompt.output && (
             <div className="bg-claude-surface border border-claude-border rounded-2xl rounded-tl-sm px-4 py-3">
               <div className="flex gap-1.5">

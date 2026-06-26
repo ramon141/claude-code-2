@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
-import { Send, Paperclip, X, Timer, Link } from 'lucide-react'
+import { Send, Paperclip, X, Timer, Link, LayoutTemplate } from 'lucide-react'
+import PromptTemplatesModal from './PromptTemplatesModal'
 import { open } from '@tauri-apps/plugin-dialog'
 import SlashCommandMenu from './SlashCommandMenu'
 import WaitForDropdown from './WaitForDropdown'
@@ -75,6 +76,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
     if (paths.length > 0) onAttachFiles(paths)
   }
 
+  const [showTemplates, setShowTemplates] = useState(false)
   const [menuDismissed, setMenuDismissed] = useState(false)
   const menuOpen = slash.open && !menuDismissed
 
@@ -112,6 +114,12 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
 
   return (
     <div className="p-4 border-t border-claude-border relative">
+      {showTemplates && (
+        <PromptTemplatesModal
+          onClose={() => setShowTemplates(false)}
+          onUse={(content) => { setValue(content); textareaRef.current?.focus() }}
+        />
+      )}
       {menuOpen && (
         <SlashCommandMenu
           commands={slash.commands}
@@ -166,6 +174,16 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           className="flex-shrink-0 text-claude-muted hover:text-claude-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
         >
           <Paperclip className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowTemplates(true)}
+          disabled={disabled || sending}
+          title="Templates de prompt"
+          className="flex-shrink-0 text-claude-muted hover:text-claude-text transition-colors disabled:opacity-30 disabled:cursor-not-allowed self-center"
+        >
+          <LayoutTemplate className="w-4 h-4" />
         </button>
 
         <button

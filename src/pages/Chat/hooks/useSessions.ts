@@ -10,7 +10,11 @@ import type { ChatSessionsControllerCreateBody } from '../../../api/generated/mo
 export function useSessions() {
   const queryClient = useQueryClient()
 
-  const { data: sessions = [], isLoading } = useChatSessionsControllerFind()
+  const { data: sessions = [], isLoading } = useChatSessionsControllerFind({
+    query: {
+      refetchInterval: (data) => (data ?? []).some(s => s.hasPendingPrompts) ? 2000 : 10000,
+    },
+  })
 
   const { mutateAsync: createSession, isLoading: isCreating } = useChatSessionsControllerCreate({
     mutation: {

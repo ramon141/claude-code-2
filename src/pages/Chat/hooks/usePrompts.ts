@@ -5,6 +5,7 @@ import {
   usePromptsControllerCreate,
   usePromptsControllerDeleteById,
   getChatSessionsControllerGetPromptsQueryKey,
+  getChatSessionsControllerFindQueryKey,
   useProjectsControllerFindById,
 } from '../../../api/generated/api'
 import type { ChatSessionsControllerFind200Item, ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
@@ -58,6 +59,9 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     queryClient.invalidateQueries({
       queryKey: getChatSessionsControllerGetPromptsQueryKey(chatName),
     })
+    queryClient.invalidateQueries({
+      queryKey: getChatSessionsControllerFindQueryKey(),
+    })
   }
 
   const deletePrompt = async (id: number): Promise<void> => {
@@ -67,5 +71,12 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     })
   }
 
-  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts, deletePrompt }
+  const deleteMultiple = async (ids: ReadonlySet<number>): Promise<void> => {
+    await Promise.all([...ids].map(id => deletePromptMutation({ id })))
+    queryClient.invalidateQueries({
+      queryKey: getChatSessionsControllerGetPromptsQueryKey(chatName),
+    })
+  }
+
+  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple }
 }

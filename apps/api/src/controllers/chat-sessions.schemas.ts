@@ -8,6 +8,7 @@ export type ChatSessionResponse = {
   totalPrompts: number;
   lastUsed: string | null;
   createdAt: string;
+  hasPendingPrompts: boolean;
 };
 
 export type ChatPromptSummary = {
@@ -47,6 +48,7 @@ export const chatSessionResponseSchema = {
     totalPrompts: {type: 'number'},
     lastUsed: {type: 'string', format: 'date-time', nullable: true},
     createdAt: {type: 'string', format: 'date-time'},
+    hasPendingPrompts: {type: 'boolean'},
   },
 };
 

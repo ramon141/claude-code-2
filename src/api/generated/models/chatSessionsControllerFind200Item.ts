@@ -18,4 +18,5 @@ export type ChatSessionsControllerFind200Item = {
   /** @nullable */
   lastUsed?: string | null;
   createdAt?: string;
+  hasPendingPrompts?: boolean;
 };

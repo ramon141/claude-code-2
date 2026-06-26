@@ -160,9 +160,16 @@ export class ChatSessionsController {
   async find(): Promise<ChatSessionResponse[]> {
     const sessions = await this.chatSessionRepo.find({order: ['createdAt DESC']});
     const projectIds = [...new Set(sessions.map(s => s.projectId))];
-    const projects = await this.projectRepo.find({where: {id: {inq: projectIds}}});
+    const [projects, pendingRows] = await Promise.all([
+      this.projectRepo.find({where: {id: {inq: projectIds}}}),
+      this.db.execute(
+        `SELECT DISTINCT chat_name FROM prompts WHERE status IN ('queued', 'executing') AND chat_name IS NOT NULL`,
+        [],
+      ) as Promise<{chat_name: string}[]>,
+    ]);
     const projectMap = new Map(projects.map(p => [p.id, p]));
-    return sessions.map(s => this.toResponse(s, projectMap.get(s.projectId)!));
+    const pendingSet = new Set((pendingRows).map((r: {chat_name: string}) => r.chat_name));
+    return sessions.map(s => this.toResponse(s, projectMap.get(s.projectId)!, pendingSet.has(s.chatName)));
   }
 
   @get('/chat-sessions/{chatName}')
@@ -218,7 +225,7 @@ export class ChatSessionsController {
     return project;
   }
 
-  private toResponse(session: ChatSession, project: Project): ChatSessionResponse {
-    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project.name, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt};
+  private toResponse(session: ChatSession, project: Project, hasPendingPrompts = false): ChatSessionResponse {
+    return {id: session.id, chatName: session.chatName, sessionId: session.sessionId, projectId: session.projectId, projectName: project.name, workingDirectory: project.workDir, totalPrompts: session.totalPrompts, lastUsed: session.lastUsed, createdAt: session.createdAt, hasPendingPrompts};
   }
 }

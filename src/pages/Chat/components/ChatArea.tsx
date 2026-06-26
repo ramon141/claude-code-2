@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { MessageSquare, Menu, Search, Bell, BellOff, BellRing } from 'lucide-react'
+import { MessageSquare, Menu, Search, Bell, BellOff, BellRing, Download, CheckSquare, Square, Trash2 } from 'lucide-react'
 import { Tooltip } from '../../../components/ui/Tooltip'
 import MessageItem from './MessageItem'
 import ChatInput from './ChatInput'
@@ -8,6 +8,8 @@ import { usePrompts } from '../hooks/usePrompts'
 import { useFileDrop } from '../hooks/useFileDrop'
 import { useChatSearch } from '../hooks/useChatSearch'
 import { useChatAlert } from '../hooks/useChatAlert'
+import { useExportChat } from '../hooks/useExportChat'
+import { useMultiSelect } from '../hooks/useMultiSelect'
 import { useProjectsControllerFindById } from '../../../api/generated/api'
 import type { ChatSessionsControllerFind200Item } from '../../../api/generated/models'
 
@@ -51,11 +53,7 @@ function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertBut
   if (isAlarming) {
     return (
       <Tooltip text="Fila finalizada! Clique para parar" position="bottom" align="right">
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="p-1.5 rounded-lg transition-colors text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 animate-pulse"
-        >
+        <button type="button" onClick={onDismiss} className="p-1.5 rounded-lg transition-colors text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 animate-pulse">
           <BellRing className="w-4 h-4" />
         </button>
       </Tooltip>
@@ -64,11 +62,7 @@ function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertBut
   if (alertEnabled) {
     return (
       <Tooltip text="Alerta ativado — clique para desativar" position="bottom" align="right">
-        <button
-          type="button"
-          onClick={onToggle}
-          className="p-1.5 rounded-lg transition-colors text-claude-primary bg-claude-primary/10 hover:bg-claude-primary/20"
-        >
+        <button type="button" onClick={onToggle} className="p-1.5 rounded-lg transition-colors text-claude-primary bg-claude-primary/10 hover:bg-claude-primary/20">
           <Bell className="w-4 h-4" />
         </button>
       </Tooltip>
@@ -76,11 +70,7 @@ function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertBut
   }
   return (
     <Tooltip text="Ativar alerta ao fim da fila" position="bottom" align="right">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border"
-      >
+      <button type="button" onClick={onToggle} className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border">
         <BellOff className="w-4 h-4" />
       </button>
     </Tooltip>
@@ -89,11 +79,7 @@ function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertBut
 
 function HamburgerButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="md:hidden p-1.5 text-claude-muted hover:text-claude-text transition-colors mr-2"
-    >
+    <button type="button" onClick={onClick} className="md:hidden p-1.5 text-claude-muted hover:text-claude-text transition-colors mr-2">
       <Menu className="w-5 h-5" />
     </button>
   )
@@ -103,12 +89,11 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const { data: project } = useProjectsControllerFindById(session?.projectId ?? 0, {
     query: { enabled: !!session?.projectId },
   })
-  const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt } = usePrompts(session)
+  const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple } = usePrompts(session)
   const { alertEnabled, toggleAlert, isAlarming, dismissAlarm } = useChatAlert(session?.chatName, prompts)
-  const {
-    isDragging, attachedFiles, addFiles, removeFile, clearFiles,
-    handleDragOver, handleDragLeave, handleDrop,
-  } = useFileDrop()
+  const { exportAsMarkdown } = useExportChat(session?.chatName, prompts)
+  const { selectMode, selectedIds, toggleSelectMode, toggleId, clearSelection } = useMultiSelect()
+  const { isDragging, attachedFiles, addFiles, removeFile, clearFiles, handleDragOver, handleDragLeave, handleDrop } = useFileDrop()
   const [showSearch, setShowSearch] = useState(false)
   const { query, setQuery, currentMatchId, currentIndex, totalMatches, goNext, goPrev } = useChatSearch(prompts)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -118,9 +103,12 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     clearFiles()
   }, [sendPrompt, clearFiles])
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [prompts])
+  const handleDeleteSelected = useCallback(async () => {
+    await deleteMultiple(selectedIds)
+    clearSelection()
+  }, [deleteMultiple, selectedIds, clearSelection])
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [prompts])
 
   useEffect(() => {
     if (currentMatchId === null) return
@@ -128,16 +116,9 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [currentMatchId])
 
-  useEffect(() => {
-    if (!showSearch) setQuery('')
-  }, [showSearch, setQuery])
+  useEffect(() => { if (!showSearch) setQuery('') }, [showSearch, setQuery])
 
-  const handleCloseSearch = () => {
-    setShowSearch(false)
-    setQuery('')
-  }
-
-  const handleToggleSearch = () => setShowSearch(v => !v)
+  const handleCloseSearch = () => { setShowSearch(false); setQuery('') }
 
   if (!session) {
     return (
@@ -152,12 +133,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   }
 
   return (
-    <div
-      className="flex-1 flex flex-col bg-claude-bg min-h-0 min-w-0 relative"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className="flex-1 flex flex-col bg-claude-bg min-h-0 min-w-0 relative" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       {isDragging && (
         <div className="absolute inset-0 z-10 bg-claude-primary/10 border-2 border-dashed border-claude-primary rounded-lg pointer-events-none flex items-center justify-center">
           <p className="text-claude-primary text-sm font-medium">Solte para anexar arquivo</p>
@@ -168,36 +144,41 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
         <HamburgerButton onClick={onOpenSidebar} />
         <div className="min-w-0 flex-1">
           <h2 className="text-claude-text font-semibold text-sm truncate">{session.chatName}</h2>
-          {project && (
-            <p className="text-claude-muted text-xs font-mono mt-0.5 truncate">{project.workDir}</p>
-          )}
+          {project && <p className="text-claude-muted text-xs font-mono mt-0.5 truncate">{project.workDir}</p>}
         </div>
-        <AlertButton
-          alertEnabled={alertEnabled}
-          isAlarming={isAlarming}
-          onToggle={toggleAlert}
-          onDismiss={dismissAlarm}
-        />
-        <button
-          type="button"
-          onClick={handleToggleSearch}
+        <Tooltip text="Selecionar mensagens" position="bottom" align="right">
+          <button type="button" onClick={toggleSelectMode}
+            className={`p-1.5 rounded-lg transition-colors ${selectMode ? 'text-claude-primary bg-claude-primary/10' : 'text-claude-muted hover:text-claude-text hover:bg-claude-border'}`}>
+            {selectMode ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+          </button>
+        </Tooltip>
+        <Tooltip text="Exportar como Markdown" position="bottom" align="right">
+          <button type="button" onClick={exportAsMarkdown} disabled={!prompts.length}
+            className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border disabled:opacity-30 disabled:cursor-not-allowed">
+            <Download className="w-4 h-4" />
+          </button>
+        </Tooltip>
+        <AlertButton alertEnabled={alertEnabled} isAlarming={isAlarming} onToggle={toggleAlert} onDismiss={dismissAlarm} />
+        <button type="button" onClick={() => setShowSearch(v => !v)}
           className={`p-1.5 rounded-lg transition-colors ${showSearch ? 'text-claude-primary bg-claude-primary/10' : 'text-claude-muted hover:text-claude-text hover:bg-claude-border'}`}
-          title="Buscar no chat (Ctrl+F)"
-        >
+          title="Buscar no chat (Ctrl+F)">
           <Search className="w-4 h-4" />
         </button>
       </div>
 
+      {selectMode && selectedIds.size > 0 && (
+        <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20 flex items-center gap-3 flex-shrink-0">
+          <span className="text-red-400 text-xs flex-1">{selectedIds.size} selecionado{selectedIds.size > 1 ? 's' : ''}</span>
+          <button type="button" onClick={handleDeleteSelected}
+            className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">
+            <Trash2 className="w-3.5 h-3.5" />Deletar
+          </button>
+          <button type="button" onClick={clearSelection} className="text-xs text-claude-muted hover:text-claude-text transition-colors">Cancelar</button>
+        </div>
+      )}
+
       {showSearch && (
-        <ChatSearch
-          query={query}
-          onQueryChange={setQuery}
-          totalMatches={totalMatches}
-          currentIndex={currentIndex}
-          onNext={goNext}
-          onPrev={goPrev}
-          onClose={handleCloseSearch}
-        />
+        <ChatSearch query={query} onQueryChange={setQuery} totalMatches={totalMatches} currentIndex={currentIndex} onNext={goNext} onPrev={goPrev} onClose={handleCloseSearch} />
       )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -214,19 +195,15 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
             onDelete={deletePrompt}
             searchQuery={query}
             isCurrentMatch={prompt.id === currentMatchId}
+            selectMode={selectMode}
+            isSelected={selectedIds.has(prompt.id ?? -1)}
+            onToggleSelect={toggleId}
           />
         ))}
         <div ref={bottomRef} />
       </div>
 
-      <ChatInput
-        onSend={handleSend}
-        disabled={isSending}
-        attachedFiles={attachedFiles}
-        onAttachFiles={addFiles}
-        onRemoveFile={removeFile}
-        currentChatName={session?.chatName ?? null}
-      />
+      <ChatInput onSend={handleSend} disabled={isSending} attachedFiles={attachedFiles} onAttachFiles={addFiles} onRemoveFile={removeFile} currentChatName={session?.chatName ?? null} />
     </div>
   )
 }

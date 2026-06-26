@@ -16,6 +16,8 @@ interface Props {
   isLoading: boolean
   isOpen: boolean
   onClose: () => void
+  searchOpen: boolean
+  onSearchOpenChange: (open: boolean) => void
 }
 
 interface NavLinkProps {
@@ -40,11 +42,12 @@ function NavLink({ icon, label, onClick }: NavLinkProps) {
 interface SessionItemProps {
   session: ChatSessionsControllerFind200Item
   isActive: boolean
+  isPending: boolean
   onSelect: () => void
   onDelete: () => void
 }
 
-function SessionItem({ session, isActive, onSelect, onDelete }: SessionItemProps) {
+function SessionItem({ session, isActive, isPending, onSelect, onDelete }: SessionItemProps) {
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const handleDeleteClick = (e: React.MouseEvent) => { e.stopPropagation(); setConfirmDelete(true) }
@@ -71,7 +74,10 @@ function SessionItem({ session, isActive, onSelect, onDelete }: SessionItemProps
           isActive ? 'bg-white/10 text-claude-text' : 'text-claude-muted hover:bg-white/6 hover:text-claude-text'
         )}
       >
-        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0 self-center" />
+        <div className="relative flex-shrink-0 self-center">
+          <MessageSquare className="w-3.5 h-3.5" />
+          {isPending && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-claude-primary animate-pulse" />}
+        </div>
         <div className="min-w-0">
           <span className="truncate block">{session.chatName}</span>
           {session.projectName && (
@@ -93,9 +99,8 @@ function SessionItem({ session, isActive, onSelect, onDelete }: SessionItemProps
   )
 }
 
-export default function ChatSidebar({ sessions, activeSessionId, onSelectSession, onSelectByChatName, onNewChat, onDeleteSession, isLoading, isOpen, onClose }: Props) {
+export default function ChatSidebar({ sessions, activeSessionId, onSelectSession, onSelectByChatName, onNewChat, onDeleteSession, isLoading, isOpen, onClose, searchOpen, onSearchOpenChange }: Props) {
   const navigate = useNavigate()
-  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
     <>
@@ -124,7 +129,7 @@ export default function ChatSidebar({ sessions, activeSessionId, onSelectSession
           </button>
           <button
             type="button"
-            onClick={() => setSearchOpen(true)}
+            onClick={() => onSearchOpenChange(true)}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors text-claude-muted hover:bg-white/6 hover:text-claude-text border border-claude-border"
           >
             <Search className="w-4 h-4" />
@@ -146,6 +151,7 @@ export default function ChatSidebar({ sessions, activeSessionId, onSelectSession
               key={session.id}
               session={session}
               isActive={activeSessionId === session.id}
+              isPending={session.hasPendingPrompts ?? false}
               onSelect={() => onSelectSession(session)}
               onDelete={() => onDeleteSession(session.chatName ?? '')}
             />
@@ -162,7 +168,7 @@ export default function ChatSidebar({ sessions, activeSessionId, onSelectSession
         <ChatSearchModal
           sessions={sessions}
           onSelect={onSelectByChatName}
-          onClose={() => setSearchOpen(false)}
+          onClose={() => onSearchOpenChange(false)}
         />
       )}
     </>

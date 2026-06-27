@@ -38,6 +38,28 @@ const RATE_LIMIT_PATTERNS = [
   'limit exceeded',
 ] as const;
 
+const AUTH_ERROR_PATTERNS = [
+  'invalid token',
+  'invalid api key',
+  'unauthorized',
+  'authentication failed',
+  'authentication_error',
+  'not logged in',
+  'unauthenticated',
+  'invalid oauth',
+  'token expired',
+  'invalid credentials',
+] as const;
+
+const CLI_NOT_FOUND_MSG = 'Claude Code CLI não encontrado. Instale com: npm install -g @anthropic-ai/claude-code';
+const AUTH_ERROR_MSG = 'Token inválido ou expirado. Atualize o token nas configurações de contas.';
+const TOKEN_REDACTED = '[TOKEN_REDACTED]';
+
+function redactToken(text: string, token: string): string {
+  if (!token || token.length < 8) return text;
+  return text.split(token).join(TOKEN_REDACTED);
+}
+
 const USAGE_LIMIT_PATTERN = /usage limit reached\|(\d+)/i;
 const RESET_DATE_TEXT_PATTERN = /resets\s+(\w+\s+\d+)\s+at\s+(\d+(?::\d+)?)(am|pm)/i;
 const ISO_DATE_PATTERN = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)/g;
@@ -57,7 +79,13 @@ export class ClaudeCodeInterface {
     onOutputFlush?: (text: string) => Promise<void>,
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
-    return this.executeWithCli(prompt, startTime, oauthToken, onOutputFlush);
+    const result = await this.executeWithCli(prompt, startTime, oauthToken, onOutputFlush);
+    // Garante que o token não apareça em nenhum campo do resultado
+    return new ExecutionResult({
+      ...result,
+      output: redactToken(result.output, oauthToken),
+      error: redactToken(result.error, oauthToken),
+    });
   }
 
   private buildContextArgs(prompt: QueuedPrompt, workingDir: string): string {
@@ -138,7 +166,14 @@ export class ClaudeCodeInterface {
 
       child.on('error', err => {
         clearTimers();
-        resolve(new ExecutionResult({success: false, output: '', error: `Execution failed: ${err.message}`, executionTime: (Date.now() - startTime) / SECONDS_TO_MS}));
+        const isNotFound = (err as NodeJS.ErrnoException).code === 'ENOENT';
+        resolve(new ExecutionResult({
+          success: false,
+          output: isNotFound ? CLI_NOT_FOUND_MSG : '',
+          error: isNotFound ? CLI_NOT_FOUND_MSG : `Execution failed: ${err.message}`,
+          isCliNotFound: isNotFound,
+          executionTime: (Date.now() - startTime) / SECONDS_TO_MS,
+        }));
       });
     });
   }
@@ -179,10 +214,25 @@ export class ClaudeCodeInterface {
       return new ExecutionResult({success: false, output: '', error: `Execution timed out after ${this.timeout}s`, executionTime});
     }
     const output = state.finalResult ?? state.currentOutput;
-    const rateLimitInfo = this.detectRateLimit(output + state.stderr);
-    const success = code === 0 && !rateLimitInfo.isRateLimited && !state.isFinalError;
-    if (!success) console.error(`✗ CLI exit code=${code} isFinalError=${state.isFinalError} stderr=${JSON.stringify(state.stderr)} output=${JSON.stringify(output.substring(0, ERROR_OUTPUT_PREVIEW_CHARS))}`);
-    return new ExecutionResult({success, output, error: state.stderr, rateLimitInfo, executionTime, sessionId: state.sessionId});
+    const combined = output + state.stderr;
+    const rateLimitInfo = this.detectRateLimit(combined);
+    const isAuthError = !rateLimitInfo.isRateLimited && this.detectAuthError(combined);
+    const success = code === 0 && !rateLimitInfo.isRateLimited && !state.isFinalError && !isAuthError;
+    if (!success) console.error(`✗ CLI exit code=${code} isFinalError=${state.isFinalError} isAuthError=${isAuthError} stderr=${JSON.stringify(state.stderr.substring(0, ERROR_OUTPUT_PREVIEW_CHARS))} output=${JSON.stringify(output.substring(0, ERROR_OUTPUT_PREVIEW_CHARS))}`);
+    return new ExecutionResult({
+      success,
+      output: isAuthError ? AUTH_ERROR_MSG : output,
+      error: isAuthError ? AUTH_ERROR_MSG : state.stderr,
+      rateLimitInfo,
+      isAuthError,
+      executionTime,
+      sessionId: state.sessionId,
+    });
+  }
+
+  detectAuthError(output: string): boolean {
+    const lower = output.toLowerCase();
+    return AUTH_ERROR_PATTERNS.some(p => lower.includes(p));
   }
 
   detectRateLimit(output: string): RateLimitInfo {

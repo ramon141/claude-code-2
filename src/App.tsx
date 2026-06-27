@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import GlobalProvider from './contexts/GlobalProvider';
 import AuthGate from './components/AuthGate';
 import SetupGate from './components/SetupGate';
+import StartupErrorGate from './components/StartupErrorGate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,13 +22,15 @@ const App: React.FC = () => {
     <>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
-          <GlobalProvider>
-            <AuthGate>
-              <SetupGate>
-                <Routes />
-              </SetupGate>
-            </AuthGate>
-          </GlobalProvider>
+          <StartupErrorGate>
+            <GlobalProvider>
+              <AuthGate>
+                <SetupGate>
+                  <Routes />
+                </SetupGate>
+              </AuthGate>
+            </GlobalProvider>
+          </StartupErrorGate>
           <ToastContainer />
         </QueryClientProvider>
       </BrowserRouter>

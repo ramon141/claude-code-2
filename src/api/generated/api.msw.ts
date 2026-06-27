@@ -142,7 +142,7 @@ export const getSetupControllerConfigurePhonesResponseMock = (overrideResponse: 
 
 export const getSetupControllerRestartResponseMock = (overrideResponse: Partial< SetupControllerRestart200 > = {}): SetupControllerRestart200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
-export const getSetupControllerStatusResponseMock = (overrideResponse: Partial< SetupControllerStatus200 > = {}): SetupControllerStatus200 => ({databaseConfigured: faker.datatype.boolean(), claudeConfigured: faker.datatype.boolean(), evolutionConfigured: faker.datatype.boolean(), completed: faker.datatype.boolean(), ...overrideResponse})
+export const getSetupControllerStatusResponseMock = (overrideResponse: Partial< SetupControllerStatus200 > = {}): SetupControllerStatus200 => ({databaseConfigured: faker.datatype.boolean(), claudeConfigured: faker.datatype.boolean(), evolutionConfigured: faker.datatype.boolean(), completed: faker.datatype.boolean(), databaseConnected: faker.datatype.boolean(), queueReady: faker.datatype.boolean(), ...overrideResponse})
 
 export const getSetupControllerGenerateNgrokWebhookResponseMock = (overrideResponse: Partial< SetupControllerGenerateNgrokWebhook200 > = {}): SetupControllerGenerateNgrokWebhook200 => ({webhookUrl: faker.string.alpha({length: {min: 10, max: 20}}), ...overrideResponse})
 

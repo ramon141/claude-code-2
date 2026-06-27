@@ -5,6 +5,8 @@ export type SetupStatus = {
   claudeConfigured: boolean;
   evolutionConfigured: boolean;
   completed: boolean;
+  databaseConnected: boolean;
+  queueReady: boolean;
 };
 
 export type DatabaseSetupBody = {
@@ -85,12 +87,14 @@ const TYPE_BOOLEAN = 'boolean';
 
 export const setupStatusSchema: SchemaObject = {
   type: 'object',
-  required: ['databaseConfigured', 'claudeConfigured', 'evolutionConfigured', 'completed'],
+  required: ['databaseConfigured', 'claudeConfigured', 'evolutionConfigured', 'completed', 'databaseConnected', 'queueReady'],
   properties: {
     databaseConfigured: {type: TYPE_BOOLEAN},
     claudeConfigured: {type: TYPE_BOOLEAN},
     evolutionConfigured: {type: TYPE_BOOLEAN},
     completed: {type: TYPE_BOOLEAN},
+    databaseConnected: {type: TYPE_BOOLEAN},
+    queueReady: {type: TYPE_BOOLEAN},
   },
 };
 

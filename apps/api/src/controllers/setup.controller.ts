@@ -1,5 +1,7 @@
 import {HttpErrors, SchemaObject, get, post, requestBody, response} from '@loopback/rest';
+import {inject} from '@loopback/core';
 import {ensureWebhookSecret, readConfig, writeConfig} from '../config/app-config';
+import {QUEUE_SERVICE_KEY, QueueService} from '../services/queue.service';
 import {restartNgrok} from '../services/ngrok-process';
 import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
@@ -86,17 +88,27 @@ function jsonBody(schema: SchemaObject) {
 }
 
 export class SetupController {
+  constructor(
+    @inject(QUEUE_SERVICE_KEY, {optional: true})
+    private queueService?: QueueService,
+  ) {}
+
   @get('/setup/status')
   @response(OK, okSpec('Estado do setup', setupStatusSchema))
-  status(): SetupStatus {
+  async status(): Promise<SetupStatus> {
     const cfg = readConfig();
     const databaseConfigured = cfg.databaseUrl.length > 0;
     const claudeConfigured = cfg.claudeCommand.length > 0;
+    const databaseConnected = databaseConfigured
+      ? await testDatabaseConnection(cfg.databaseUrl).then(r => r.ok).catch(() => false)
+      : false;
     return {
       databaseConfigured,
       claudeConfigured,
       evolutionConfigured: cfg.evolution.url.length > 0,
       completed: cfg.setupCompleted || (databaseConfigured && claudeConfigured),
+      databaseConnected,
+      queueReady: this.queueService?.isReady ?? false,
     };
   }
 

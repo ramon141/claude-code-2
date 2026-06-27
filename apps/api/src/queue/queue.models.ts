@@ -88,6 +88,8 @@ export class ExecutionResult {
   rateLimitInfo: RateLimitInfo | null;
   executionTime: number;
   sessionId: string | null;
+  isCliNotFound: boolean;
+  isAuthError: boolean;
 
   constructor(params: {
     success: boolean;
@@ -96,6 +98,8 @@ export class ExecutionResult {
     rateLimitInfo?: RateLimitInfo | null;
     executionTime?: number;
     sessionId?: string | null;
+    isCliNotFound?: boolean;
+    isAuthError?: boolean;
   }) {
     this.success = params.success;
     this.output = params.output;
@@ -103,6 +107,8 @@ export class ExecutionResult {
     this.rateLimitInfo = params.rateLimitInfo ?? null;
     this.executionTime = params.executionTime ?? 0;
     this.sessionId = params.sessionId ?? null;
+    this.isCliNotFound = params.isCliNotFound ?? false;
+    this.isAuthError = params.isAuthError ?? false;
   }
 
   get isRateLimited(): boolean {

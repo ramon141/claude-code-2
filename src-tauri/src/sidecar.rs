@@ -1,9 +1,12 @@
+use std::net::TcpListener;
 use std::path::PathBuf;
 use std::process::Stdio;
 use tauri::AppHandle;
+use tauri::Emitter;
 use tauri::Manager;
+use tokio::io::AsyncReadExt;
 use tokio::process::Command;
-use tokio::time::{sleep, Duration};
+use tokio::time::{sleep, timeout, Duration};
 
 const API_STARTUP_WAIT_SECS: u64 = 3;
 const API_PORT: u16 = 7300;
@@ -12,6 +15,12 @@ const API_HEALTH_RETRY_INTERVAL_SECS: u64 = 2;
 const API_RESTART_DELAY_SECS: u64 = 1;
 const ENCRYPTION_KEY_BYTES: usize = 32;
 const CONFIG_FILE_NAME: &str = "app-config.json";
+const NGROK_AUTH_WINDOW_SECS: u64 = 8;
+const NGROK_AUTH_PATTERNS: &[&str] = &[
+    "ERR_NGROK_401", "ERR_NGROK_402", "ERR_NGROK_403",
+    "authentication failed", "invalid token", "account suspended",
+    "billing", "unauthorized",
+];
 
 struct ApiCommand {
     executable: PathBuf,
@@ -95,7 +104,7 @@ fn read_ngrok_config(config_path: &PathBuf) -> NgrokConfig {
     NgrokConfig { enabled, domain }
 }
 
-async fn start_ngrok(ngrok: String, domain: Option<String>) {
+async fn start_ngrok(app: AppHandle, ngrok: String, domain: Option<String>) {
     let mut cmd = Command::new(&ngrok);
     cmd.arg("http")
         .arg(API_PORT.to_string())
@@ -103,15 +112,38 @@ async fn start_ngrok(ngrok: String, domain: Option<String>) {
     if let Some(ref d) = domain {
         cmd.arg(format!("--url={}", d));
     }
-    cmd.stdout(Stdio::null()).stderr(Stdio::null());
-    match cmd.spawn() {
-        Ok(mut child) => {
-            println!("[sidecar] ngrok started (pid={})", child.id().unwrap_or(0));
-            let _ = child.wait().await;
-            println!("[sidecar] ngrok exited");
+    cmd.stdout(Stdio::null()).stderr(Stdio::piped());
+
+    let mut child = match cmd.spawn() {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("[sidecar] Failed to start ngrok: {}", e);
+            return;
         }
-        Err(e) => eprintln!("[sidecar] Failed to start ngrok: {}", e),
+    };
+    println!("[sidecar] ngrok started (pid={})", child.id().unwrap_or(0));
+
+    let mut stderr_buf = Vec::new();
+    if let Some(mut stderr) = child.stderr.take() {
+        let read_result = timeout(
+            Duration::from_secs(NGROK_AUTH_WINDOW_SECS),
+            stderr.read_to_end(&mut stderr_buf),
+        ).await;
+
+        // If ngrok exited within auth window, check for known auth errors
+        if read_result.is_ok() {
+            let stderr_text = String::from_utf8_lossy(&stderr_buf).to_lowercase();
+            let auth_error = NGROK_AUTH_PATTERNS.iter().any(|p| stderr_text.contains(p));
+            if auth_error || child.try_wait().is_ok_and(|s| s.is_some()) {
+                let msg = "ngrok: falha de autenticação ou conta suspensa. O webhook externo não está disponível. Verifique o token do ngrok.";
+                eprintln!("[sidecar] {}", msg);
+                let _ = app.emit("ngrok-warning", msg);
+            }
+        }
     }
+
+    let _ = child.wait().await;
+    println!("[sidecar] ngrok exited");
 }
 
 async fn wait_for_api() -> bool {
@@ -155,6 +187,15 @@ fn resolve_config_path(app: &AppHandle, api_dir: &PathBuf) -> PathBuf {
         .unwrap_or_else(|_| api_dir.join(CONFIG_FILE_NAME))
 }
 
+fn is_port_available(port: u16) -> bool {
+    TcpListener::bind(("127.0.0.1", port)).is_ok()
+}
+
+fn emit_fatal_error(app: &AppHandle, message: &str) {
+    let _ = app.emit("startup-error", message);
+    eprintln!("[sidecar] FATAL: {}", message);
+}
+
 fn generate_encryption_key() -> String {
     use rand::RngCore;
     let mut bytes = [0u8; ENCRYPTION_KEY_BYTES];
@@ -187,14 +228,28 @@ pub async fn start_services(app: &AppHandle) {
     let config_path = resolve_config_path(app, &api_dir);
 
     for parent in [config_path.parent(), env_file.parent()].into_iter().flatten() {
-        let _ = std::fs::create_dir_all(parent);
+        if let Err(e) = std::fs::create_dir_all(parent) {
+            emit_fatal_error(app, &format!(
+                "Sem permissão para criar diretório de dados: {}. Erro: {}",
+                parent.display(), e
+            ));
+            return;
+        }
     }
     ensure_encryption_key(&env_file);
+
+    if !is_port_available(API_PORT) {
+        emit_fatal_error(app, &format!(
+            "Porta {} já está em uso. Outra instância do app pode estar rodando, ou outro processo está usando essa porta.",
+            API_PORT
+        ));
+        return;
+    }
 
     let ngrok_cfg = read_ngrok_config(&config_path);
     if ngrok_cfg.enabled {
         match resolve_ngrok() {
-            Some(ngrok) => { tokio::spawn(start_ngrok(ngrok, ngrok_cfg.domain)); }
+            Some(ngrok) => { tokio::spawn(start_ngrok(app.clone(), ngrok, ngrok_cfg.domain)); }
             None => eprintln!("[sidecar] ngrok não encontrado — webhook via ngrok indisponível"),
         }
     } else {

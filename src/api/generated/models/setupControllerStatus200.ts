@@ -11,4 +11,6 @@ export type SetupControllerStatus200 = {
   claudeConfigured: boolean;
   evolutionConfigured: boolean;
   completed: boolean;
+  databaseConnected: boolean;
+  queueReady: boolean;
 };

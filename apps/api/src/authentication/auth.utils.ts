@@ -23,11 +23,15 @@ export function encryptValue(plainText: string): string {
 
 export function decryptValue(cipherText: string): string {
   const secret = process.env.ENCRYPTION_KEY;
-  if (!secret) throw new Error('ENCRYPTION_KEY not configured');
-  const parts = cipherText.split(':');
-  return parts.length === V2_PARTS
-    ? decryptV2(secret, parts)
-    : decryptLegacy(secret, parts);
+  if (!secret) throw new Error('ENCRYPTION_KEY não configurada — reconecte a conta.');
+  try {
+    const parts = cipherText.split(':');
+    return parts.length === V2_PARTS
+      ? decryptV2(secret, parts)
+      : decryptLegacy(secret, parts);
+  } catch {
+    throw new Error('Falha ao descriptografar token — a chave de criptografia pode ter mudado. Reconecte a conta nas configurações.');
+  }
 }
 
 function decryptV2(secret: string, parts: string[]): string {

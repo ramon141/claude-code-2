@@ -76,9 +76,14 @@ export function getConfigPath(): string {
 export function readConfig(): AppConfig {
   const file = getConfigPath();
   if (!fs.existsSync(file)) return defaultConfig();
-  const raw = fs.readFileSync(file, 'utf8');
-  const parsed = JSON.parse(raw) as Partial<AppConfig>;
-  return mergeConfig(parsed);
+  try {
+    const raw = fs.readFileSync(file, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<AppConfig>;
+    return mergeConfig(parsed);
+  } catch (err) {
+    console.error(`[config] app-config.json corrompido — usando configuração padrão: ${err}`);
+    return defaultConfig();
+  }
 }
 
 function mergeConfig(parsed: Partial<AppConfig>): AppConfig {

@@ -16,6 +16,7 @@ export class QueueManager {
   private timeout: number;
   private processing: boolean;
   private rateLimitSweep: NodeJS.Timeout | null;
+  private started: boolean;
 
   constructor(repository: IStorageRepository, claudeCommand: string = 'claude', timeout: number = 3600) {
     this.repository = repository;
@@ -23,6 +24,11 @@ export class QueueManager {
     this.timeout = timeout;
     this.processing = false;
     this.rateLimitSweep = null;
+    this.started = false;
+  }
+
+  get isReady(): boolean {
+    return this.started;
   }
 
   async start(): Promise<void> {
@@ -35,6 +41,7 @@ export class QueueManager {
       return;
     }
     await this.recoverStuckExecuting();
+    this.started = true;
     await this.triggerIteration();
     this.startRateLimitSweep();
     console.log('[queue] Ready — waiting for events');
@@ -295,8 +302,17 @@ export class QueueManager {
     }
   }
 
+  private async handleFatalError(prompt: QueuedPrompt, message: string): Promise<void> {
+    await this.repository.updatePromptStatus(prompt.id, PromptStatus.FAILED, {});
+    await this.repository.saveOutput(prompt.id, message);
+    await this.repository.incrementCounter('failedCount');
+    console.error(`✗ Prompt ${prompt.id} falhou permanentemente: ${message}`);
+  }
+
   private async processExecutionResult(prompt: QueuedPrompt, result: ExecutionResult, keyId: number): Promise<void> {
     if (result.success) await this.handleSuccess(prompt, result);
+    else if (result.isCliNotFound) await this.handleFatalError(prompt, result.output);
+    else if (result.isAuthError) await this.handleFatalError(prompt, result.output);
     else if (result.isRateLimited) await this.handleRateLimit(prompt, result, keyId);
     else await this.handleFailure(prompt, result);
     await this.repository.setLastProcessed(new Date());

@@ -13,7 +13,7 @@
     "node": "20 || 22 || 24"
   },
   "pkg": {
-    "scripts": ["dist/**/*.js", "node_modules/**/*.js"],
+    "scripts": ["dist/**/*.js"],
     "assets": ["dist/**/*.json", "public/**/*", "node_modules/**/*.json"],
     "targets": ["node20"]
   },

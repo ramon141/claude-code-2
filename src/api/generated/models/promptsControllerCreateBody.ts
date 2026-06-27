@@ -5,9 +5,11 @@
  * MyProjects
  * OpenAPI spec version: 0.0.1
  */
+import type { PromptsControllerCreateBodyStatus } from './promptsControllerCreateBodyStatus';
 
 export type PromptsControllerCreateBody = {
   content: string;
+  status?: PromptsControllerCreateBodyStatus;
   priority?: number;
   workingDirectory: string;
   contextFiles?: string[];

@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import Projects from './pages/Projects'
 import QueueDashboard from './pages/QueueDashboard'
 import ClaudeApiKeys from './pages/ClaudeApiKeys'
+import GlobalPipeline from './pages/GlobalPipeline'
 
 const routes: RouteConfig[] = [
   { path: '/',                  element: <Chat />,           isPrivate: false, breadcrumb: false },
@@ -18,6 +19,7 @@ const routes: RouteConfig[] = [
   { path: '/projects',          element: <Projects />,       isPrivate: false, breadcrumb: false },
   { path: '/claude-code-accounts', element: <ClaudeApiKeys />,  isPrivate: false, breadcrumb: false },
   { path: '/dashboard',         element: <QueueDashboard />, isPrivate: false, breadcrumb: false },
+  { path: '/pipeline',          element: <GlobalPipeline />, isPrivate: false, breadcrumb: false },
   { path: '/403',               element: <ForbiddenPage />,  isPrivate: false, breadcrumb: false },
   { path: '/500',               element: <ServerErrorPage />,isPrivate: false, breadcrumb: false },
   { path: '/notifications',     element: <Notifications />,  isPrivate: true,  breadcrumb: true  },

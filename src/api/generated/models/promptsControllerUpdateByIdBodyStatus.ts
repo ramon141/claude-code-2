@@ -11,6 +11,7 @@ export type PromptsControllerUpdateByIdBodyStatus = typeof PromptsControllerUpda
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PromptsControllerUpdateByIdBodyStatus = {
+  draft: 'draft',
   queued: 'queued',
   executing: 'executing',
   completed: 'completed',

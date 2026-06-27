@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, MessageSquare, Settings, X, FolderOpen, Trash2, Search } from 'lucide-react'
+import { Plus, MessageSquare, Settings, X, FolderOpen, Trash2, Search, GitFork } from 'lucide-react'
 const logo = '/favicon.webp'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '../../../lib/utils'
@@ -134,6 +134,14 @@ export default function ChatSidebar({ sessions, activeSessionId, onSelectSession
           >
             <Search className="w-4 h-4" />
             Buscar
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/pipeline')}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm font-medium transition-colors text-claude-muted hover:bg-white/6 hover:text-claude-text border border-claude-border"
+          >
+            <GitFork className="w-4 h-4" />
+            Pipeline Global
           </button>
         </div>
 

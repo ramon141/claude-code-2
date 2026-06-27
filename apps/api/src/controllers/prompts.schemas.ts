@@ -39,6 +39,7 @@ export const createPromptSchema: SchemaObject = {
   additionalProperties: false,
   properties: {
     content: {type: 'string'},
+    status: {type: 'string', enum: ['draft', 'queued'], default: 'queued'},
     priority: {type: 'number', default: 0},
     workingDirectory: {type: 'string'},
     contextFiles: {type: 'array', items: {type: 'string'}, default: []},
@@ -58,7 +59,7 @@ export const patchPromptSchema: SchemaObject = {
   properties: {
     status: {
       type: 'string',
-      enum: ['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'],
+      enum: ['draft', 'queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'],
     },
     content: {type: 'string'},
     retryCount: {type: 'number'},
@@ -68,9 +69,11 @@ export const patchPromptSchema: SchemaObject = {
     isSessionStart: {type: 'boolean'},
     output: {type: 'string'},
     sessionId: {type: 'string', nullable: true},
+    waitForPromptId: {type: 'number', nullable: true},
+    useWaitResponse: {type: 'boolean'},
   },
 };
 
-export const EDITABLE_STATUSES: PromptStatus[] = ['queued' as PromptStatus, 'rate_limited' as PromptStatus];
+export const EDITABLE_STATUSES: PromptStatus[] = ['draft' as PromptStatus, 'queued' as PromptStatus, 'rate_limited' as PromptStatus];
 
 export const ACTIVE_STATUSES: PromptStatus[] = ['queued' as PromptStatus, 'executing' as PromptStatus];

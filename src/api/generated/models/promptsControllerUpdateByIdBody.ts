@@ -18,4 +18,7 @@ export type PromptsControllerUpdateByIdBody = {
   output?: string;
   /** @nullable */
   sessionId?: string | null;
+  /** @nullable */
+  waitForPromptId?: number | null;
+  useWaitResponse?: boolean;
 };

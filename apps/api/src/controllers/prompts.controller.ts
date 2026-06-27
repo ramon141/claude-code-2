@@ -29,7 +29,7 @@ export type CreatePromptBody = Omit<
   | 'resetTime'
   | 'contextFiles'
   | 'isSessionStart'
-> & {contextFiles?: string[]; chatName?: string | null; sessionId?: string | null; waitForPromptId?: number | null; useWaitResponse?: boolean};
+> & {status?: 'draft' | 'queued'; contextFiles?: string[]; chatName?: string | null; sessionId?: string | null; waitForPromptId?: number | null; useWaitResponse?: boolean};
 
 type PatchPromptBody = {
   status?: PromptStatus;
@@ -41,6 +41,8 @@ type PatchPromptBody = {
   isSessionStart?: boolean;
   output?: string;
   sessionId?: string | null;
+  waitForPromptId?: number | null;
+  useWaitResponse?: boolean;
 };
 
 
@@ -55,6 +57,18 @@ export class PromptsController {
     @inject(QUEUE_SERVICE_KEY) private queueService: QueueService,
   ) {}
 
+  @post('/prompts/execute-drafts')
+  @response(200, {description: 'Rascunhos enfileirados', content: {'application/json': {schema: {type: 'object', properties: {queued: {type: 'number'}}}}}})
+  async executeDrafts(): Promise<{queued: number}> {
+    const drafts = await this.promptRepo.find({where: {status: 'draft' as PromptStatus}});
+    await Promise.all(drafts.map(d => this.promptRepo.updateById(d.id, {status: 'queued' as PromptStatus})));
+    for (const d of drafts) {
+      this.notificationService.notify({event: 'prompt:updated', promptId: d.id, chatName: d.chatName ?? null, status: 'queued', output: ''});
+    }
+    void this.queueService.triggerIteration();
+    return {queued: drafts.length};
+  }
+
   @post('/prompts')
   @response(201, {
     description: 'Prompt criado',
@@ -66,7 +80,7 @@ export class PromptsController {
     @inject(RestBindings.Http.RESPONSE) res: Response,
   ): Promise<PromptResponse> {
     res.status(201);
-    const {contextFiles = [], chatName = null, claudeModel = null, waitForPromptId = null, useWaitResponse = false, ...promptData} = body;
+    const {contextFiles = [], chatName = null, claudeModel = null, waitForPromptId = null, useWaitResponse = false, status: bodyStatus, ...promptData} = body;
     const workingDirectory = promptData.workingDirectory ?? '';
     validateWorkingDirectory(workingDirectory);
     validateClaudeModel(claudeModel);
@@ -91,8 +105,8 @@ export class PromptsController {
         claudeModel,
         waitForPromptId,
         useWaitResponse,
-        status: 'queued' as PromptStatus,
-        isSessionStart,
+        status: (bodyStatus ?? 'queued') as PromptStatus,
+        isSessionStart: bodyStatus === 'draft' ? false : isSessionStart,
         retryCount: 0,
         output: '',
         createdAt: new Date().toISOString(),
@@ -195,6 +209,8 @@ export class PromptsController {
     if (body.isSessionStart !== undefined) update.isSessionStart = body.isSessionStart;
     if (body.sessionId !== undefined) update.sessionId = body.sessionId;
     if (body.output !== undefined) update.output = body.output;
+    if (body.waitForPromptId !== undefined) update.waitForPromptId = body.waitForPromptId;
+    if (body.useWaitResponse !== undefined) update.useWaitResponse = body.useWaitResponse;
     await this.promptRepo.updateById(id, update);
     const updated = await this.promptRepo.findById(id, {include: ['contextFiles']});
 

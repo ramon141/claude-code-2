@@ -46,6 +46,7 @@ import type {
   Prompt,
   PromptsControllerCreate201,
   PromptsControllerCreateBody,
+  PromptsControllerExecuteDrafts200,
   PromptsControllerFindById200,
   PromptsControllerFindParams,
   PromptsControllerNext200,
@@ -1579,6 +1580,63 @@ export function useProjectsControllerFind<TData = Awaited<ReturnType<typeof proj
 
 
 
+export const promptsControllerExecuteDrafts = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<PromptsControllerExecuteDrafts200>(
+      {url: `/prompts/execute-drafts`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPromptsControllerExecuteDraftsMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>, TError,void, TContext> => {
+
+const mutationKey = ['promptsControllerExecuteDrafts'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>, void> = () => {
+          
+
+          return  promptsControllerExecuteDrafts()
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PromptsControllerExecuteDraftsMutationResult = NonNullable<Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>>
+    
+    export type PromptsControllerExecuteDraftsMutationError = unknown
+
+    export const usePromptsControllerExecuteDrafts = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>, TError,void, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof promptsControllerExecuteDrafts>>,
+        TError,
+        void,
+        TContext
+      > => {
+
+      const mutationOptions = getPromptsControllerExecuteDraftsMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const promptsControllerNext = (
     
  signal?: AbortSignal

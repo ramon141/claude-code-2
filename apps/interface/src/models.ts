@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 
 export enum PromptStatus {
+  DRAFT = 'draft',
   QUEUED = 'queued',
   EXECUTING = 'executing',
   COMPLETED = 'completed',

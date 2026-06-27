@@ -35,6 +35,8 @@ export * from './promptExcludingContextFiles';
 export * from './promptsControllerCreate201';
 export * from './promptsControllerCreate201AllOf';
 export * from './promptsControllerCreateBody';
+export * from './promptsControllerCreateBodyStatus';
+export * from './promptsControllerExecuteDrafts200';
 export * from './promptsControllerFindById200';
 export * from './promptsControllerFindById200AllOf';
 export * from './promptsControllerFindParams';

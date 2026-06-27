@@ -2,6 +2,7 @@ import {Entity, hasMany, model, property} from '@loopback/repository';
 import {PromptContextFile} from './prompt-context-file.model';
 
 export type PromptStatus =
+  | 'draft'
   | 'queued'
   | 'executing'
   | 'completed'

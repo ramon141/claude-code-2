@@ -34,6 +34,7 @@ import type {
   Project,
   Prompt,
   PromptsControllerCreate201,
+  PromptsControllerExecuteDrafts200,
   PromptsControllerFindById200,
   PromptsControllerNext200,
   PromptsControllerUpdateById200,
@@ -98,6 +99,8 @@ export const getProjectsControllerFindByIdResponseMock = (overrideResponse: Part
 export const getProjectsControllerCreateResponseMock = (overrideResponse: Partial< Project > = {}): Project => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), workDir: faker.string.alpha({length: {min: 10, max: 20}}), memory: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), ...overrideResponse})
 
 export const getProjectsControllerFindResponseMock = (): Project[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), name: faker.string.alpha({length: {min: 10, max: 20}}), workDir: faker.string.alpha({length: {min: 10, max: 20}}), memory: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined])})))
+
+export const getPromptsControllerExecuteDraftsResponseMock = (overrideResponse: Partial< PromptsControllerExecuteDrafts200 > = {}): PromptsControllerExecuteDrafts200 => ({queued: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), ...overrideResponse})
 
 export const getPromptsControllerNextResponseMock = (): PromptsControllerNext200 => ({...{id: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), content: faker.string.alpha({length: {min: 10, max: 20}}), status: faker.string.alpha({length: {min: 10, max: 20}}), priority: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), workingDirectory: faker.string.alpha({length: {min: 10, max: 20}}), maxRetries: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), retryCount: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), estimatedTokens: faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), undefined]), sessionId: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), chatName: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), isSessionStart: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), output: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), createdAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), lastExecuted: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), rateLimitedAt: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), whatsappPhone: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), claudeModel: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined]), waitForPromptId: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.float({min: undefined, max: undefined, fractionDigits: 2}), null]), undefined]), useWaitResponse: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), resetTime: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), diff: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), undefined])},...{contextFiles: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (faker.string.alpha({length: {min: 10, max: 20}}))), undefined])},})
 
@@ -440,6 +443,18 @@ export const getProjectsControllerFindMockHandler = (overrideResponse?: Project[
   }, options)
 }
 
+export const getPromptsControllerExecuteDraftsMockHandler = (overrideResponse?: PromptsControllerExecuteDrafts200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PromptsControllerExecuteDrafts200> | PromptsControllerExecuteDrafts200), options?: RequestHandlerOptions) => {
+  return http.post('*/prompts/execute-drafts', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getPromptsControllerExecuteDraftsResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getPromptsControllerNextMockHandler = (overrideResponse?: PromptsControllerNext200 | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PromptsControllerNext200> | PromptsControllerNext200), options?: RequestHandlerOptions) => {
   return http.get('*/prompts/next', async (info) => {await delay(1000);
   
@@ -763,6 +778,7 @@ export const getClaudeCodeApiMock = () => [
   getProjectsControllerDeleteByIdMockHandler(),
   getProjectsControllerCreateMockHandler(),
   getProjectsControllerFindMockHandler(),
+  getPromptsControllerExecuteDraftsMockHandler(),
   getPromptsControllerNextMockHandler(),
   getPromptsControllerUpdateByIdMockHandler(),
   getPromptsControllerFindByIdMockHandler(),

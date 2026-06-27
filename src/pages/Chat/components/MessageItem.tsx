@@ -19,7 +19,7 @@ interface Props {
   onToggleSelect?: (id: number) => void
 }
 
-type KnownStatus = 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
+type KnownStatus = 'draft' | 'queued' | 'executing' | 'completed' | 'failed' | 'cancelled' | 'rate_limited'
 
 interface StatusConfig {
   icon: React.ReactNode
@@ -28,6 +28,7 @@ interface StatusConfig {
 }
 
 const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
+  draft: { icon: <Clock className="w-3.5 h-3.5" />, label: 'Rascunho', className: 'bg-claude-border/50 text-claude-muted border border-dashed border-claude-border' },
   queued: { icon: <Clock className="w-3.5 h-3.5" />, label: 'Na fila', className: 'bg-claude-border text-claude-muted' },
   executing: { icon: <Loader2 className="w-3.5 h-3.5 animate-spin" />, label: 'Executando', className: 'bg-claude-primary/20 text-claude-primary' },
   completed: { icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Concluído', className: 'bg-green-500/20 text-green-400' },
@@ -36,7 +37,7 @@ const STATUS_CONFIG: Record<KnownStatus, StatusConfig> = {
   rate_limited: { icon: <Gauge className="w-3.5 h-3.5" />, label: 'Rate limit', className: 'bg-yellow-500/20 text-yellow-400' },
 }
 
-const KNOWN_STATUSES = new Set<string>(['queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'])
+const KNOWN_STATUSES = new Set<string>(['draft', 'queued', 'executing', 'completed', 'failed', 'cancelled', 'rate_limited'])
 const EDITABLE_STATUSES = new Set(['queued', 'rate_limited'])
 const DELETABLE_STATUSES = new Set(['completed', 'failed', 'cancelled', 'rate_limited'])
 const RETRYABLE_STATUSES = new Set(['failed', 'cancelled'])

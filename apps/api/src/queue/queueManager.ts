@@ -3,7 +3,7 @@ import * as path from 'path';
 import {QueuedPrompt, PromptStatus, ExecutionResult} from './queue.models';
 import {ClaudeCredentials, IStorageRepository, PromptPatch} from './IStorageRepository';
 import {fetchRateLimits} from './rateLimitsService';
-import {getGitDiff} from './gitDiff';
+import {getGitDiff, snapshotWorkingTree} from './gitDiff';
 import type {WorkerMessage, WorkerResultData} from './claudeWorker';
 
 const CHAT_INITIAL_PRIORITY = -1;
@@ -236,6 +236,7 @@ export class QueueManager {
       return;
     }
     await this.injectDependencyOutput(prompt);
+    const baseCommit = await snapshotWorkingTree(prompt.workingDirectory);
     const onFlush = (text: string) => this.repository.saveOutput(prompt.id, text);
     const result = await this.runInFork(prompt, creds.token, onFlush);
 
@@ -255,7 +256,7 @@ export class QueueManager {
     if (prompt.isSessionStart && !result.sessionId && prompt.chatName) {
       await this.cancelPendingChatPrompts(prompt.chatName, prompt.id);
     }
-    await this.processExecutionResult(prompt, result, creds.keyId);
+    await this.processExecutionResult(prompt, result, creds.keyId, baseCommit);
     await this.updateRateLimits(creds.keyId, creds.token);
   }
 
@@ -284,10 +285,10 @@ export class QueueManager {
     }
   }
 
-  private async handleSuccess(prompt: QueuedPrompt, result: ExecutionResult): Promise<void> {
+  private async handleSuccess(prompt: QueuedPrompt, result: ExecutionResult, baseCommit: string | null): Promise<void> {
     await this.repository.updatePromptStatus(prompt.id, PromptStatus.COMPLETED, {isSessionStart: false});
     if (result.output) await this.repository.saveOutput(prompt.id, result.output);
-    const diff = await getGitDiff(prompt.workingDirectory);
+    const diff = await getGitDiff(prompt.workingDirectory, baseCommit);
     if (diff) await this.repository.saveDiff(prompt.id, diff);
     await this.repository.incrementCounter('totalProcessed');
     console.log(`✓ Prompt ${prompt.id} completed in ${result.executionTime.toFixed(1)}s`);
@@ -334,8 +335,8 @@ export class QueueManager {
     console.error(`✗ Prompt ${prompt.id} falhou permanentemente: ${message}`);
   }
 
-  private async processExecutionResult(prompt: QueuedPrompt, result: ExecutionResult, keyId: number): Promise<void> {
-    if (result.success) await this.handleSuccess(prompt, result);
+  private async processExecutionResult(prompt: QueuedPrompt, result: ExecutionResult, keyId: number, baseCommit: string | null = null): Promise<void> {
+    if (result.success) await this.handleSuccess(prompt, result, baseCommit);
     else if (result.isCliNotFound) await this.handleFatalError(prompt, result.output);
     else if (result.isAuthError) await this.handleFatalError(prompt, result.output);
     else if (result.isRateLimited) await this.handleRateLimit(prompt, result, keyId);

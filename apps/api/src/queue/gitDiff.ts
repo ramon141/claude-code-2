@@ -4,9 +4,29 @@ import {promisify} from 'util';
 const execFileAsync = promisify(execFile);
 const GIT_DIFF_TIMEOUT_MS = 10_000;
 
-export async function getGitDiff(workingDirectory: string): Promise<string | null> {
+export async function snapshotWorkingTree(workingDirectory: string): Promise<string | null> {
   try {
-    const {stdout} = await execFileAsync('git', ['diff', 'HEAD'], {
+    const {stdout: stashOut} = await execFileAsync('git', ['stash', 'create'], {
+      cwd: workingDirectory,
+      timeout: GIT_DIFF_TIMEOUT_MS,
+    });
+    const stashHash = stashOut.trim();
+    if (stashHash) return stashHash;
+
+    const {stdout: headOut} = await execFileAsync('git', ['rev-parse', 'HEAD'], {
+      cwd: workingDirectory,
+      timeout: GIT_DIFF_TIMEOUT_MS,
+    });
+    return headOut.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getGitDiff(workingDirectory: string, baseRef: string | null): Promise<string | null> {
+  try {
+    const ref = baseRef ?? 'HEAD';
+    const {stdout} = await execFileAsync('git', ['diff', ref], {
       cwd: workingDirectory,
       timeout: GIT_DIFF_TIMEOUT_MS,
     });

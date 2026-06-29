@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link, Trash2, RotateCcw } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2, Clock, Ban, Gauge, Paperclip, Pencil, Check, X, Link, Trash2, RotateCcw, StopCircle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { usePromptsControllerUpdateById } from '../../../api/generated/api'
@@ -12,6 +12,7 @@ interface Props {
   onUpdated?: () => void
   onDelete?: (id: number) => void
   onRetry?: (content: string, contextFiles: string[]) => void
+  onCancel?: (id: number) => void
   searchQuery?: string
   isCurrentMatch?: boolean
   selectMode?: boolean
@@ -41,11 +42,13 @@ const KNOWN_STATUSES = new Set<string>(['draft', 'queued', 'executing', 'complet
 const EDITABLE_STATUSES = new Set(['queued', 'rate_limited'])
 const DELETABLE_STATUSES = new Set(['completed', 'failed', 'cancelled', 'rate_limited'])
 const RETRYABLE_STATUSES = new Set(['failed', 'cancelled'])
+const CANCELLABLE_STATUSES = new Set(['queued', 'executing'])
 
 function isKnownStatus(s: string): s is KnownStatus { return KNOWN_STATUSES.has(s) }
 function isEditable(status?: string): boolean { return !!status && EDITABLE_STATUSES.has(status) }
 function isDeletable(status?: string): boolean { return !!status && DELETABLE_STATUSES.has(status) }
 function isRetryable(status?: string): boolean { return !!status && RETRYABLE_STATUSES.has(status) }
+function isCancellable(status?: string): boolean { return !!status && CANCELLABLE_STATUSES.has(status) }
 
 function StatusBadge({ status }: { status?: string }) {
   if (!status || !isKnownStatus(status)) return null
@@ -152,13 +155,14 @@ function PromptOutput({ output, highlight }: { output: string; highlight: boolea
   )
 }
 
-export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
+export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, onCancel, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
   const canEdit = isEditable(prompt.status)
   const canDelete = isDeletable(prompt.status)
   const canRetry = isRetryable(prompt.status)
+  const canCancel = isCancellable(prompt.status)
   const outputMatchesQuery = !!searchQuery.trim() && (prompt.output ?? '').toLowerCase().includes(searchQuery.toLowerCase())
   const selectable = selectMode && canDelete
 
@@ -237,6 +241,16 @@ export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, sear
             <StatusBadge status={prompt.status} />
             {prompt.waitForPromptId != null && prompt.status === 'queued' && (
               <WaitingBadge waitForPromptId={prompt.waitForPromptId} />
+            )}
+            {canCancel && (
+              <button
+                type="button"
+                onClick={() => onCancel?.(prompt.id!)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-colors"
+              >
+                <StopCircle className="w-3 h-3" />
+                Parar
+              </button>
             )}
           </div>
           {prompt.output && <PromptOutput output={prompt.output} highlight={outputMatchesQuery} />}

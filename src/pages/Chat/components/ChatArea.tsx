@@ -89,7 +89,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const { data: project } = useProjectsControllerFindById(session?.projectId ?? 0, {
     query: { enabled: !!session?.projectId },
   })
-  const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple } = usePrompts(session)
+  const { prompts, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple, cancelPrompt } = usePrompts(session)
   const { alertEnabled, toggleAlert, isAlarming, dismissAlarm } = useChatAlert(session?.chatName, prompts)
   const { exportAsMarkdown } = useExportChat(session?.chatName, prompts)
   const { selectMode, selectedIds, toggleSelectMode, toggleId, clearSelection } = useMultiSelect()
@@ -112,6 +112,10 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const handleRetry = useCallback(async (content: string, contextFiles: string[]) => {
     await sendPrompt(content, contextFiles, null, null, false)
   }, [sendPrompt])
+
+  const handleCancel = useCallback(async (id: number) => {
+    await cancelPrompt(id)
+  }, [cancelPrompt])
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [prompts])
 
@@ -204,6 +208,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
             onUpdated={refetchPrompts}
             onDelete={deletePrompt}
             onRetry={handleRetry}
+            onCancel={handleCancel}
             searchQuery={query}
             isCurrentMatch={prompt.id === currentMatchId}
             selectMode={selectMode}

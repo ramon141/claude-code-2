@@ -4,6 +4,7 @@ import {
   useChatSessionsControllerGetPrompts,
   usePromptsControllerCreate,
   usePromptsControllerDeleteById,
+  usePromptsControllerUpdateById,
   getChatSessionsControllerGetPromptsQueryKey,
   getChatSessionsControllerFindQueryKey,
   useProjectsControllerFindById,
@@ -43,6 +44,7 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
 
   const { mutateAsync: createPromptMutation, isLoading: isSending } = usePromptsControllerCreate()
   const { mutateAsync: deletePromptMutation } = usePromptsControllerDeleteById()
+  const { mutateAsync: updatePromptMutation } = usePromptsControllerUpdateById()
 
   const sendPrompt = async (content: string, contextFiles: string[] = [], claudeModel: string | null = null, waitForPromptId: number | null = null, useWaitResponse = false): Promise<void> => {
     await createPromptMutation({
@@ -78,5 +80,12 @@ export function usePrompts(session: ChatSessionsControllerFind200Item | null) {
     })
   }
 
-  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple }
+  const cancelPrompt = async (id: number): Promise<void> => {
+    await updatePromptMutation({ id, data: { status: 'cancelled' } })
+    queryClient.invalidateQueries({
+      queryKey: getChatSessionsControllerGetPromptsQueryKey(chatName),
+    })
+  }
+
+  return { prompts, isLoading, sendPrompt, isSending, refetchPrompts, deletePrompt, deleteMultiple, cancelPrompt }
 }

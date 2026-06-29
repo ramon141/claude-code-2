@@ -55,6 +55,10 @@ export class QueueService implements LifeCycleObserver {
     void this.manager.triggerIteration();
   }
 
+  cancelExecution(promptId: string): void {
+    this.manager.cancelExecution(promptId);
+  }
+
   get isReady(): boolean {
     return this.manager.isReady;
   }

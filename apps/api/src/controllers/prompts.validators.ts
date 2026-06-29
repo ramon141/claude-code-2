@@ -47,10 +47,6 @@ export function validateFilePath(filePath: string, workingDirectory: string): vo
     throw new HttpErrors.UnprocessableEntity(`Path traversal não permitido: "${filePath}"`);
   }
   const resolved = path.resolve(workingDirectory, filePath);
-  const normalizedWorkDir = path.resolve(workingDirectory);
-  if (!resolved.startsWith(normalizedWorkDir + path.sep) && resolved !== normalizedWorkDir) {
-    throw new HttpErrors.UnprocessableEntity(`Arquivo fora do diretório do projeto não permitido: "${filePath}"`);
-  }
   if (!fs.existsSync(resolved)) {
     throw new HttpErrors.UnprocessableEntity(`Arquivo não encontrado: "${resolved}"`);
   }

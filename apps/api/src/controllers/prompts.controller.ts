@@ -212,6 +212,9 @@ export class PromptsController {
     if (body.waitForPromptId !== undefined) update.waitForPromptId = body.waitForPromptId;
     if (body.useWaitResponse !== undefined) update.useWaitResponse = body.useWaitResponse;
     await this.promptRepo.updateById(id, update);
+    if (body.status === 'cancelled') {
+      this.queueService.cancelExecution(String(id));
+    }
     const updated = await this.promptRepo.findById(id, {include: ['contextFiles']});
 
     this.notificationService.notify({

@@ -1,4 +1,4 @@
-import {fork} from 'child_process';
+import {fork, type ChildProcess} from 'child_process';
 import * as path from 'path';
 import {QueuedPrompt, PromptStatus, ExecutionResult} from './queue.models';
 import {ClaudeCredentials, IStorageRepository, PromptPatch} from './IStorageRepository';
@@ -17,6 +17,7 @@ export class QueueManager {
   private processing: boolean;
   private rateLimitSweep: NodeJS.Timeout | null;
   private started: boolean;
+  private activeWorkers: Map<string, ChildProcess>;
 
   constructor(repository: IStorageRepository, claudeCommand: string = 'claude', timeout: number = 3600) {
     this.repository = repository;
@@ -25,6 +26,7 @@ export class QueueManager {
     this.processing = false;
     this.rateLimitSweep = null;
     this.started = false;
+    this.activeWorkers = new Map();
   }
 
   get isReady(): boolean {
@@ -162,6 +164,15 @@ export class QueueManager {
     }
   }
 
+  cancelExecution(promptId: string): void {
+    const worker = this.activeWorkers.get(promptId);
+    if (worker) {
+      worker.kill('SIGTERM');
+      this.activeWorkers.delete(promptId);
+      console.log(`✗ Worker do prompt ${promptId} encerrado por cancelamento`);
+    }
+  }
+
   private runInFork(
     prompt: QueuedPrompt,
     oauthToken: string,
@@ -171,9 +182,14 @@ export class QueueManager {
     return new Promise(resolve => {
       const worker = fork(workerPath);
       let resolved = false;
+      this.activeWorkers.set(prompt.id, worker);
 
       const safeResolve = (result: ExecutionResult) => {
-        if (!resolved) {resolved = true; resolve(result);}
+        if (!resolved) {
+          resolved = true;
+          this.activeWorkers.delete(prompt.id);
+          resolve(result);
+        }
       };
 
       worker.on('message', (msg: WorkerMessage) => {
@@ -222,6 +238,15 @@ export class QueueManager {
     await this.injectDependencyOutput(prompt);
     const onFlush = (text: string) => this.repository.saveOutput(prompt.id, text);
     const result = await this.runInFork(prompt, creds.token, onFlush);
+
+    const currentStatus = await this.repository.getPromptStatus(Number(prompt.id));
+    if (currentStatus === PromptStatus.CANCELLED) {
+      console.log(`↩ Prompt ${prompt.id} foi cancelado durante execução — resultado ignorado`);
+      await this.repository.setLastProcessed(new Date());
+      void this.triggerIteration();
+      return;
+    }
+
     if (prompt.isSessionStart && result.sessionId && prompt.chatName) {
       await this.repository.updateChatSessionId(prompt.chatName, result.sessionId);
       await this.repository.updatePromptStatus(prompt.id, PromptStatus.EXECUTING, {sessionId: result.sessionId});

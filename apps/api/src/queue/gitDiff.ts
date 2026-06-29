@@ -23,6 +23,13 @@ export async function snapshotWorkingTree(workingDirectory: string): Promise<str
   }
 }
 
+export async function restoreWorkingTree(workingDirectory: string, baseRef: string): Promise<void> {
+  await execFileAsync('git', ['checkout', baseRef, '--', '.'], {
+    cwd: workingDirectory,
+    timeout: GIT_DIFF_TIMEOUT_MS,
+  });
+}
+
 export async function getGitDiff(workingDirectory: string, baseRef: string | null): Promise<string | null> {
   try {
     const ref = baseRef ?? 'HEAD';

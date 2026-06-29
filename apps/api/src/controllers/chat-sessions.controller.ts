@@ -201,7 +201,7 @@ export class ChatSessionsController {
     const session = await this.requireSession(chatName);
     const prompts = await this.promptRepo.find({where: {chatName: session.chatName}, order: ['createdAt ASC'], include: ['contextFiles']});
     return prompts.map((p: PromptWithRelations) => ({
-      id: p.id, content: p.content, status: p.status, output: p.output, diff: p.diff ?? null, createdAt: p.createdAt,
+      id: p.id, content: p.content, status: p.status, output: p.output, diff: p.diff ?? null, baseRef: p.baseRef ?? null, createdAt: p.createdAt,
       lastExecuted: p.lastExecuted, contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
       waitForPromptId: p.waitForPromptId ?? null, useWaitResponse: p.useWaitResponse ?? false,
     }));

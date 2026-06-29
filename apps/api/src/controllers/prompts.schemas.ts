@@ -1,6 +1,7 @@
 import {SchemaObject} from '@loopback/rest';
 import {getModelSchemaRef} from '@loopback/rest';
 import {Prompt, PromptStatus} from '../models';
+import {PromptContextFile} from '../models';
 
 export type PromptResponse = {
   id: number;
@@ -24,7 +25,42 @@ export type PromptResponse = {
   lastExecuted: string | null;
   rateLimitedAt: string | null;
   resetTime: string | null;
+  baseRef: string | null;
 };
+
+export function toPromptResponse(
+  prompt: Prompt,
+  files: PromptContextFile[] | string[] = [],
+): PromptResponse {
+  const contextFiles = files.length === 0 || typeof files[0] === 'string'
+    ? (files as string[])
+    : (files as PromptContextFile[]).map(f => f.filePath);
+
+  return {
+    id: prompt.id,
+    content: prompt.content,
+    status: prompt.status,
+    priority: prompt.priority,
+    workingDirectory: prompt.workingDirectory,
+    contextFiles,
+    maxRetries: prompt.maxRetries,
+    retryCount: prompt.retryCount,
+    estimatedTokens: prompt.estimatedTokens,
+    sessionId: prompt.sessionId,
+    chatName: prompt.chatName ?? null,
+    isSessionStart: prompt.isSessionStart,
+    output: prompt.output,
+    whatsappPhone: prompt.whatsappPhone ?? null,
+    claudeModel: prompt.claudeModel ?? null,
+    waitForPromptId: prompt.waitForPromptId ?? null,
+    useWaitResponse: prompt.useWaitResponse ?? false,
+    createdAt: prompt.createdAt,
+    lastExecuted: prompt.lastExecuted,
+    rateLimitedAt: prompt.rateLimitedAt,
+    resetTime: prompt.resetTime,
+    baseRef: prompt.baseRef ?? null,
+  };
+}
 
 export const promptResponseSchema: SchemaObject = {
   allOf: [

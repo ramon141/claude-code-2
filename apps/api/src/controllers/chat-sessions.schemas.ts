@@ -18,6 +18,7 @@ export type ChatPromptSummary = {
   status: string;
   output: string;
   diff: string | null;
+  baseRef: string | null;
   createdAt: string;
   lastExecuted: string | null;
   contextFiles: string[];
@@ -63,6 +64,7 @@ export const chatPromptSummarySchema = {
     status: {type: 'string'},
     output: {type: 'string'},
     diff: {type: 'string', nullable: true},
+    baseRef: {type: 'string', nullable: true},
     createdAt: {type: 'string', format: 'date-time'},
     lastExecuted: {type: 'string', format: 'date-time', nullable: true},
     contextFiles: {type: 'array', items: {type: 'string'}},

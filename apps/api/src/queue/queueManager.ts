@@ -289,7 +289,10 @@ export class QueueManager {
     await this.repository.updatePromptStatus(prompt.id, PromptStatus.COMPLETED, {isSessionStart: false});
     if (result.output) await this.repository.saveOutput(prompt.id, result.output);
     const diff = await getGitDiff(prompt.workingDirectory, baseCommit);
-    if (diff) await this.repository.saveDiff(prompt.id, diff);
+    if (diff) {
+      await this.repository.saveDiff(prompt.id, diff);
+      if (baseCommit) await this.repository.saveBaseRef(prompt.id, baseCommit);
+    }
     await this.repository.incrementCounter('totalProcessed');
     console.log(`✓ Prompt ${prompt.id} completed in ${result.executionTime.toFixed(1)}s`);
   }

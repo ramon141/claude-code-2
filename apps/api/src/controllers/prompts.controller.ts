@@ -10,7 +10,9 @@ import {
   PromptResponse,
   EDITABLE_STATUSES,
   ACTIVE_STATUSES,
+  toPromptResponse,
 } from './prompts.schemas';
+import {restoreWorkingTree} from '../queue/gitDiff';
 import {validateClaudeModel, validateSessionId, validateWorkingDirectory, validateFilePath} from './prompts.validators';
 import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
@@ -121,7 +123,7 @@ export class PromptsController {
       ),
     );
     this.queueService.triggerIteration();
-    return this.toResponse(prompt, contextFiles);
+    return toPromptResponse(prompt, contextFiles);
   }
 
   @get('/prompts')
@@ -151,7 +153,7 @@ export class PromptsController {
     const prompts = await this.promptRepo.find({
       where, order, limit, skip: offset, include: ['contextFiles'],
     });
-    return prompts.map(prompt => this.toResponse(prompt, prompt.contextFiles));
+    return prompts.map(prompt => toPromptResponse(prompt, prompt.contextFiles));
   }
 
   @get('/prompts/next')
@@ -164,7 +166,7 @@ export class PromptsController {
     if (!prompt) throw new HttpErrors.NotFound('Queue is empty');
 
     const files = await this.contextFileRepo.find({where: {promptId: prompt.id}});
-    return this.toResponse(prompt, files);
+    return toPromptResponse(prompt, files);
   }
 
   @get('/prompts/{id}')
@@ -177,7 +179,7 @@ export class PromptsController {
       .findById(id, {include: ['contextFiles']})
       .catch(() => null);
     if (!prompt) throw new HttpErrors.NotFound(`Prompt ${id} not found`);
-    return this.toResponse(prompt, prompt.contextFiles);
+    return toPromptResponse(prompt, prompt.contextFiles);
   }
 
   @patch('/prompts/{id}')
@@ -235,7 +237,7 @@ export class PromptsController {
       this.sendCompletionNotifications(updated);
     }
 
-    return this.toResponse(updated, updated.contextFiles);
+    return toPromptResponse(updated, updated.contextFiles);
   }
 
   @del('/prompts/{id}')
@@ -250,6 +252,15 @@ export class PromptsController {
     }
     await this.contextFileRepo.deleteAll({promptId: id});
     await this.promptRepo.deleteById(id);
+  }
+
+  @post('/prompts/{id}/restore')
+  @response(204, {description: 'Working tree restaurado para o estado antes do prompt'})
+  async restorePrompt(@param.path.number('id') id: number): Promise<void> {
+    const prompt = await this.promptRepo.findById(id).catch(() => null);
+    if (!prompt) throw new HttpErrors.NotFound(`Prompt ${id} not found`);
+    if (!prompt.baseRef) throw new HttpErrors.UnprocessableEntity(`Prompt ${id} não possui snapshot para restaurar`);
+    await restoreWorkingTree(prompt.workingDirectory, prompt.baseRef);
   }
 
   private sendCompletionNotifications(prompt: Prompt): void {
@@ -271,36 +282,4 @@ export class PromptsController {
     return existing === null;
   }
 
-  private toResponse(
-    prompt: Prompt,
-    files: PromptContextFile[] | string[] = [],
-  ): PromptResponse {
-    const contextFiles = files.length === 0 || typeof files[0] === 'string'
-      ? (files as string[])
-      : (files as PromptContextFile[]).map(contextFile => contextFile.filePath);
-
-    return {
-      id: prompt.id,
-      content: prompt.content,
-      status: prompt.status,
-      priority: prompt.priority,
-      workingDirectory: prompt.workingDirectory,
-      contextFiles,
-      maxRetries: prompt.maxRetries,
-      retryCount: prompt.retryCount,
-      estimatedTokens: prompt.estimatedTokens,
-      sessionId: prompt.sessionId,
-      chatName: prompt.chatName ?? null,
-      isSessionStart: prompt.isSessionStart,
-      output: prompt.output,
-      whatsappPhone: prompt.whatsappPhone ?? null,
-      claudeModel: prompt.claudeModel ?? null,
-      waitForPromptId: prompt.waitForPromptId ?? null,
-      useWaitResponse: prompt.useWaitResponse ?? false,
-      createdAt: prompt.createdAt,
-      lastExecuted: prompt.lastExecuted,
-      rateLimitedAt: prompt.rateLimitedAt,
-      resetTime: prompt.resetTime,
-    };
-  }
 }

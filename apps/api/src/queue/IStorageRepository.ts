@@ -26,6 +26,7 @@ export interface IStorageRepository {
   updatePromptStatus(id: string, status: PromptStatus, patch: PromptPatch): Promise<void>;
   saveOutput(id: string, output: string): Promise<void>;
   saveDiff(id: string, diff: string): Promise<void>;
+  saveBaseRef(id: string, baseRef: string): Promise<void>;
   cancelPrompt(id: string): Promise<boolean>;
   getQueueState(): Promise<QueueGlobalState>;
   incrementCounter(field: 'totalProcessed' | 'failedCount' | 'rateLimitedCount'): Promise<void>;

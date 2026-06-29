@@ -183,6 +183,14 @@ export class Prompt extends Entity {
   })
   diff: string | null;
 
+  @property({
+    type: 'string',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'base_ref', dataType: 'varchar'},
+  })
+  baseRef: string | null;
+
   @hasMany(() => PromptContextFile, {keyTo: 'promptId'})
   contextFiles: PromptContextFile[];
 

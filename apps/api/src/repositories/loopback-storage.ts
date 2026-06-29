@@ -132,6 +132,10 @@ export class LoopBackStorageRepository implements IStorageRepository {
     await this.emitPromptUpdate(id);
   }
 
+  async saveBaseRef(id: string, baseRef: string): Promise<void> {
+    await this.promptRepo.updateById(Number(id), {baseRef});
+  }
+
   async cancelPrompt(id: string): Promise<boolean> {
     const prompt = await this.promptRepo.findById(Number(id)).catch(() => null);
     if (!prompt) return false;

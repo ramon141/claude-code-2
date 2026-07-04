@@ -53,6 +53,7 @@ import type {
   SetupControllerNgrokUrl200,
   SetupControllerRestart200,
   SetupControllerStatus200,
+  SetupControllerTestNotification200,
   SetupControllerToggleNgrok200,
   WebhookControllerReceive200
 } from './models';
@@ -135,6 +136,8 @@ export const getSetupControllerConfigureEvolutionResponseMock = (overrideRespons
 export const getSetupControllerNgrokUrlResponseMock = (overrideResponse: Partial< SetupControllerNgrokUrl200 > = {}): SetupControllerNgrokUrl200 => ({url: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), ...overrideResponse})
 
 export const getSetupControllerToggleNgrokResponseMock = (overrideResponse: Partial< SetupControllerToggleNgrok200 > = {}): SetupControllerToggleNgrok200 => ({success: faker.datatype.boolean(), ...overrideResponse})
+
+export const getSetupControllerTestNotificationResponseMock = (overrideResponse: Partial< SetupControllerTestNotification200 > = {}): SetupControllerTestNotification200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
 export const getSetupControllerConfigureNotificationsResponseMock = (overrideResponse: Partial< SetupControllerConfigureNotifications200 > = {}): SetupControllerConfigureNotifications200 => ({success: faker.datatype.boolean(), ...overrideResponse})
 
@@ -679,6 +682,18 @@ export const getSetupControllerToggleNgrokMockHandler = (overrideResponse?: Setu
   }, options)
 }
 
+export const getSetupControllerTestNotificationMockHandler = (overrideResponse?: SetupControllerTestNotification200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerTestNotification200> | SetupControllerTestNotification200), options?: RequestHandlerOptions) => {
+  return http.post('*/setup/notifications/test', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getSetupControllerTestNotificationResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+  }, options)
+}
+
 export const getSetupControllerConfigureNotificationsMockHandler = (overrideResponse?: SetupControllerConfigureNotifications200 | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<SetupControllerConfigureNotifications200> | SetupControllerConfigureNotifications200), options?: RequestHandlerOptions) => {
   return http.post('*/setup/notifications', async (info) => {await delay(1000);
   
@@ -808,6 +823,7 @@ export const getClaudeCodeApiMock = () => [
   getSetupControllerConfigureEvolutionMockHandler(),
   getSetupControllerNgrokUrlMockHandler(),
   getSetupControllerToggleNgrokMockHandler(),
+  getSetupControllerTestNotificationMockHandler(),
   getSetupControllerConfigureNotificationsMockHandler(),
   getSetupControllerConfigurePhonesMockHandler(),
   getSetupControllerRestartMockHandler(),

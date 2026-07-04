@@ -76,6 +76,8 @@ import type {
   SetupControllerNgrokUrl200,
   SetupControllerRestart200,
   SetupControllerStatus200,
+  SetupControllerTestNotification200,
+  SetupControllerTestNotificationBody,
   SetupControllerToggleNgrok200,
   SetupControllerToggleNgrokBody,
   WebhookControllerReceive200,
@@ -2766,6 +2768,65 @@ const {mutation: mutationOptions} = options ?
       > => {
 
       const mutationOptions = getSetupControllerToggleNgrokMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
+export const setupControllerTestNotification = (
+    setupControllerTestNotificationBody: SetupControllerTestNotificationBody,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<SetupControllerTestNotification200>(
+      {url: `/setup/notifications/test`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setupControllerTestNotificationBody, signal
+    },
+      );
+    }
+  
+
+
+export const getSetupControllerTestNotificationMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerTestNotification>>, TError,{data: SetupControllerTestNotificationBody}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerTestNotification>>, TError,{data: SetupControllerTestNotificationBody}, TContext> => {
+
+const mutationKey = ['setupControllerTestNotification'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerTestNotification>>, {data: SetupControllerTestNotificationBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setupControllerTestNotification(data,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetupControllerTestNotificationMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerTestNotification>>>
+    export type SetupControllerTestNotificationMutationBody = SetupControllerTestNotificationBody
+    export type SetupControllerTestNotificationMutationError = unknown
+
+    export const useSetupControllerTestNotification = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerTestNotification>>, TError,{data: SetupControllerTestNotificationBody}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setupControllerTestNotification>>,
+        TError,
+        {data: SetupControllerTestNotificationBody},
+        TContext
+      > => {
+
+      const mutationOptions = getSetupControllerTestNotificationMutationOptions(options);
 
       return useMutation(mutationOptions);
     }

@@ -72,6 +72,8 @@ export * from './setupControllerGenerateNgrokWebhookBody';
 export * from './setupControllerNgrokUrl200';
 export * from './setupControllerRestart200';
 export * from './setupControllerStatus200';
+export * from './setupControllerTestNotification200';
+export * from './setupControllerTestNotificationBody';
 export * from './setupControllerToggleNgrok200';
 export * from './setupControllerToggleNgrokBody';
 export * from './webhookControllerReceive200';

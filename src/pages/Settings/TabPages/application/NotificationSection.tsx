@@ -4,7 +4,10 @@ import { Button } from '../../../../components/ui/Button'
 import { Switch } from '../../../../components/ui/Switch'
 import { extractErrorMessage, type ApiError } from '../../../Setup/errorMessage'
 import SectionCard from './SectionCard'
-import { useSetupControllerConfigureNotifications } from '../../../../api/generated/api'
+import {
+  useSetupControllerConfigureNotifications,
+  useSetupControllerTestNotification,
+} from '../../../../api/generated/api'
 
 interface NotificationSectionProps {
   notificationsEnabled: boolean
@@ -21,7 +24,13 @@ const NotificationSection: React.FC<NotificationSectionProps> = ({
   const [phones, setPhones] = useState(notificationPhones.join(PHONE_SEPARATOR))
   const [apiError, setApiError] = useState('')
   const [saved, setSaved] = useState(false)
+  const [testError, setTestError] = useState('')
+  const [testSuccess, setTestSuccess] = useState(false)
   const { mutateAsync, isPending } = useSetupControllerConfigureNotifications()
+  const { mutateAsync: testMutateAsync, isPending: isTesting } = useSetupControllerTestNotification()
+
+  const firstPhone = (): string =>
+    phones.split(PHONE_SEPARATOR).map((p) => p.trim()).filter((p) => p.length > 0)[0] ?? ''
 
   const onSave = async () => {
     setApiError('')
@@ -32,6 +41,22 @@ const NotificationSection: React.FC<NotificationSectionProps> = ({
       setSaved(true)
     } catch (error) {
       setApiError(extractErrorMessage(error as ApiError))
+    }
+  }
+
+  const onTest = async () => {
+    setTestError('')
+    setTestSuccess(false)
+    const phone = firstPhone()
+    if (!phone) {
+      setTestError('Informe ao menos um número para testar.')
+      return
+    }
+    try {
+      await testMutateAsync({ data: { phone } })
+      setTestSuccess(true)
+    } catch (error) {
+      setTestError(extractErrorMessage(error as ApiError))
     }
   }
 
@@ -62,10 +87,23 @@ const NotificationSection: React.FC<NotificationSectionProps> = ({
 
       {apiError && <p className="text-red-400 text-sm">{apiError}</p>}
       {saved && <p className="text-green-400 text-sm">Configuração salva.</p>}
+      {testError && <p className="text-red-400 text-sm">{testError}</p>}
+      {testSuccess && <p className="text-green-400 text-sm">Mensagem de teste enviada.</p>}
 
-      <Button type="button" onClick={onSave} loading={isPending} className="self-end">
-        Salvar
-      </Button>
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onTest}
+          loading={isTesting}
+          disabled={!enabled}
+        >
+          Testar conexão
+        </Button>
+        <Button type="button" onClick={onSave} loading={isPending}>
+          Salvar
+        </Button>
+      </div>
     </SectionCard>
   )
 }

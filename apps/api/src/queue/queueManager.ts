@@ -122,7 +122,10 @@ export class QueueManager {
 
     for (const next of queued) {
       if (next.chatName && busyChats.has(next.chatName)) continue;
-      if (await this.isDependencyPending(next)) continue;
+      if (await this.isDependencyPending(next)) {
+        if (next.chatName) busyChats.add(next.chatName);
+        continue;
+      }
       const prompt = await this.resolveSessionId(next);
       if (!prompt) {
         if (next.chatName) busyChats.add(next.chatName);
@@ -286,7 +289,11 @@ export class QueueManager {
   }
 
   private async handleSuccess(prompt: QueuedPrompt, result: ExecutionResult, baseCommit: string | null): Promise<void> {
-    await this.repository.updatePromptStatus(prompt.id, PromptStatus.COMPLETED, {isSessionStart: false});
+    await this.repository.updatePromptStatus(prompt.id, PromptStatus.COMPLETED, {
+      isSessionStart: false,
+      inputTokens: result.inputTokens ?? undefined,
+      outputTokens: result.outputTokens ?? undefined,
+    });
     if (result.output) await this.repository.saveOutput(prompt.id, result.output);
     const diff = await getGitDiff(prompt.workingDirectory, baseCommit);
     if (diff) {

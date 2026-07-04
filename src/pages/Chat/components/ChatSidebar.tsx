@@ -8,7 +8,7 @@ import ChatSearchModal from './ChatSearchModal'
 
 interface Props {
   sessions: ChatSessionsControllerFind200Item[]
-  activeSessionId: number | undefined
+  activeSessionIds: number[]
   onSelectSession: (session: ChatSessionsControllerFind200Item) => void
   onSelectByChatName: (chatName: string) => void
   onNewChat: () => void
@@ -99,7 +99,7 @@ function SessionItem({ session, isActive, isPending, onSelect, onDelete }: Sessi
   )
 }
 
-export default function ChatSidebar({ sessions, activeSessionId, onSelectSession, onSelectByChatName, onNewChat, onDeleteSession, isLoading, isOpen, onClose, searchOpen, onSearchOpenChange }: Props) {
+export default function ChatSidebar({ sessions, activeSessionIds, onSelectSession, onSelectByChatName, onNewChat, onDeleteSession, isLoading, isOpen, onClose, searchOpen, onSearchOpenChange }: Props) {
   const navigate = useNavigate()
 
   return (
@@ -158,7 +158,7 @@ export default function ChatSidebar({ sessions, activeSessionId, onSelectSession
             <SessionItem
               key={session.id}
               session={session}
-              isActive={activeSessionId === session.id}
+              isActive={session.id !== undefined && activeSessionIds.includes(session.id)}
               isPending={session.hasPendingPrompts ?? false}
               onSelect={() => onSelectSession(session)}
               onDelete={() => onDeleteSession(session.chatName ?? '')}

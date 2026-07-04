@@ -13,6 +13,8 @@ export type ChatSessionsControllerGetPrompts200Item = {
   output?: string;
   /** @nullable */
   diff?: string | null;
+  /** @nullable */
+  baseRef?: string | null;
   createdAt?: string;
   /** @nullable */
   lastExecuted?: string | null;
@@ -20,4 +22,8 @@ export type ChatSessionsControllerGetPrompts200Item = {
   /** @nullable */
   waitForPromptId?: number | null;
   useWaitResponse?: boolean;
+  /** @nullable */
+  inputTokens?: number | null;
+  /** @nullable */
+  outputTokens?: number | null;
 };

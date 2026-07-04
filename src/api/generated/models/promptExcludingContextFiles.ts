@@ -37,4 +37,10 @@ export interface PromptExcludingContextFiles {
   resetTime?: string;
   /** @nullable */
   diff?: string | null;
+  /** @nullable */
+  baseRef?: string | null;
+  /** @nullable */
+  inputTokens?: number | null;
+  /** @nullable */
+  outputTokens?: number | null;
 }

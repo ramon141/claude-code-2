@@ -204,6 +204,7 @@ export class ChatSessionsController {
       id: p.id, content: p.content, status: p.status, output: p.output, diff: p.diff ?? null, baseRef: p.baseRef ?? null, createdAt: p.createdAt,
       lastExecuted: p.lastExecuted, contextFiles: (p.contextFiles ?? []).map((f: PromptContextFile) => f.filePath),
       waitForPromptId: p.waitForPromptId ?? null, useWaitResponse: p.useWaitResponse ?? false,
+      inputTokens: p.inputTokens ?? null, outputTokens: p.outputTokens ?? null,
     }));
   }
 

@@ -24,6 +24,8 @@ export type ChatPromptSummary = {
   contextFiles: string[];
   waitForPromptId: number | null;
   useWaitResponse: boolean;
+  inputTokens: number | null;
+  outputTokens: number | null;
 };
 
 export type ChatSearchResult = {
@@ -70,6 +72,8 @@ export const chatPromptSummarySchema = {
     contextFiles: {type: 'array', items: {type: 'string'}},
     waitForPromptId: {type: 'number', nullable: true},
     useWaitResponse: {type: 'boolean'},
+    inputTokens: {type: 'number', nullable: true},
+    outputTokens: {type: 'number', nullable: true},
   },
 };
 

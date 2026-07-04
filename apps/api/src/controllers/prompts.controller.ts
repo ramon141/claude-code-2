@@ -65,7 +65,7 @@ export class PromptsController {
     const drafts = await this.promptRepo.find({where: {status: 'draft' as PromptStatus}});
     await Promise.all(drafts.map(d => this.promptRepo.updateById(d.id, {status: 'queued' as PromptStatus})));
     for (const d of drafts) {
-      this.notificationService.notify({event: 'prompt:updated', promptId: d.id, chatName: d.chatName ?? null, status: 'queued', output: ''});
+      this.notificationService.notify({event: 'prompt:updated', promptId: d.id, chatName: d.chatName ?? null, status: 'queued', output: '', inputTokens: null, outputTokens: null});
     }
     void this.queueService.triggerIteration();
     return {queued: drafts.length};
@@ -225,6 +225,8 @@ export class PromptsController {
       chatName: updated.chatName ?? null,
       status: updated.status,
       output: updated.output ?? '',
+      inputTokens: updated.inputTokens ?? null,
+      outputTokens: updated.outputTokens ?? null,
     });
 
     const terminalStatuses: PromptStatus[] = ['completed', 'failed', 'cancelled', 'rate_limited'];

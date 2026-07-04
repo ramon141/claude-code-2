@@ -191,6 +191,22 @@ export class Prompt extends Entity {
   })
   baseRef: string | null;
 
+  @property({
+    type: 'number',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'input_tokens', dataType: 'integer'},
+  })
+  inputTokens: number | null;
+
+  @property({
+    type: 'number',
+    required: false,
+    jsonSchema: {nullable: true},
+    postgresql: {columnName: 'output_tokens', dataType: 'integer'},
+  })
+  outputTokens: number | null;
+
   @hasMany(() => PromptContextFile, {keyTo: 'promptId'})
   contextFiles: PromptContextFile[];
 

@@ -15,6 +15,8 @@ type WorkerResultData = {
   rateLimitInfo: RateLimitInfo | null;
   executionTime: number;
   sessionId: string | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
 };
 
 type FlushMessage = {type: 'flush'; text: string};
@@ -41,6 +43,8 @@ process.on('message', async (input: WorkerInput) => {
         rateLimitInfo: result.rateLimitInfo,
         executionTime: result.executionTime,
         sessionId: result.sessionId,
+        inputTokens: result.inputTokens,
+        outputTokens: result.outputTokens,
       },
     };
     process.send!(done);

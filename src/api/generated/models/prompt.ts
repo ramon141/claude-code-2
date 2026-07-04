@@ -34,4 +34,10 @@ export interface Prompt {
   resetTime?: string;
   /** @nullable */
   diff?: string | null;
+  /** @nullable */
+  baseRef?: string | null;
+  /** @nullable */
+  inputTokens?: number | null;
+  /** @nullable */
+  outputTokens?: number | null;
 }

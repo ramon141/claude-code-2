@@ -26,6 +26,8 @@ export type PromptResponse = {
   rateLimitedAt: string | null;
   resetTime: string | null;
   baseRef: string | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
 };
 
 export function toPromptResponse(
@@ -59,6 +61,8 @@ export function toPromptResponse(
     rateLimitedAt: prompt.rateLimitedAt,
     resetTime: prompt.resetTime,
     baseRef: prompt.baseRef ?? null,
+    inputTokens: prompt.inputTokens ?? null,
+    outputTokens: prompt.outputTokens ?? null,
   };
 }
 

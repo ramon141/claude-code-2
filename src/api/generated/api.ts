@@ -1699,6 +1699,63 @@ export function usePromptsControllerNext<TData = Awaited<ReturnType<typeof promp
 
 
 
+export const promptsControllerRestorePrompt = (
+    id: number,
+ signal?: AbortSignal
+) => {
+      
+      
+      return mutator<unknown>(
+      {url: `/prompts/${id}/restore`, method: 'POST', signal
+    },
+      );
+    }
+  
+
+
+export const getPromptsControllerRestorePromptMutationOptions = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promptsControllerRestorePrompt>>, TError,{id: number}, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof promptsControllerRestorePrompt>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['promptsControllerRestorePrompt'];
+const {mutation: mutationOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof promptsControllerRestorePrompt>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  promptsControllerRestorePrompt(id,)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PromptsControllerRestorePromptMutationResult = NonNullable<Awaited<ReturnType<typeof promptsControllerRestorePrompt>>>
+    
+    export type PromptsControllerRestorePromptMutationError = unknown
+
+    export const usePromptsControllerRestorePrompt = <TError = unknown,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof promptsControllerRestorePrompt>>, TError,{id: number}, TContext>, }
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof promptsControllerRestorePrompt>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+
+      const mutationOptions = getPromptsControllerRestorePromptMutationOptions(options);
+
+      return useMutation(mutationOptions);
+    }
+    
 export const promptsControllerUpdateById = (
     id: number,
     promptsControllerUpdateByIdBody: PromptsControllerUpdateByIdBody,

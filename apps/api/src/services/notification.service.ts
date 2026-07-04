@@ -8,6 +8,8 @@ export type PromptNotification = {
   chatName: string | null;
   status: PromptStatus;
   output: string;
+  inputTokens: number | null;
+  outputTokens: number | null;
 };
 
 export const NOTIFICATION_SERVICE = BindingKey.create<NotificationService>(

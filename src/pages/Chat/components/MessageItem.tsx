@@ -9,6 +9,7 @@ import DiffBlock from './DiffBlock'
 
 interface Props {
   prompt: ChatSessionsControllerGetPrompts200Item
+  previousTokensTotal?: number | null
   onUpdated?: () => void
   onDelete?: (id: number) => void
   onRetry?: (content: string, contextFiles: string[]) => void
@@ -62,6 +63,21 @@ function StatusBadge({ status }: { status?: string }) {
 }
 
 function isActive(status?: string): boolean { return status === 'queued' || status === 'executing' }
+
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
+}
+
+function TokensBadge({ inputTokens, outputTokens, previousTotal }: { inputTokens?: number | null; outputTokens?: number | null; previousTotal?: number | null }) {
+  if (inputTokens == null && outputTokens == null) return null
+  const total = (inputTokens ?? 0) + (outputTokens ?? 0)
+  const delta = Math.max(0, total - (previousTotal ?? 0))
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-claude-border text-claude-muted" title={`Contexto acumulado: ${inputTokens ?? 0} entrada / ${outputTokens ?? 0} saída (total ${total})`}>
+      {formatTokens(delta)} tok
+    </span>
+  )
+}
 
 function ContextFileTag({ path }: { path: string }) {
   const name = path.split('/').pop() ?? path
@@ -155,7 +171,7 @@ function PromptOutput({ output, highlight }: { output: string; highlight: boolea
   )
 }
 
-export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, onCancel, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
+export default function MessageItem({ prompt, previousTokensTotal, onUpdated, onDelete, onRetry, onCancel, searchQuery = '', isCurrentMatch = false, selectMode = false, isSelected = false, onToggleSelect }: Props) {
   const [editing, setEditing] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const hasFiles = (prompt.contextFiles?.length ?? 0) > 0
@@ -239,6 +255,7 @@ export default function MessageItem({ prompt, onUpdated, onDelete, onRetry, onCa
               <span className="text-white text-xs font-bold">C</span>
             </div>
             <StatusBadge status={prompt.status} />
+            <TokensBadge inputTokens={prompt.inputTokens} outputTokens={prompt.outputTokens} previousTotal={previousTokensTotal} />
             {prompt.waitForPromptId != null && prompt.status === 'queued' && (
               <WaitingBadge waitForPromptId={prompt.waitForPromptId} />
             )}

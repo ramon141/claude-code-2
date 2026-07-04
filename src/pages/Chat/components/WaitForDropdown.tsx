@@ -45,11 +45,10 @@ interface Props {
   selected: number | null
   useWaitResponse: boolean
   onSelect: (id: number | null, chatName: string | null) => void
-  onToggleUseResponse: (value: boolean) => void
   onClose: () => void
 }
 
-export default function WaitForDropdown({ currentChatName, selected, useWaitResponse, onSelect, onToggleUseResponse, onClose }: Props) {
+export default function WaitForDropdown({ currentChatName, selected, useWaitResponse, onSelect, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   const { data: allPrompts = [] } = usePromptsControllerFind(
@@ -123,15 +122,6 @@ export default function WaitForDropdown({ currentChatName, selected, useWaitResp
               Limpar
             </button>
           </div>
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={useWaitResponse}
-              onChange={e => onToggleUseResponse(e.target.checked)}
-              className="w-3.5 h-3.5 accent-claude-primary"
-            />
-            <span className="text-claude-text text-xs">Usar resposta no prompt</span>
-          </label>
           {useWaitResponse && (
             <p className="text-claude-muted text-[11px] leading-relaxed">
               Use <code className="text-claude-primary bg-claude-bg px-1 rounded">{'{{resposta}}'}</code> no texto para inserir a resposta. Se omitido, ela é adicionada ao final.

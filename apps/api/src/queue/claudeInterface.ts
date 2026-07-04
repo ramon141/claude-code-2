@@ -3,12 +3,20 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {ExecutionResult, RateLimitInfo, QueuedPrompt} from './queue.models';
 
+type StreamEventUsage = {
+  input_tokens?: number;
+  output_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+};
+
 type StreamEvent = {
   type: string;
   event?: {type: string; delta?: {type: string; text?: string}};
   result?: string;
   session_id?: string;
   is_error?: boolean;
+  usage?: StreamEventUsage;
 };
 
 type CliStreamState = {
@@ -19,6 +27,8 @@ type CliStreamState = {
   finalResult: string | null;
   isFinalError: boolean;
   timedOut: boolean;
+  inputTokens: number | null;
+  outputTokens: number | null;
 };
 
 const STREAM_FLUSH_INTERVAL_MS = 5_000;
@@ -187,6 +197,8 @@ export class ClaudeCodeInterface {
       finalResult: null,
       isFinalError: false,
       timedOut: false,
+      inputTokens: null,
+      outputTokens: null,
     };
   }
 
@@ -204,6 +216,11 @@ export class ClaudeCodeInterface {
         state.finalResult = event.result ?? null;
         state.sessionId = event.session_id ?? null;
         state.isFinalError = event.is_error ?? false;
+        if (event.usage) {
+          const u = event.usage;
+          state.inputTokens = (u.input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0);
+          state.outputTokens = u.output_tokens ?? 0;
+        }
       }
     }
   }
@@ -227,6 +244,8 @@ export class ClaudeCodeInterface {
       isAuthError,
       executionTime,
       sessionId: state.sessionId,
+      inputTokens: state.inputTokens,
+      outputTokens: state.outputTokens,
     });
   }
 

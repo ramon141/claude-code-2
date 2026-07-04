@@ -59,6 +59,8 @@ export class LoopBackStorageRepository implements IStorageRepository {
       chatName: prompt.chatName ?? null,
       status: prompt.status,
       output: prompt.output ?? '',
+      inputTokens: prompt.inputTokens ?? null,
+      outputTokens: prompt.outputTokens ?? null,
     });
   }
 
@@ -101,6 +103,8 @@ export class LoopBackStorageRepository implements IStorageRepository {
     if (patch.resetTime) update.resetTime = patch.resetTime.toISOString();
     if (patch.isSessionStart !== undefined) update.isSessionStart = patch.isSessionStart;
     if (patch.sessionId !== undefined) update.sessionId = patch.sessionId;
+    if (patch.inputTokens !== undefined) update.inputTokens = patch.inputTokens;
+    if (patch.outputTokens !== undefined) update.outputTokens = patch.outputTokens;
     await this.promptRepo.updateById(Number(id), update);
     await this.emitPromptUpdate(id);
     if (WHATSAPP_NOTIFY_STATUSES.includes(status)) {

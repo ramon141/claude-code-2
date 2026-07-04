@@ -19,6 +19,8 @@ export type PromptPatch = Partial<{
   resetTime: Date;
   isSessionStart: boolean;
   sessionId: string;
+  inputTokens: number;
+  outputTokens: number;
 }>;
 
 export interface IStorageRepository {

@@ -135,7 +135,6 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           selected={waitForPromptId}
           useWaitResponse={useWaitResponse}
           onSelect={(id, chatName) => { setWaitForPromptId(id); setWaitForChatName(chatName) }}
-          onToggleUseResponse={setUseWaitResponse}
           onClose={() => setWaitDropdownOpen(false)}
         />
       )}
@@ -154,6 +153,15 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
               <X className="w-3 h-3" />
             </button>
           </div>
+          <label className="inline-flex items-center gap-1.5 text-xs text-claude-muted cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={useWaitResponse}
+              onChange={e => setUseWaitResponse(e.target.checked)}
+              className="w-3.5 h-3.5 accent-claude-primary"
+            />
+            Usar resposta
+          </label>
         </div>
       )}
 

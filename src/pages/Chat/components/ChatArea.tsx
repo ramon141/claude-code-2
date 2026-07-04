@@ -1,5 +1,7 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
-import { MessageSquare, Menu, Search, Bell, BellOff, BellRing, Download, CheckSquare, Square, Trash2, GitBranch } from 'lucide-react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
+import { MessageSquare, Menu, Search, Bell, BellOff, BellRing, Download, CheckSquare, Square, Trash2, GitBranch, Copy, ChevronDown, Code2 } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { invoke } from '@tauri-apps/api/core'
 import { Tooltip } from '../../../components/ui/Tooltip'
 import MessageItem from './MessageItem'
 import ChatInput from './ChatInput'
@@ -11,7 +13,7 @@ import { useChatAlert } from '../hooks/useChatAlert'
 import { useExportChat } from '../hooks/useExportChat'
 import { useMultiSelect } from '../hooks/useMultiSelect'
 import { useProjectsControllerFindById } from '../../../api/generated/api'
-import type { ChatSessionsControllerFind200Item } from '../../../api/generated/models'
+import type { ChatSessionsControllerFind200Item, ChatSessionsControllerGetPrompts200Item } from '../../../api/generated/models'
 
 interface Props {
   session: ChatSessionsControllerFind200Item | null
@@ -77,11 +79,115 @@ function AlertButton({ alertEnabled, isAlarming, onToggle, onDismiss }: AlertBut
   )
 }
 
+function formatTokens(n: number): string {
+  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n)
+}
+
+// Cada turno reenvia o histórico inteiro pra CLI, então inputTokens já é cumulativo
+// (não soma entre turnos — o último turno completo já representa o total da conversa).
+function tokensTotal(p: ChatSessionsControllerGetPrompts200Item): number | null {
+  if (p.inputTokens == null && p.outputTokens == null) return null
+  return (p.inputTokens ?? 0) + (p.outputTokens ?? 0)
+}
+
+function ChatTokensTotal({ prompts }: { prompts: ChatSessionsControllerGetPrompts200Item[] }) {
+  const last = [...prompts].reverse().map(tokensTotal).find(t => t !== null) ?? null
+  if (!last) return null
+  return (
+    <Tooltip text="Total de tokens usados nesta conversa (contexto acumulado)" position="bottom" align="left">
+      <span className="text-claude-muted text-xs font-mono px-2 py-1 rounded-lg bg-claude-surface border border-claude-border flex-shrink-0">
+        {formatTokens(last)} tok
+      </span>
+    </Tooltip>
+  )
+}
+
 function HamburgerButton({ onClick }: { onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="md:hidden p-1.5 text-claude-muted hover:text-claude-text transition-colors mr-2">
       <Menu className="w-5 h-5" />
     </button>
+  )
+}
+
+type Editor = 'vscode' | 'cursor'
+
+const EDITOR_LABELS: Record<Editor, string> = {
+  vscode: 'VS Code',
+  cursor: 'Cursor',
+}
+
+async function openInEditor(path: string, editor: Editor) {
+  try {
+    await invoke('open_in_editor', { path, editor })
+  } catch (error) {
+    toast.error(typeof error === 'string' ? error : `Não foi possível abrir o ${EDITOR_LABELS[editor]}`)
+  }
+}
+
+function CopySessionIdButton({ sessionId }: { sessionId: string | null | undefined }) {
+  const handleCopy = () => {
+    if (!sessionId) {
+      toast.error('Este chat ainda não tem Session ID.')
+      return
+    }
+    navigator.clipboard.writeText(sessionId)
+    toast.success('Session ID copiado!')
+  }
+  return (
+    <Tooltip text="Copiar Session ID" position="bottom" align="right">
+      <button type="button" onClick={handleCopy}
+        className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border">
+        <Copy className="w-4 h-4" />
+      </button>
+    </Tooltip>
+  )
+}
+
+function OpenEditorButton({ workingDirectory }: { workingDirectory: string | undefined }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const handleOpen = (editor: Editor) => {
+    setOpen(false)
+    if (!workingDirectory) {
+      toast.error('Pasta do projeto não encontrada para este chat.')
+      return
+    }
+    openInEditor(workingDirectory, editor)
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <Tooltip text="Abrir pasta do projeto no editor" position="bottom" align="right">
+        <button type="button" onClick={() => setOpen(v => !v)}
+          className="p-1.5 rounded-lg transition-colors text-claude-muted hover:text-claude-text hover:bg-claude-border flex items-center">
+          <Code2 className="w-4 h-4" />
+          <ChevronDown className="w-3 h-3" />
+        </button>
+      </Tooltip>
+      {open && (
+        <div className="absolute right-0 top-full mt-1 w-32 bg-claude-surface border border-claude-border rounded-lg shadow-xl z-30 overflow-hidden">
+          <button type="button" onClick={() => handleOpen('vscode')}
+            className="w-full text-left px-3 py-1.5 text-xs text-claude-text hover:bg-claude-border transition-colors">
+            {EDITOR_LABELS.vscode}
+          </button>
+          <button type="button" onClick={() => handleOpen('cursor')}
+            className="w-full text-left px-3 py-1.5 text-xs text-claude-text hover:bg-claude-border transition-colors">
+            {EDITOR_LABELS.cursor}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -98,6 +204,19 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
   const hasGit = session?.hasGit ?? false
   const { query, setQuery, currentMatchId, currentIndex, totalMatches, goNext, goPrev } = useChatSearch(prompts)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Cada prompt guarda o total acumulado de tokens da conversa até aquele ponto.
+  // Aqui construímos, pra cada mensagem, o total acumulado da mensagem ANTERIOR
+  // (pra MessageItem poder mostrar a diferença: quanto essa mensagem especificamente consumiu).
+  const previousTokensTotals = useMemo(() => {
+    const previousTotalsByIndex: (number | null)[] = []
+    let lastKnownTotal: number | null = null
+    for (const prompt of prompts) {
+      previousTotalsByIndex.push(lastKnownTotal)
+      lastKnownTotal = tokensTotal(prompt) ?? lastKnownTotal
+    }
+    return previousTotalsByIndex
+  }, [prompts])
 
   const handleSend = useCallback(async (content: string, contextFiles: string[], claudeModel: string | null, waitForPromptId: number | null, useWaitResponse: boolean): Promise<void> => {
     await sendPrompt(content, contextFiles, claudeModel, waitForPromptId, useWaitResponse)
@@ -155,6 +274,9 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
           <h2 className="text-claude-text font-semibold text-sm truncate">{session.chatName}</h2>
           {project && <p className="text-claude-muted text-xs font-mono mt-0.5 truncate">{project.workDir}</p>}
         </div>
+        <ChatTokensTotal prompts={prompts} />
+        <CopySessionIdButton sessionId={session.sessionId} />
+        <OpenEditorButton workingDirectory={session.workingDirectory} />
         <Tooltip text="Selecionar mensagens" position="bottom" align="right">
           <button type="button" onClick={toggleSelectMode}
             className={`p-1.5 rounded-lg transition-colors ${selectMode ? 'text-claude-primary bg-claude-primary/10' : 'text-claude-muted hover:text-claude-text hover:bg-claude-border'}`}>
@@ -205,6 +327,7 @@ export default function ChatArea({ session, onOpenSidebar }: Props) {
           <MessageItem
             key={prompt.id ?? index}
             prompt={prompt}
+            previousTokensTotal={previousTokensTotals[index]}
             onUpdated={refetchPrompts}
             onDelete={deletePrompt}
             onRetry={handleRetry}

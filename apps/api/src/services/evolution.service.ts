@@ -14,8 +14,12 @@ export class EvolutionService {
   private get token(): string { return process.env.EVOLUTION_TOKEN ?? ''; }
   private get instance(): string { return process.env.EVOLUTION_INSTANCE_NAME ?? ''; }
 
+  isConfigured(): boolean {
+    return Boolean(this.baseUrl && this.token && this.instance);
+  }
+
   async sendText(phone: string, text: string): Promise<void> {
-    if (!this.baseUrl || !this.token || !this.instance) {
+    if (!this.isConfigured()) {
       console.warn('[evolution] sendText ignorado: Evolution não configurado');
       return;
     }
@@ -42,7 +46,19 @@ export class EvolutionService {
             'apikey': this.token,
           },
         },
-        res => { res.resume(); resolve(); },
+        res => {
+          const chunks: Buffer[] = [];
+          res.on('data', chunk => chunks.push(chunk));
+          res.on('end', () => {
+            const status = res.statusCode ?? 0;
+            if (status >= 200 && status < 300) {
+              resolve();
+              return;
+            }
+            const responseBody = Buffer.concat(chunks).toString('utf8');
+            reject(new Error(`Evolution respondeu ${status}: ${responseBody.substring(0, 300)}`));
+          });
+        },
       );
       req.on('error', reject);
       req.write(data);

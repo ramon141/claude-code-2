@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { isTauri } from '../../../api/apiConfig'
 
 type DragDropPayload =
   | { type: 'enter'; paths: string[] }
@@ -12,6 +13,11 @@ export function useFileDrop() {
   const [attachedFiles, setAttachedFiles] = useState<string[]>([])
 
   useEffect(() => {
+    // Drag-and-drop de caminho de arquivo do SO só existe no Tauri — no
+    // navegador, arrastar um arquivo entrega um File (sem path), não dá pra
+    // ter paridade aqui, o modelo de segurança do browser não expõe path.
+    if (!isTauri()) return
+
     let unlisten: (() => void) | null = null
 
     getCurrentWindow()

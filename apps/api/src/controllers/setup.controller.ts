@@ -7,6 +7,8 @@ import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
 import {normalizePhone} from '../services/phone';
 import {getEvolutionConnectionState, registerEvolutionWebhook} from '../config/evolution-webhook';
+import {EVOLUTION_SERVICE, EvolutionService} from '../services/evolution.service';
+import {NOTIFICATION_SERVICE, NotificationService} from '../services/notification.service';
 import {
   AppConfigView,
   AuthTokenBody,
@@ -19,6 +21,7 @@ import {
   NgrokWebhookBody,
   NgrokWebhookResult,
   NotificationsBody,
+  NotificationTestBody,
   PhonesBody,
   SetupStatus,
   WebsocketSetupBody,
@@ -36,6 +39,7 @@ import {
   ngrokUrlResultSchema,
   ngrokWebhookResultSchema,
   ngrokWebhookSchema,
+  notificationTestSchema,
   setupStatusSchema,
   successResultSchema,
   websocketSetupSchema,
@@ -89,9 +93,17 @@ function jsonBody(schema: SchemaObject) {
 
 export class SetupController {
   constructor(
+    @inject(EVOLUTION_SERVICE)
+    private evolutionService: EvolutionService,
     @inject(QUEUE_SERVICE_KEY, {optional: true})
     private queueService?: QueueService,
+    @inject(NOTIFICATION_SERVICE)
+    private notificationService?: NotificationService,
   ) {}
+
+  private notifyNgrokAuthWarning = (message: string): void => {
+    this.notificationService?.notify({event: 'system:warning', message});
+  };
 
   @get('/setup/status')
   @response(OK, okSpec('Estado do setup', setupStatusSchema))
@@ -152,6 +164,24 @@ export class SetupController {
   ): {success: boolean} {
     const phones = body.phones.map(p => p.trim()).filter(p => p.length > 0);
     writeConfig({notificationsEnabled: body.enabled, notificationPhones: phones});
+    return {success: true};
+  }
+
+  @post('/setup/notifications/test')
+  @response(OK, okSpec('Mensagem de teste enviada', successResultSchema))
+  async testNotification(
+    @requestBody(jsonBody(notificationTestSchema)) body: NotificationTestBody,
+  ): Promise<{success: boolean}> {
+    const phone = body.phone.trim();
+    if (phone.length === 0) throw new HttpErrors.BadRequest('Informe um número de telefone');
+    if (!this.evolutionService.isConfigured()) {
+      throw new HttpErrors.BadRequest('Evolution (WhatsApp) não está configurado');
+    }
+    try {
+      await this.evolutionService.sendText(phone, 'Mensagem de teste: conexão com o WhatsApp funcionando corretamente.');
+    } catch (error) {
+      throw new HttpErrors.BadRequest(`Falha ao enviar mensagem de teste: ${(error as Error).message}`);
+    }
     return {success: true};
   }
 
@@ -236,7 +266,7 @@ export class SetupController {
   ): {success: boolean} {
     const domain = body.domain ?? '';
     writeConfig({ngrokEnabled: body.enabled, ngrokDomain: domain});
-    void restartNgrok(body.enabled, domain);
+    void restartNgrok(body.enabled, domain, this.notifyNgrokAuthWarning);
     return {success: true};
   }
 

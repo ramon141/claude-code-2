@@ -12,6 +12,13 @@ export type PromptNotification = {
   outputTokens: number | null;
 };
 
+export type SystemWarningNotification = {
+  event: 'system:warning';
+  message: string;
+};
+
+export type Notification = PromptNotification | SystemWarningNotification;
+
 export const NOTIFICATION_SERVICE = BindingKey.create<NotificationService>(
   'services.NotificationService',
 );
@@ -25,7 +32,7 @@ export class NotificationService {
     ws.on('close', () => this.connections.delete(ws));
   }
 
-  notify(payload: PromptNotification): void {
+  notify(payload: Notification): void {
     const message = JSON.stringify(payload);
     let sent = 0;
     this.connections.forEach(ws => {
@@ -34,6 +41,10 @@ export class NotificationService {
         sent++;
       }
     });
-    console.log(`[ws] promptId=${payload.promptId} status=${payload.status} clients=${sent}`);
+    if (payload.event === 'prompt:updated') {
+      console.log(`[ws] promptId=${payload.promptId} status=${payload.status} clients=${sent}`);
+    } else {
+      console.log(`[ws] system:warning clients=${sent}`);
+    }
   }
 }

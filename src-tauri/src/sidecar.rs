@@ -4,9 +4,8 @@ use std::process::Stdio;
 use tauri::AppHandle;
 use tauri::Emitter;
 use tauri::Manager;
-use tokio::io::AsyncReadExt;
 use tokio::process::Command;
-use tokio::time::{sleep, timeout, Duration};
+use tokio::time::{sleep, Duration};
 
 const API_STARTUP_WAIT_SECS: u64 = 3;
 const API_PORT: u16 = 7300;
@@ -15,12 +14,6 @@ const API_HEALTH_RETRY_INTERVAL_SECS: u64 = 2;
 const API_RESTART_DELAY_SECS: u64 = 1;
 const ENCRYPTION_KEY_BYTES: usize = 32;
 const CONFIG_FILE_NAME: &str = "app-config.json";
-const NGROK_AUTH_WINDOW_SECS: u64 = 8;
-const NGROK_AUTH_PATTERNS: &[&str] = &[
-    "ERR_NGROK_401", "ERR_NGROK_402", "ERR_NGROK_403",
-    "authentication failed", "invalid token", "account suspended",
-    "billing", "unauthorized",
-];
 
 struct ApiCommand {
     executable: PathBuf,
@@ -42,10 +35,6 @@ fn resolve_node() -> String {
     which::which("node")
         .map(|p| p.to_string_lossy().to_string())
         .unwrap_or_else(|_| "node".to_string())
-}
-
-fn resolve_ngrok() -> Option<String> {
-    which::which("ngrok").map(|p| p.to_string_lossy().to_string()).ok()
 }
 
 fn resolve_api_command(app: &AppHandle) -> ApiCommand {
@@ -83,67 +72,6 @@ fn resolve_env_file(app: &AppHandle, api_dir: &PathBuf) -> PathBuf {
         .app_data_dir()
         .map(|dir| dir.join(".env"))
         .unwrap_or_else(|_| api_dir.join(".env"))
-}
-
-struct NgrokConfig {
-    enabled: bool,
-    domain: Option<String>,
-}
-
-fn read_ngrok_config(config_path: &PathBuf) -> NgrokConfig {
-    let content = match std::fs::read_to_string(config_path) {
-        Ok(c) => c,
-        Err(_) => return NgrokConfig { enabled: false, domain: None },
-    };
-    let val: serde_json::Value = serde_json::from_str(&content).unwrap_or_default();
-    let enabled = val.get("ngrokEnabled").and_then(|n| n.as_bool()).unwrap_or(false);
-    let domain = val.get("ngrokDomain")
-        .and_then(|d| d.as_str())
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string());
-    NgrokConfig { enabled, domain }
-}
-
-async fn start_ngrok(app: AppHandle, ngrok: String, domain: Option<String>) {
-    let mut cmd = Command::new(&ngrok);
-    cmd.arg("http")
-        .arg(API_PORT.to_string())
-        .arg("--log=stdout");
-    if let Some(ref d) = domain {
-        cmd.arg(format!("--url={}", d));
-    }
-    cmd.stdout(Stdio::null()).stderr(Stdio::piped());
-
-    let mut child = match cmd.spawn() {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("[sidecar] Failed to start ngrok: {}", e);
-            return;
-        }
-    };
-    println!("[sidecar] ngrok started (pid={})", child.id().unwrap_or(0));
-
-    let mut stderr_buf = Vec::new();
-    if let Some(mut stderr) = child.stderr.take() {
-        let read_result = timeout(
-            Duration::from_secs(NGROK_AUTH_WINDOW_SECS),
-            stderr.read_to_end(&mut stderr_buf),
-        ).await;
-
-        // If ngrok exited within auth window, check for known auth errors
-        if read_result.is_ok() {
-            let stderr_text = String::from_utf8_lossy(&stderr_buf).to_lowercase();
-            let auth_error = NGROK_AUTH_PATTERNS.iter().any(|p| stderr_text.contains(p));
-            if auth_error || child.try_wait().is_ok_and(|s| s.is_some()) {
-                let msg = "ngrok: falha de autenticação ou conta suspensa. O webhook externo não está disponível. Verifique o token do ngrok.";
-                eprintln!("[sidecar] {}", msg);
-                let _ = app.emit("ngrok-warning", msg);
-            }
-        }
-    }
-
-    let _ = child.wait().await;
-    println!("[sidecar] ngrok exited");
 }
 
 async fn wait_for_api() -> bool {
@@ -246,15 +174,10 @@ pub async fn start_services(app: &AppHandle) {
         return;
     }
 
-    let ngrok_cfg = read_ngrok_config(&config_path);
-    if ngrok_cfg.enabled {
-        match resolve_ngrok() {
-            Some(ngrok) => { tokio::spawn(start_ngrok(app.clone(), ngrok, ngrok_cfg.domain)); }
-            None => eprintln!("[sidecar] ngrok não encontrado — webhook via ngrok indisponível"),
-        }
-    } else {
-        println!("[sidecar] ngrok desabilitado nas configurações");
-    }
+    // ngrok agora é gerenciado inteiramente pela API (apps/api/src/index.ts +
+    // services/ngrok-process.ts), não pelo sidecar Rust — assim o mesmo código
+    // sobe o túnel e emite avisos (via WebSocket) tanto no desktop quanto num
+    // deploy web puro Node, sem esse processo Rust.
 
     loop {
         run_api_once(&api_cmd, &api_dir, &env_file, &config_path).await;

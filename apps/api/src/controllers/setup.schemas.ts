@@ -56,6 +56,10 @@ export type NotificationsBody = {
   phones: string[];
 };
 
+export type NotificationTestBody = {
+  phone: string;
+};
+
 export type NgrokUrlResult = {
   url: string | null;
 };
@@ -207,6 +211,14 @@ export const notificationsSchema: SchemaObject = {
   properties: {
     enabled: {type: TYPE_BOOLEAN},
     phones: {type: 'array', items: {type: TYPE_STRING}},
+  },
+};
+
+export const notificationTestSchema: SchemaObject = {
+  type: 'object',
+  required: ['phone'],
+  properties: {
+    phone: {type: TYPE_STRING},
   },
 };
 

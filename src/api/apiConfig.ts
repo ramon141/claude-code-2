@@ -12,7 +12,7 @@ const AUTH_TOKEN_KEY = 'apiAuthToken'
 export const AUTH_HEADER = 'Authorization'
 export const BEARER_PREFIX = 'Bearer '
 
-function isTauri(): boolean {
+export function isTauri(): boolean {
   return window.location.protocol === TAURI_PROTOCOL
 }
 

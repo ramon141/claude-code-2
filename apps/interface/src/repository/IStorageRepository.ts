@@ -1,4 +1,5 @@
 import { QueuedPrompt, PromptStatus } from '../models';
+import { RateLimitPercentages } from '../rateLimitsService';
 
 export interface QueueGlobalState {
   totalProcessed: number;
@@ -52,7 +53,7 @@ export interface IStorageRepository {
   getClaudeToken(): Promise<string>;
 
   // Limits
-  patchActiveLimits(sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
+  patchActiveLimits(limits: RateLimitPercentages): Promise<void>;
 
   // Lifecycle
   initialize(): Promise<void>;

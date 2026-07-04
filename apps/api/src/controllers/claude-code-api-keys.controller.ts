@@ -10,7 +10,12 @@ import {fetchRateLimits} from '../queue/rateLimitsService';
 
 type CreateBody = {name: string; keyValue: string};
 type PatchBody = {name?: string; isActive?: boolean; rotationEnabled?: boolean};
-type PatchLimitsBody = {sessionLimitPercentage: number; weeklyLimitPercentage: number};
+type PatchLimitsBody = {
+  sessionLimitPercentage: number;
+  weeklyLimitPercentage: number;
+  sessionResetAt?: string | null;
+  weeklyResetAt?: string | null;
+};
 type RotationBody = {enabled: boolean};
 type RotationView = {enabled: boolean};
 
@@ -50,6 +55,8 @@ const patchLimitsSchema: SchemaObject = {
   properties: {
     sessionLimitPercentage: {type: 'number', minimum: 0, maximum: 100},
     weeklyLimitPercentage: {type: 'number', minimum: 0, maximum: 100},
+    sessionResetAt: {type: 'string', nullable: true},
+    weeklyResetAt: {type: 'string', nullable: true},
   },
 };
 
@@ -132,6 +139,8 @@ export class ClaudeCodeApiKeysController {
           await this.claudeCodeApiKeyRepository.updateById(key.id, {
             sessionLimitPercentage: limits.sessionLimitPercentage ?? 0,
             weeklyLimitPercentage: limits.weeklyLimitPercentage ?? 0,
+            sessionResetAt: limits.sessionResetAt,
+            weeklyResetAt: limits.weeklyResetAt,
             lastUpdatedLimits: new Date().toISOString(),
           });
         } catch {
@@ -209,6 +218,8 @@ export class ClaudeCodeApiKeysController {
     await this.claudeCodeApiKeyRepository.updateById(activeKey.id, {
       sessionLimitPercentage: body.sessionLimitPercentage,
       weeklyLimitPercentage: body.weeklyLimitPercentage,
+      sessionResetAt: body.sessionResetAt ?? null,
+      weeklyResetAt: body.weeklyResetAt ?? null,
       lastUpdatedLimits: new Date().toISOString(),
     });
 

@@ -1,4 +1,5 @@
 import {QueuedPrompt, PromptStatus} from './queue.models';
+import {RateLimitPercentages} from './rateLimitsService';
 
 export interface QueueGlobalState {
   totalProcessed: number;
@@ -36,7 +37,7 @@ export interface IStorageRepository {
   getSessionIdByChatName(chatName: string): Promise<string | null>;
   updateChatSessionId(chatName: string, sessionId: string): Promise<void>;
   getClaudeToken(): Promise<ClaudeCredentials>;
-  patchLimitsByKeyId(keyId: number, sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void>;
+  patchLimitsByKeyId(keyId: number, limits: RateLimitPercentages): Promise<void>;
   markKeyRateLimited(keyId: number, until: Date): Promise<void>;
   canFailoverToAnotherKey(excludeKeyId: number): Promise<boolean>;
   getPromptStatus(id: number): Promise<PromptStatus | null>;

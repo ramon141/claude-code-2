@@ -20,6 +20,10 @@ export interface ClaudeCodeApiKey {
   sessionLimitPercentage?: number | null;
   /** @nullable */
   weeklyLimitPercentage?: number | null;
+  /** @nullable */
+  sessionResetAt?: string | null;
+  /** @nullable */
+  weeklyResetAt?: string | null;
   rotationEnabled?: boolean;
   /** @nullable */
   lastUsedAt?: string | null;

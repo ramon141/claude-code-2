@@ -183,7 +183,7 @@ export class QueueManager {
   private async updateRateLimits(oauthToken: string): Promise<void> {
     try {
       const limits = await fetchRateLimits(oauthToken);
-      await this.repository.patchActiveLimits(limits.sessionLimitPercentage, limits.weeklyLimitPercentage);
+      await this.repository.patchActiveLimits(limits);
       console.log(`✓ Rate limits updated: 5h=${limits.sessionLimitPercentage}% 7d=${limits.weeklyLimitPercentage}%`);
     } catch (e) {
       console.warn(`⚠ Failed to update rate limits: ${e}`);

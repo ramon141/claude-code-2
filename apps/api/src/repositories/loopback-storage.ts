@@ -11,6 +11,7 @@ import {Prompt as LbPrompt, PromptStatus as LbPromptStatus, PromptWithRelations}
 import {PromptContextFile} from '../models/prompt-context-file.model';
 import {ClaudeCredentials, IStorageRepository, QueueGlobalState, PromptPatch} from '../queue/IStorageRepository';
 import {QueuedPrompt, PromptStatus} from '../queue/queue.models';
+import {RateLimitPercentages} from '../queue/rateLimitsService';
 import {NotificationService} from '../services/notification.service';
 import {EvolutionService} from '../services/evolution.service';
 
@@ -203,10 +204,12 @@ export class LoopBackStorageRepository implements IStorageRepository {
     return {token: decryptValue(chosen.keyValue), keyId: chosen.id};
   }
 
-  async patchLimitsByKeyId(keyId: number, sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void> {
+  async patchLimitsByKeyId(keyId: number, limits: RateLimitPercentages): Promise<void> {
     await this.apiKeyRepo.updateById(keyId, {
-      sessionLimitPercentage,
-      weeklyLimitPercentage,
+      sessionLimitPercentage: limits.sessionLimitPercentage,
+      weeklyLimitPercentage: limits.weeklyLimitPercentage,
+      sessionResetAt: limits.sessionResetAt,
+      weeklyResetAt: limits.weeklyResetAt,
       lastUpdatedLimits: new Date().toISOString(),
     });
   }

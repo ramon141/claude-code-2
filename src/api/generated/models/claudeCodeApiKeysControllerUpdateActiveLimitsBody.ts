@@ -17,4 +17,8 @@ export type ClaudeCodeApiKeysControllerUpdateActiveLimitsBody = {
    * @maximum 100
    */
   weeklyLimitPercentage: number;
+  /** @nullable */
+  sessionResetAt?: string | null;
+  /** @nullable */
+  weeklyResetAt?: string | null;
 };

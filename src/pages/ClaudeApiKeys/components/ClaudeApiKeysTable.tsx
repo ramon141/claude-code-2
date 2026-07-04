@@ -12,9 +12,17 @@ function maskKey(value: string | undefined) {
 interface LimitBarProps {
   value: number | null | undefined
   label: string
+  resetAt: string | null | undefined
 }
 
-function LimitBar({ value, label }: LimitBarProps) {
+function formatResetAt(resetAt: string): string {
+  const date = new Date(resetAt)
+  const isToday = date.toDateString() === new Date().toDateString()
+  const time = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return isToday ? `reseta às ${time}` : `reseta em ${date.toLocaleDateString('pt-BR')} ${time}`
+}
+
+function LimitBar({ value, label, resetAt }: LimitBarProps) {
   if (value === null || value === undefined) {
     return <span className="text-xs text-claude-muted">—</span>
   }
@@ -23,6 +31,7 @@ function LimitBar({ value, label }: LimitBarProps) {
     <div className="flex flex-col gap-1 min-w-[60px]">
       <span className="text-xs text-claude-muted">{label}: {pct.toFixed(1)}%</span>
       <Progress value={pct} />
+      {resetAt && <span className="text-[10px] text-claude-muted">{formatResetAt(resetAt)}</span>}
     </div>
   )
 }
@@ -75,8 +84,8 @@ function ApiKeyRow({ apiKey, isActive, onEdit, onDelete, onActivate, onToggleRot
       </td>
       <td className="px-3 py-3">
         <div className="flex flex-col gap-2">
-          <LimitBar value={apiKey.sessionLimitPercentage} label="Sessão" />
-          <LimitBar value={apiKey.weeklyLimitPercentage} label="Semanal" />
+          <LimitBar value={apiKey.sessionLimitPercentage} label="Sessão" resetAt={apiKey.sessionResetAt} />
+          <LimitBar value={apiKey.weeklyLimitPercentage} label="Semanal" resetAt={apiKey.weeklyResetAt} />
         </div>
       </td>
       <td className="px-3 py-3">

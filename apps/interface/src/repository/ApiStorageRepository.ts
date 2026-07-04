@@ -8,6 +8,7 @@ import {
   PromptPatch,
 } from './IStorageRepository';
 import { ClaudeTokenResponse } from '../api/contracts';
+import { RateLimitPercentages } from '../rateLimitsService';
 
 interface PromptApiResponse {
   id: string;
@@ -232,8 +233,8 @@ export class ApiStorageRepository implements IStorageRepository {
     return res.data.claudeOAuthToken;
   }
 
-  async patchActiveLimits(sessionLimitPercentage: number, weeklyLimitPercentage: number): Promise<void> {
-    await this.http.patch('/claude-code-api-keys/active/limits', { sessionLimitPercentage, weeklyLimitPercentage });
+  async patchActiveLimits(limits: RateLimitPercentages): Promise<void> {
+    await this.http.patch('/claude-code-api-keys/active/limits', limits);
   }
 
   async initialize(): Promise<void> {

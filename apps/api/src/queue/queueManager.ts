@@ -281,7 +281,7 @@ export class QueueManager {
       }
       const session = limits.sessionLimitPercentage ?? 0;
       const weekly = limits.weeklyLimitPercentage ?? 0;
-      await this.repository.patchLimitsByKeyId(keyId, session, weekly);
+      await this.repository.patchLimitsByKeyId(keyId, {...limits, sessionLimitPercentage: session, weeklyLimitPercentage: weekly});
       console.log(`✓ Rate limits updated: 5h=${session}% 7d=${weekly}%`);
     } catch (e) {
       console.warn(`⚠ Failed to update rate limits: ${e}`);

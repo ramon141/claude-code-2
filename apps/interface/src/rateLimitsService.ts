@@ -20,10 +20,20 @@ const OAUTH_BETA = resolveOauthBeta();
 const PERCENTAGE_FACTOR = 100;
 const HEADER_5H_UTILIZATION = 'anthropic-ratelimit-unified-5h-utilization';
 const HEADER_7D_UTILIZATION = 'anthropic-ratelimit-unified-7d-utilization';
+const HEADER_5H_RESET = 'anthropic-ratelimit-unified-5h-reset';
+const HEADER_7D_RESET = 'anthropic-ratelimit-unified-7d-reset';
+
+function parseResetDate(value: string | string[] | undefined): string | null {
+  if (value === undefined || value === null || value === '') return null;
+  const epochSeconds = parseInt(String(value), 10);
+  return Number.isFinite(epochSeconds) ? new Date(epochSeconds * 1000).toISOString() : null;
+}
 
 export interface RateLimitPercentages {
   sessionLimitPercentage: number;
   weeklyLimitPercentage: number;
+  sessionResetAt: string | null;
+  weeklyResetAt: string | null;
 }
 
 export async function fetchRateLimits(oauthToken: string): Promise<RateLimitPercentages> {
@@ -48,5 +58,7 @@ export async function fetchRateLimits(oauthToken: string): Promise<RateLimitPerc
   return {
     sessionLimitPercentage: Math.round(fiveH * PERCENTAGE_FACTOR),
     weeklyLimitPercentage: Math.round(sevenD * PERCENTAGE_FACTOR),
+    sessionResetAt: parseResetDate(response.headers[HEADER_5H_RESET]),
+    weeklyResetAt: parseResetDate(response.headers[HEADER_7D_RESET]),
   };
 }

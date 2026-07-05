@@ -62,9 +62,12 @@ export class PromptsController {
   @post('/prompts/execute-drafts')
   @response(200, {description: 'Rascunhos enfileirados', content: {'application/json': {schema: {type: 'object', properties: {queued: {type: 'number'}}}}}})
   async executeDrafts(): Promise<{queued: number}> {
-    const drafts = await this.promptRepo.find({where: {status: 'draft' as PromptStatus}});
-    await Promise.all(drafts.map(d => this.promptRepo.updateById(d.id, {status: 'queued' as PromptStatus})));
+    const drafts = await this.promptRepo.find({where: {status: 'draft' as PromptStatus}, order: ['id ASC']});
+    const seenChats = new Set<string | null>();
     for (const d of drafts) {
+      const isSessionStart = !seenChats.has(d.chatName);
+      if (isSessionStart && d.chatName) seenChats.add(d.chatName);
+      await this.promptRepo.updateById(d.id, {status: 'queued' as PromptStatus, isSessionStart});
       this.notificationService.notify({event: 'prompt:updated', promptId: d.id, chatName: d.chatName ?? null, status: 'queued', output: '', inputTokens: null, outputTokens: null});
     }
     void this.queueService.triggerIteration();

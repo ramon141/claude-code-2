@@ -1,6 +1,7 @@
 mod sidecar;
 
 use std::process::Command;
+use std::fs;
 use tauri::Manager;
 
 #[tauri::command]
@@ -25,6 +26,21 @@ fn open_in_editor(path: String, editor: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn save_clipboard_image(file_name: String, image_data: Vec<u8>) -> Result<String, String> {
+    let mut temp_dir = std::env::temp_dir();
+    temp_dir.push("claude_clipboard");
+    fs::create_dir_all(&temp_dir).map_err(|e| format!("Erro ao criar diretório: {e}"))?;
+
+    let file_path = temp_dir.join(&file_name);
+    fs::write(&file_path, image_data).map_err(|e| format!("Erro ao salvar imagem: {e}"))?;
+
+    file_path
+        .to_str()
+        .map(|s| s.to_string())
+        .ok_or_else(|| "Erro ao converter caminho".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -39,7 +55,7 @@ pub fn run() {
                 }
             })
         )
-        .invoke_handler(tauri::generate_handler![open_in_editor])
+        .invoke_handler(tauri::generate_handler![open_in_editor, save_clipboard_image])
         .setup(|app| {
             let app_handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {

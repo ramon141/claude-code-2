@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { Send, Paperclip, X, Timer, Link, LayoutTemplate } from 'lucide-react'
+import { toast } from 'react-toastify'
+import { invoke } from '@tauri-apps/api/core'
 import PromptTemplatesModal from './PromptTemplatesModal'
 import { open } from '@tauri-apps/plugin-dialog'
 import SlashCommandMenu from './SlashCommandMenu'
@@ -37,6 +39,21 @@ async function openFileDialog(): Promise<string[]> {
   const result = await open({ multiple: true, directory: false })
   if (!result) return []
   return Array.isArray(result) ? result : [result]
+}
+
+async function saveClipboardImage(imageData: ArrayBuffer, mimeType: string, onAttach: (paths: string[]) => void): Promise<void> {
+  try {
+    const bytes = Array.from(new Uint8Array(imageData))
+    const ext = mimeType.split('/')[1] || 'png'
+    const fileName = `clipboard_${Date.now()}.${ext}`
+
+    const path: string = await invoke('save_clipboard_image', { fileName, imageData: bytes })
+    onAttach([path])
+    toast.success('Imagem colada e anexada')
+  } catch (error) {
+    console.error('Erro ao salvar imagem:', JSON.stringify(error))
+    toast.error('Erro ao colar imagem')
+  }
 }
 
 export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFiles, onRemoveFile, currentChatName }: Props) {
@@ -108,6 +125,37 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
     const el = e.target
     el.style.height = 'auto'
     el.style.height = `${Math.min(el.scrollHeight, 200)}px`
+  }
+
+  const handlePaste = async (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = e.clipboardData?.files
+    if (files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        if (file && file.type.startsWith('image/')) {
+          e.preventDefault()
+          const imageBuffer = await file.arrayBuffer()
+          await saveClipboardImage(imageBuffer, file.type, onAttachFiles)
+          return
+        }
+      }
+    }
+
+    try {
+      const items = await navigator.clipboard.read()
+      for (const item of items) {
+        const imageType = item.types.find(t => t.startsWith('image/'))
+        if (imageType) {
+          e.preventDefault()
+          const blob = await item.getType(imageType)
+          const arrayBuffer = await blob.arrayBuffer()
+          await saveClipboardImage(arrayBuffer, imageType, onAttachFiles)
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao ler clipboard:', JSON.stringify(error))
+    }
   }
 
   const canSend = value.trim().length > 0 && !sending && !disabled
@@ -223,6 +271,7 @@ export default function ChatInput({ onSend, disabled, attachedFiles, onAttachFil
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder="Digite seu prompt... (Enter para enviar, Shift+Enter para nova linha)"
           rows={1}
           disabled={disabled || sending}

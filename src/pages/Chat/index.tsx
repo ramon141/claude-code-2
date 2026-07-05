@@ -1,4 +1,6 @@
 import { useState, useCallback } from 'react'
+import { toast } from 'react-toastify'
+import type { AxiosError } from 'axios'
 import ChatSidebar from './components/ChatSidebar'
 import NewChatModal from './components/NewChatModal'
 import LayoutPicker from './components/LayoutPicker'
@@ -33,11 +35,23 @@ function ChatContent() {
     .filter((id): id is number => id !== undefined)
 
   const handleCreateSession = async (data: ChatSessionsControllerCreateBody) => {
-    const session = await createSession(data)
-    const newPanels = [...panels]
-    newPanels[activePanelIndex] = session
-    setPanels(newPanels)
-    setShowNewChatModal(false)
+    try {
+      const session = await createSession(data)
+      const newPanels = [...panels]
+      newPanels[activePanelIndex] = session
+      setPanels(newPanels)
+      setShowNewChatModal(false)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ error?: { message: string } }> | undefined
+      const statusCode = axiosError?.response?.status
+      const errorMessage = axiosError?.response?.data?.error?.message
+
+      if (statusCode === 422 && errorMessage?.includes('already exists')) {
+        toast.error(`Um chat com o nome "${data.chatName}" já existe. Use outro nome.`)
+      } else {
+        toast.error('Erro ao criar chat. Tente novamente.')
+      }
+    }
   }
 
   const handleSelectSession = (session: ChatSessionsControllerFind200Item) => {

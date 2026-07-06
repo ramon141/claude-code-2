@@ -110,3 +110,18 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: --target ${{ matrix.target }}
+
+      - name: Copy API binary into app bundle
+        run: |
+          APP_MACOS_DIR="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Claude Code Desktop.app/Contents/MacOS"
+          API_BIN="src-tauri/binaries/api"
+          if [ -f "$API_BIN" ] && [ -d "$APP_MACOS_DIR" ]; then
+            cp "$API_BIN" "$APP_MACOS_DIR/api"
+            echo "API binary copied to app bundle"
+            ls -lh "$APP_MACOS_DIR/api"
+          else
+            echo "ERROR: API binary or app directory not found"
+            ls -lh src-tauri/binaries/ || echo "binaries dir missing"
+            ls -d "src-tauri/target/${{ matrix.target }}/release/bundle/macos"* 2>/dev/null || echo "app dir missing"
+          fi
+        shell: bash

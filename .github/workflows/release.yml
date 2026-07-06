@@ -69,6 +69,13 @@ jobs:
           else
             cp "${OUTFILE}" "../../src-tauri/binaries/api"
           fi
+          # Verify binary was created
+          if [ -f "../../src-tauri/binaries/api" ]; then
+            ls -lh "../../src-tauri/binaries/api"
+          else
+            echo "ERROR: Binary not found at ../../src-tauri/binaries/api"
+            ls -lh ../../src-tauri/binaries/ || echo "binaries dir not found"
+          fi
         working-directory: apps/api
         shell: bash
 

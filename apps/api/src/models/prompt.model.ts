@@ -12,7 +12,7 @@ export type PromptStatus =
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'prompts'},
+    sqlite3: {table: 'prompts'},
   },
 })
 export class Prompt extends Entity {
@@ -20,14 +20,14 @@ export class Prompt extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'content', dataType: 'text'},
+    sqlite3: {columnName: 'content'},
   })
   content: string;
 
@@ -35,42 +35,42 @@ export class Prompt extends Entity {
     type: 'string',
     required: true,
     default: 'queued',
-    postgresql: {columnName: 'status', dataType: 'varchar'},
+    sqlite3: {columnName: 'status'},
   })
   status: PromptStatus;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'priority', dataType: 'integer'},
+    sqlite3: {columnName: 'priority'},
   })
   priority: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'working_directory', dataType: 'text'},
+    sqlite3: {columnName: 'working_directory'},
   })
   workingDirectory: string;
 
   @property({
     type: 'number',
     default: 3,
-    postgresql: {columnName: 'max_retries', dataType: 'integer'},
+    sqlite3: {columnName: 'max_retries'},
   })
   maxRetries: number;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'retry_count', dataType: 'integer'},
+    sqlite3: {columnName: 'retry_count'},
   })
   retryCount: number;
 
   @property({
     type: 'number',
     required: false,
-    postgresql: {columnName: 'estimated_tokens', dataType: 'integer'},
+    sqlite3: {columnName: 'estimated_tokens'},
   })
   estimatedTokens: number | null;
 
@@ -78,7 +78,7 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'session_id', dataType: 'varchar'},
+    sqlite3: {columnName: 'session_id'},
   })
   sessionId: string | null;
 
@@ -86,51 +86,42 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'chat_name', dataType: 'varchar'},
+    sqlite3: {columnName: 'chat_name'},
   })
   chatName: string | null;
 
   @property({
     type: 'boolean',
     default: false,
-    postgresql: {columnName: 'is_session_start', dataType: 'boolean'},
+    sqlite3: {columnName: 'is_session_start'},
   })
   isSessionStart: boolean;
 
   @property({
     type: 'string',
     default: '',
-    postgresql: {columnName: 'execution_log', dataType: 'text'},
+    sqlite3: {columnName: 'execution_log'},
   })
   output: string;
 
   @property({
     type: 'date',
     defaultFn: 'now',
-    postgresql: {
-      columnName: 'created_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'created_at'},
   })
   createdAt: string;
 
   @property({
     type: 'date',
     required: false,
-    postgresql: {
-      columnName: 'last_executed',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'last_executed'},
   })
   lastExecuted: string | null;
 
   @property({
     type: 'date',
     required: false,
-    postgresql: {
-      columnName: 'rate_limited_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'rate_limited_at'},
   })
   rateLimitedAt: string | null;
 
@@ -138,7 +129,7 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'whatsapp_phone', dataType: 'varchar'},
+    sqlite3: {columnName: 'whatsapp_phone'},
   })
   whatsappPhone: string | null;
 
@@ -146,7 +137,7 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'claude_model', dataType: 'varchar'},
+    sqlite3: {columnName: 'claude_model'},
   })
   claudeModel: string | null;
 
@@ -154,24 +145,21 @@ export class Prompt extends Entity {
     type: 'number',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'wait_for_prompt_id', dataType: 'integer'},
+    sqlite3: {columnName: 'wait_for_prompt_id'},
   })
   waitForPromptId: number | null;
 
   @property({
     type: 'boolean',
     default: false,
-    postgresql: {columnName: 'use_wait_response', dataType: 'boolean'},
+    sqlite3: {columnName: 'use_wait_response'},
   })
   useWaitResponse: boolean;
 
   @property({
     type: 'date',
     required: false,
-    postgresql: {
-      columnName: 'reset_time',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'reset_time'},
   })
   resetTime: string | null;
 
@@ -179,7 +167,7 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'diff', dataType: 'text'},
+    sqlite3: {columnName: 'diff'},
   })
   diff: string | null;
 
@@ -187,7 +175,7 @@ export class Prompt extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'base_ref', dataType: 'varchar'},
+    sqlite3: {columnName: 'base_ref'},
   })
   baseRef: string | null;
 
@@ -195,7 +183,7 @@ export class Prompt extends Entity {
     type: 'number',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'input_tokens', dataType: 'integer'},
+    sqlite3: {columnName: 'input_tokens'},
   })
   inputTokens: number | null;
 
@@ -203,7 +191,7 @@ export class Prompt extends Entity {
     type: 'number',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'output_tokens', dataType: 'integer'},
+    sqlite3: {columnName: 'output_tokens'},
   })
   outputTokens: number | null;
 

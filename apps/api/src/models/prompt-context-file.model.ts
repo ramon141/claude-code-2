@@ -2,7 +2,7 @@ import {Entity, model, property} from '@loopback/repository';
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'prompt_context_files'},
+    sqlite3: {table: 'prompt_context_files'},
   },
 })
 export class PromptContextFile extends Entity {
@@ -10,21 +10,21 @@ export class PromptContextFile extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'number',
     required: true,
-    postgresql: {columnName: 'prompt_id', dataType: 'integer'},
+    sqlite3: {columnName: 'prompt_id'},
   })
   promptId: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'file_path', dataType: 'text'},
+    sqlite3: {columnName: 'file_path'},
   })
   filePath: string;
 

@@ -10,7 +10,6 @@ export type EvolutionConfig = {
 };
 
 export type AppConfig = {
-  databaseUrl: string;
   claudeCommand: string;
   timeout: number;
   evolution: EvolutionConfig;
@@ -32,6 +31,7 @@ export type AppConfigPatch = Partial<Omit<AppConfig, 'evolution'>> & {
 const DEFAULT_CLAUDE_COMMAND = 'claude';
 const DEFAULT_TIMEOUT_SECONDS = 3600;
 const CONFIG_FILE_NAME = 'app-config.json';
+const SQLITE_FILE_NAME = 'app.sqlite';
 const WEBHOOK_SECRET_BYTES = 16;
 
 export const DEFAULT_ALLOWED_ORIGINS: string[] = [
@@ -51,7 +51,6 @@ const EMPTY_EVOLUTION: EvolutionConfig = {
 
 function defaultConfig(): AppConfig {
   return {
-    databaseUrl: '',
     claudeCommand: DEFAULT_CLAUDE_COMMAND,
     timeout: DEFAULT_TIMEOUT_SECONDS,
     evolution: {...EMPTY_EVOLUTION},
@@ -89,7 +88,6 @@ export function readConfig(): AppConfig {
 function mergeConfig(parsed: Partial<AppConfig>): AppConfig {
   const base = defaultConfig();
   return {
-    databaseUrl: parsed.databaseUrl ?? base.databaseUrl,
     claudeCommand: parsed.claudeCommand ?? base.claudeCommand,
     timeout: parsed.timeout ?? base.timeout,
     evolution: {...base.evolution, ...(parsed.evolution ?? {})},
@@ -130,8 +128,14 @@ export function ensureWebhookSecret(): string {
   return secret;
 }
 
+// Caminho do arquivo SQLite: ao lado do cwd da API. Em produção o cwd é o
+// app_data_dir (definido no src-tauri/src/sidecar.rs), mesmo lugar do .env.
+export function getSqliteFilePath(): string {
+  return path.join(process.cwd(), SQLITE_FILE_NAME);
+}
+
 export function applyConfigToEnv(cfg: AppConfig): void {
-  if (cfg.databaseUrl) process.env.DATABASE_URL = cfg.databaseUrl;
+  process.env.DATABASE_FILE = getSqliteFilePath();
   process.env.CLAUDE_COMMAND = cfg.claudeCommand;
   process.env.TIMEOUT = String(cfg.timeout);
   process.env.EVOLUTION_WEBHOOK_SECRET = cfg.evolution.webhookSecret;

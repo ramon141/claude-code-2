@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {QueueState, QueueStateRelations} from '../models';
 
 export class QueueStateRepository extends DefaultCrudRepository<
@@ -8,7 +8,7 @@ export class QueueStateRepository extends DefaultCrudRepository<
   typeof QueueState.prototype.id,
   QueueStateRelations
 > {
-  constructor(@inject('datasources.postgres') dataSource: PostgresDataSource) {
+  constructor(@inject('datasources.sqlite') dataSource: SqliteDataSource) {
     super(QueueState, dataSource);
   }
 }

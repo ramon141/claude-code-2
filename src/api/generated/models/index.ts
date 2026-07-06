@@ -56,7 +56,6 @@ export * from './setupControllerConfigureAuthBody';
 export * from './setupControllerConfigureClaude200';
 export * from './setupControllerConfigureClaudeBody';
 export * from './setupControllerConfigureDatabase200';
-export * from './setupControllerConfigureDatabaseBody';
 export * from './setupControllerConfigureEvolution200';
 export * from './setupControllerConfigureEvolutionBody';
 export * from './setupControllerConfigureNotifications200';

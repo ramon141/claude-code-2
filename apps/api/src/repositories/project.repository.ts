@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {Project, ProjectRelations} from '../models';
 
 export class ProjectRepository extends DefaultCrudRepository<
@@ -8,7 +8,7 @@ export class ProjectRepository extends DefaultCrudRepository<
   typeof Project.prototype.id,
   ProjectRelations
 > {
-  constructor(@inject('datasources.postgres') dataSource: PostgresDataSource) {
+  constructor(@inject('datasources.sqlite') dataSource: SqliteDataSource) {
     super(Project, dataSource);
   }
 }

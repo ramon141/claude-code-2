@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import DatabaseStep from './steps/DatabaseStep'
 import ClaudeStep from './steps/ClaudeStep'
 import EvolutionStep from './steps/EvolutionStep'
 import Stepper from './components/Stepper'
@@ -9,7 +8,7 @@ import {
   useSetupControllerComplete,
 } from '../../api/generated/api'
 
-const STEP_LABELS = ['Banco de dados', 'Claude', 'Evolution']
+const STEP_LABELS = ['Claude', 'Evolution']
 const RESTART_POLL_MS = 1500
 
 const Setup: React.FC = () => {
@@ -36,10 +35,9 @@ const Setup: React.FC = () => {
 
         <Stepper labels={STEP_LABELS} current={step} />
 
-        {step === 0 && <DatabaseStep onNext={() => setStep(1)} />}
-        {step === 1 && <ClaudeStep onNext={() => setStep(2)} onBack={() => setStep(0)} />}
-        {step === 2 && (
-          <EvolutionStep onFinish={finish} onBack={() => setStep(1)} finishing={completing || restarting} />
+        {step === 0 && <ClaudeStep onNext={() => setStep(1)} />}
+        {step === 1 && (
+          <EvolutionStep onFinish={finish} onBack={() => setStep(0)} finishing={completing || restarting} />
         )}
       </div>
     </div>

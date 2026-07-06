@@ -9,7 +9,7 @@ import type { SetupControllerConfigureClaudeBody } from '../../../api/generated/
 
 interface ClaudeStepProps {
   onNext: () => void
-  onBack: () => void
+  onBack?: () => void
 }
 
 const DEFAULT_COMMAND = 'claude'
@@ -59,7 +59,11 @@ const ClaudeStep: React.FC<ClaudeStepProps> = ({ onNext, onBack }) => {
       {apiError && <p className="text-red-400 text-sm">{apiError}</p>}
 
       <div className="flex justify-between">
-        <Button type="button" variant="ghost" onClick={onBack}>Voltar</Button>
+        {onBack ? (
+          <Button type="button" variant="ghost" onClick={onBack}>Voltar</Button>
+        ) : (
+          <span />
+        )}
         <Button type="submit" loading={isPending}>Avançar</Button>
       </div>
     </form>

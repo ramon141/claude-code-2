@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {ClaudeCodeApiKey, ClaudeCodeApiKeyRelations} from '../models';
 
 export class ClaudeCodeApiKeyRepository extends DefaultCrudRepository<
@@ -9,7 +9,7 @@ export class ClaudeCodeApiKeyRepository extends DefaultCrudRepository<
   ClaudeCodeApiKeyRelations
 > {
   constructor(
-    @inject('datasources.postgres') dataSource: PostgresDataSource,
+    @inject('datasources.sqlite') dataSource: SqliteDataSource,
   ) {
     super(ClaudeCodeApiKey, dataSource);
   }

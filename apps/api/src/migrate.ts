@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import {ClaudeCodeApiApplication} from './application';
+import {applyConfigToEnv, readConfig} from './config/app-config';
 
 export async function migrate(args: string[]) {
+  // Aplica o app-config ao env (define DATABASE_FILE) antes de instanciar o app.
+  applyConfigToEnv(readConfig());
   const existingSchema = args.includes('--rebuild') ? 'drop' : 'alter';
   console.log('Migrating schemas (%s existing schema)', existingSchema);
 

@@ -9,10 +9,6 @@ export type SetupStatus = {
   queueReady: boolean;
 };
 
-export type DatabaseSetupBody = {
-  databaseUrl: string;
-};
-
 export type ClaudeSetupBody = {
   claudeCommand: string;
   timeout: number;
@@ -70,7 +66,6 @@ export type EvolutionStatusResult = {
 };
 
 export type AppConfigView = {
-  databaseUrl: string;
   claudeCommand: string;
   timeout: number;
   evolutionUrl: string;
@@ -124,14 +119,6 @@ export const completeResultSchema: SchemaObject = {
   required: ['completed'],
   properties: {
     completed: {type: TYPE_BOOLEAN},
-  },
-};
-
-export const databaseSetupSchema: SchemaObject = {
-  type: 'object',
-  required: ['databaseUrl'],
-  properties: {
-    databaseUrl: {type: TYPE_STRING},
   },
 };
 
@@ -242,7 +229,6 @@ export const evolutionStatusResultSchema: SchemaObject = {
 export const appConfigViewSchema: SchemaObject = {
   type: 'object',
   required: [
-    'databaseUrl',
     'claudeCommand',
     'timeout',
     'evolutionUrl',
@@ -257,7 +243,6 @@ export const appConfigViewSchema: SchemaObject = {
     'notificationPhones',
   ],
   properties: {
-    databaseUrl: {type: TYPE_STRING},
     claudeCommand: {type: TYPE_STRING},
     timeout: {type: TYPE_NUMBER},
     evolutionUrl: {type: TYPE_STRING},

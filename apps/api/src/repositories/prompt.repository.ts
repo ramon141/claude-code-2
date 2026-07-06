@@ -4,7 +4,7 @@ import {
   HasManyRepositoryFactory,
   repository,
 } from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {Prompt, PromptRelations, PromptContextFile, PromptStatus} from '../models';
 import {PromptContextFileRepository} from './prompt-context-file.repository';
 
@@ -38,7 +38,7 @@ export class PromptRepository extends DefaultCrudRepository<
   >;
 
   constructor(
-    @inject('datasources.postgres') dataSource: PostgresDataSource,
+    @inject('datasources.sqlite') dataSource: SqliteDataSource,
     @repository.getter('PromptContextFileRepository')
     contextFilesRepoGetter: Getter<PromptContextFileRepository>,
   ) {

@@ -7,7 +7,6 @@
  */
 
 export type SetupControllerConfig200 = {
-  databaseUrl: string;
   claudeCommand: string;
   timeout: number;
   evolutionUrl: string;

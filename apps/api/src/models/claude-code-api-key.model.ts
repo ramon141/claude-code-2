@@ -2,7 +2,7 @@ import {Entity, model, property} from '@loopback/repository';
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'claude_code_api_keys'},
+    sqlite3: {table: 'claude_code_api_keys'},
   },
 })
 export class ClaudeCodeApiKey extends Entity {
@@ -10,14 +10,14 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'name', dataType: 'varchar'},
+    sqlite3: {columnName: 'name'},
   })
   name: string;
 
@@ -25,24 +25,21 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'string',
     required: true,
     hidden: true,
-    postgresql: {columnName: 'key_value', dataType: 'text'},
+    sqlite3: {columnName: 'key_value'},
   })
   keyValue: string;
 
   @property({
     type: 'boolean',
     default: true,
-    postgresql: {columnName: 'is_active', dataType: 'boolean'},
+    sqlite3: {columnName: 'is_active'},
   })
   isActive: boolean;
 
   @property({
     type: 'date',
     defaultFn: 'now',
-    postgresql: {
-      columnName: 'created_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'created_at'},
   })
   createdAt: string;
 
@@ -50,10 +47,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'updated_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'updated_at'},
   })
   updatedAt: string | null;
 
@@ -61,10 +55,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'last_updated_limits',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'last_updated_limits'},
   })
   lastUpdatedLimits: string | null;
 
@@ -72,7 +63,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'number',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'session_limit_percentage', dataType: 'numeric'},
+    sqlite3: {columnName: 'session_limit_percentage'},
   })
   sessionLimitPercentage: number | null;
 
@@ -80,7 +71,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'number',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'weekly_limit_percentage', dataType: 'numeric'},
+    sqlite3: {columnName: 'weekly_limit_percentage'},
   })
   weeklyLimitPercentage: number | null;
 
@@ -88,10 +79,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'session_reset_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'session_reset_at'},
   })
   sessionResetAt: string | null;
 
@@ -99,17 +87,14 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'weekly_reset_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'weekly_reset_at'},
   })
   weeklyResetAt: string | null;
 
   @property({
     type: 'boolean',
     default: false,
-    postgresql: {columnName: 'rotation_enabled', dataType: 'boolean'},
+    sqlite3: {columnName: 'rotation_enabled'},
   })
   rotationEnabled: boolean;
 
@@ -117,10 +102,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'last_used_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'last_used_at'},
   })
   lastUsedAt: string | null;
 
@@ -128,10 +110,7 @@ export class ClaudeCodeApiKey extends Entity {
     type: 'date',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {
-      columnName: 'rate_limited_until',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'rate_limited_until'},
   })
   rateLimitedUntil: string | null;
 

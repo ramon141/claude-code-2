@@ -1,9 +1,9 @@
+import fs from 'fs';
 import {HttpErrors, SchemaObject, get, post, requestBody, response} from '@loopback/rest';
 import {inject} from '@loopback/core';
-import {ensureWebhookSecret, readConfig, writeConfig} from '../config/app-config';
+import {ensureWebhookSecret, getSqliteFilePath, readConfig, writeConfig} from '../config/app-config';
 import {QUEUE_SERVICE_KEY, QueueService} from '../services/queue.service';
 import {restartNgrok} from '../services/ngrok-process';
-import {runMigrations, testDatabaseConnection} from '../config/database-setup';
 import {getNgrokUrl} from '../config/ngrok';
 import {normalizePhone} from '../services/phone';
 import {getEvolutionConnectionState, registerEvolutionWebhook} from '../config/evolution-webhook';
@@ -13,7 +13,6 @@ import {
   AppConfigView,
   AuthTokenBody,
   ClaudeSetupBody,
-  DatabaseSetupBody,
   EvolutionSetupBody,
   EvolutionStatusResult,
   NgrokToggleBody,
@@ -32,7 +31,6 @@ import {
   claudeSetupSchema,
   completeResultSchema,
   databaseResultSchema,
-  databaseSetupSchema,
   evolutionSetupSchema,
   evolutionStatusResultSchema,
   ngrokToggleSchema,
@@ -44,17 +42,6 @@ import {
   successResultSchema,
   websocketSetupSchema,
 } from './setup.schemas';
-
-function maskDatabaseUrl(url: string): string {
-  try {
-    const parsed = new URL(url);
-    if (parsed.username) parsed.username = '***';
-    if (parsed.password) parsed.password = '***';
-    return parsed.toString();
-  } catch {
-    return url.length > 0 ? '***' : '';
-  }
-}
 
 const CONTENT_JSON = 'application/json';
 const OK = 200;
@@ -109,11 +96,10 @@ export class SetupController {
   @response(OK, okSpec('Estado do setup', setupStatusSchema))
   async status(): Promise<SetupStatus> {
     const cfg = readConfig();
-    const databaseConfigured = cfg.databaseUrl.length > 0;
+    // SQLite: "configurado" = arquivo do banco já existe (migrations rodaram).
+    const databaseConfigured = fs.existsSync(getSqliteFilePath());
     const claudeConfigured = cfg.claudeCommand.length > 0;
-    const databaseConnected = databaseConfigured
-      ? await testDatabaseConnection(cfg.databaseUrl).then(r => r.ok).catch(() => false)
-      : false;
+    const databaseConnected = databaseConfigured;
     return {
       databaseConfigured,
       claudeConfigured,
@@ -129,7 +115,6 @@ export class SetupController {
   config(): AppConfigView {
     const cfg = readConfig();
     return {
-      databaseUrl: maskDatabaseUrl(cfg.databaseUrl),
       claudeCommand: cfg.claudeCommand,
       timeout: cfg.timeout,
       evolutionUrl: cfg.evolution.url,
@@ -194,25 +179,17 @@ export class SetupController {
     return {success: true};
   }
 
+  // Banco é SQLite embutido (arquivo local): não há URL nem teste de conexão.
+  // Este endpoint apenas roda as migrations, que criam o arquivo app.sqlite.
   @post('/setup/database')
-  @response(OK, okSpec('Banco configurado', databaseResultSchema))
-  async configureDatabase(
-    @requestBody(jsonBody(databaseSetupSchema)) body: DatabaseSetupBody,
-  ): Promise<{success: boolean; migrated: boolean}> {
-    const url = body.databaseUrl.trim();
-    if (url.length === 0) throw new HttpErrors.BadRequest('Database URL obrigatória');
-
-    const test = await testDatabaseConnection(url);
-    if (!test.ok) {
-      throw new HttpErrors.BadRequest(`Conexão falhou: ${test.error ?? 'credenciais inválidas'}`);
+  @response(OK, okSpec('Banco inicializado', databaseResultSchema))
+  configureDatabase(): {success: boolean; migrated: boolean} {
+    // O schema é criado/atualizado no boot (migrateSchema, in-process). Aqui só
+    // confirmamos que o arquivo do banco está pronto. Para reaplicar migrations,
+    // o cliente reinicia a aplicação (o boot roda o migrateSchema de novo).
+    if (!fs.existsSync(getSqliteFilePath())) {
+      throw new HttpErrors.BadRequest('Banco de dados não inicializado');
     }
-
-    const migrate = await runMigrations(url);
-    if (!migrate.ok) {
-      throw new HttpErrors.BadRequest(`Migrations falharam: ${migrate.error ?? 'erro desconhecido'}`);
-    }
-
-    writeConfig({databaseUrl: url});
     return {success: true, migrated: true};
   }
 
@@ -329,9 +306,8 @@ export class SetupController {
   @post('/setup/complete')
   @response(OK, okSpec('Setup finalizado', completeResultSchema))
   complete(): {completed: boolean} {
-    const cfg = readConfig();
-    if (cfg.databaseUrl.length === 0) {
-      throw new HttpErrors.BadRequest('Configure o banco de dados antes de finalizar');
+    if (!fs.existsSync(getSqliteFilePath())) {
+      throw new HttpErrors.BadRequest('Inicialize o banco de dados antes de finalizar');
     }
     writeConfig({setupCompleted: true});
     scheduleRestart();

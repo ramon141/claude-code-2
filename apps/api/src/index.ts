@@ -6,11 +6,27 @@ import {setupWebSocketServer} from './services/ws-server';
 import {applyConfigToEnv, readConfig} from './config/app-config';
 import {restartNgrok} from './services/ngrok-process';
 import {NOTIFICATION_SERVICE} from './services/notification.service';
+import {SqliteDataSource} from './datasources';
 import http from 'http';
 
 export * from './application';
 
 const REQUIRED_ENV_VARS = ['ENCRYPTION_KEY'];
+
+// O connector sqlite3 tem bug no caminho de ALTER (autoupdate / migrateSchema
+// 'alter'): ignora o mapeamento sqlite3.table e busca o nome default do model
+// (ex.: "queuestate"), quebrando quando a tabela já existe. Por isso só criamos
+// o schema quando ele ainda não existe (banco novo). Em banco existente não
+// mexemos. ponytail: heurística por uma tabela; mudança de schema exige recriar.
+async function ensureSchema(app: ClaudeCodeApiApplication): Promise<void> {
+  const ds = await app.get<SqliteDataSource>('datasources.sqlite');
+  const rows = (await ds.execute(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='queue_state'",
+  )) as {name: string}[];
+  if (!rows || rows.length === 0) {
+    await app.migrateSchema({existingSchema: 'alter'});
+  }
+}
 
 function assertEnvVars(): void {
   const missing = REQUIRED_ENV_VARS.filter(v => !process.env[v]);
@@ -24,6 +40,7 @@ export async function main(options: ApplicationConfig = {}) {
   assertEnvVars();
   const app = new ClaudeCodeApiApplication(options);
   await app.boot();
+  await ensureSchema(app);
   await app.start();
 
   const restServer = await app.getServer(RestServer);

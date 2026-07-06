@@ -2,7 +2,7 @@ import {Entity, model, property} from '@loopback/repository';
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'projects'},
+    sqlite3: {table: 'projects'},
   },
 })
 export class Project extends Entity {
@@ -10,21 +10,21 @@ export class Project extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'name', dataType: 'varchar'},
+    sqlite3: {columnName: 'name'},
   })
   name: string;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'work_dir', dataType: 'text'},
+    sqlite3: {columnName: 'work_dir'},
   })
   workDir: string;
 
@@ -32,17 +32,14 @@ export class Project extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'memory', dataType: 'text'},
+    sqlite3: {columnName: 'memory'},
   })
   memory: string | null;
 
   @property({
     type: 'date',
     defaultFn: 'now',
-    postgresql: {
-      columnName: 'created_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'created_at'},
   })
   createdAt: string;
 

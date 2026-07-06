@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {PromptContextFile, PromptContextFileRelations} from '../models';
 
 export class PromptContextFileRepository extends DefaultCrudRepository<
@@ -8,7 +8,7 @@ export class PromptContextFileRepository extends DefaultCrudRepository<
   typeof PromptContextFile.prototype.id,
   PromptContextFileRelations
 > {
-  constructor(@inject('datasources.postgres') dataSource: PostgresDataSource) {
+  constructor(@inject('datasources.sqlite') dataSource: SqliteDataSource) {
     super(PromptContextFile, dataSource);
   }
 }

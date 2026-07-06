@@ -7,7 +7,7 @@ export type QueueStateIncrementField =
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'queue_state'},
+    sqlite3: {table: 'queue_state'},
   },
 })
 export class QueueState extends Entity {
@@ -15,38 +15,35 @@ export class QueueState extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'total_processed', dataType: 'integer'},
+    sqlite3: {columnName: 'total_processed'},
   })
   totalProcessed: number;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'failed_count', dataType: 'integer'},
+    sqlite3: {columnName: 'failed_count'},
   })
   failedCount: number;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'rate_limited_count', dataType: 'integer'},
+    sqlite3: {columnName: 'rate_limited_count'},
   })
   rateLimitedCount: number;
 
   @property({
     type: 'date',
     required: false,
-    postgresql: {
-      columnName: 'last_processed',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'last_processed'},
   })
   lastProcessed: string | null;
 

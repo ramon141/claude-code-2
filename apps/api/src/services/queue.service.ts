@@ -1,5 +1,7 @@
+import fs from 'fs';
 import {BindingScope, LifeCycleObserver, inject, injectable} from '@loopback/core';
 import {repository} from '@loopback/repository';
+import {getSqliteFilePath} from '../config/app-config';
 import {
   ChatSessionRepository,
   ClaudeCodeApiKeyRepository,
@@ -40,8 +42,8 @@ export class QueueService implements LifeCycleObserver {
   }
 
   async start(): Promise<void> {
-    if (!process.env.DATABASE_URL) {
-      console.log('[queue] modo setup — fila aguardando configuração do banco');
+    if (!fs.existsSync(getSqliteFilePath())) {
+      console.log('[queue] modo setup — fila aguardando inicialização do banco');
       return;
     }
     void this.manager.start();

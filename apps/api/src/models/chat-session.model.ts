@@ -2,7 +2,7 @@ import {Entity, model, property} from '@loopback/repository';
 
 @model({
   settings: {
-    postgresql: {schema: 'public', table: 'chat_sessions'},
+    sqlite3: {table: 'chat_sessions'},
   },
 })
 export class ChatSession extends Entity {
@@ -10,14 +10,14 @@ export class ChatSession extends Entity {
     type: 'number',
     id: true,
     generated: true,
-    postgresql: {columnName: 'id', dataType: 'integer'},
+    sqlite3: {columnName: 'id'},
   })
   id: number;
 
   @property({
     type: 'string',
     required: true,
-    postgresql: {columnName: 'chat_name', dataType: 'varchar'},
+    sqlite3: {columnName: 'chat_name'},
   })
   chatName: string;
 
@@ -25,41 +25,35 @@ export class ChatSession extends Entity {
     type: 'string',
     required: false,
     jsonSchema: {nullable: true},
-    postgresql: {columnName: 'session_id', dataType: 'varchar'},
+    sqlite3: {columnName: 'session_id'},
   })
   sessionId: string | null;
 
   @property({
     type: 'number',
     required: true,
-    postgresql: {columnName: 'project_id', dataType: 'integer'},
+    sqlite3: {columnName: 'project_id'},
   })
   projectId: number;
 
   @property({
     type: 'number',
     default: 0,
-    postgresql: {columnName: 'total_prompts', dataType: 'integer'},
+    sqlite3: {columnName: 'total_prompts'},
   })
   totalPrompts: number;
 
   @property({
     type: 'date',
     required: false,
-    postgresql: {
-      columnName: 'last_used',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'last_used'},
   })
   lastUsed: string | null;
 
   @property({
     type: 'date',
     defaultFn: 'now',
-    postgresql: {
-      columnName: 'created_at',
-      dataType: 'timestamp with time zone',
-    },
+    sqlite3: {columnName: 'created_at'},
   })
   createdAt: string;
 

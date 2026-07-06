@@ -1,6 +1,6 @@
 import {inject} from '@loopback/core';
 import {DefaultCrudRepository} from '@loopback/repository';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {ChatSession, ChatSessionRelations} from '../models';
 
 export class ChatSessionRepository extends DefaultCrudRepository<
@@ -8,7 +8,7 @@ export class ChatSessionRepository extends DefaultCrudRepository<
   typeof ChatSession.prototype.id,
   ChatSessionRelations
 > {
-  constructor(@inject('datasources.postgres') dataSource: PostgresDataSource) {
+  constructor(@inject('datasources.sqlite') dataSource: SqliteDataSource) {
     super(ChatSession, dataSource);
   }
 }

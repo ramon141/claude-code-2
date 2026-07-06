@@ -3,7 +3,7 @@ import {Response} from '@loopback/rest';
 import {ChatSessionsController} from '../../../controllers/chat-sessions.controller';
 import {ChatSessionRepository, ProjectRepository, PromptContextFileRepository, PromptRepository} from '../../../repositories';
 import {ChatSession, Project, Prompt} from '../../../models';
-import {PostgresDataSource} from '../../../datasources';
+import {SqliteDataSource} from '../../../datasources';
 
 const mockRes = {status: sinon.stub().returnsThis()} as Partial<Response> as Response;
 
@@ -13,7 +13,7 @@ describe('ChatSessionsController (unit)', () => {
   let promptRepo: sinon.SinonStubbedInstance<PromptRepository>;
   let projectRepo: sinon.SinonStubbedInstance<ProjectRepository>;
   let contextFileRepo: sinon.SinonStubbedInstance<PromptContextFileRepository>;
-  let db: sinon.SinonStubbedInstance<PostgresDataSource>;
+  let db: sinon.SinonStubbedInstance<SqliteDataSource>;
 
   const mockProject = (overrides: Partial<Project> = {}): Project =>
     new Project({
@@ -42,7 +42,7 @@ describe('ChatSessionsController (unit)', () => {
     promptRepo = sinon.createStubInstance(PromptRepository);
     projectRepo = sinon.createStubInstance(ProjectRepository);
     contextFileRepo = sinon.createStubInstance(PromptContextFileRepository);
-    db = sinon.createStubInstance(PostgresDataSource);
+    db = sinon.createStubInstance(SqliteDataSource);
     controller = new ChatSessionsController(
       chatSessionRepo,
       promptRepo,

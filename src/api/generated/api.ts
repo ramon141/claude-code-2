@@ -61,7 +61,6 @@ import type {
   SetupControllerConfigureClaude200,
   SetupControllerConfigureClaudeBody,
   SetupControllerConfigureDatabase200,
-  SetupControllerConfigureDatabaseBody,
   SetupControllerConfigureEvolution200,
   SetupControllerConfigureEvolutionBody,
   SetupControllerConfigureNotifications200,
@@ -2472,15 +2471,13 @@ export function useSetupControllerConfig<TData = Awaited<ReturnType<typeof setup
 
 
 export const setupControllerConfigureDatabase = (
-    setupControllerConfigureDatabaseBody: SetupControllerConfigureDatabaseBody,
+    
  signal?: AbortSignal
 ) => {
       
       
       return mutator<SetupControllerConfigureDatabase200>(
-      {url: `/setup/database`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: setupControllerConfigureDatabaseBody, signal
+      {url: `/setup/database`, method: 'POST', signal
     },
       );
     }
@@ -2488,8 +2485,8 @@ export const setupControllerConfigureDatabase = (
 
 
 export const getSetupControllerConfigureDatabaseMutationOptions = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext>, }
-): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext> => {
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,void, TContext>, }
+): UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,void, TContext> => {
 
 const mutationKey = ['setupControllerConfigureDatabase'];
 const {mutation: mutationOptions} = options ?
@@ -2501,10 +2498,10 @@ const {mutation: mutationOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, {data: SetupControllerConfigureDatabaseBody}> = (props) => {
-          const {data} = props ?? {};
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, void> = () => {
+          
 
-          return  setupControllerConfigureDatabase(data,)
+          return  setupControllerConfigureDatabase()
         }
 
         
@@ -2513,15 +2510,15 @@ const {mutation: mutationOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SetupControllerConfigureDatabaseMutationResult = NonNullable<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>>
-    export type SetupControllerConfigureDatabaseMutationBody = SetupControllerConfigureDatabaseBody
+    
     export type SetupControllerConfigureDatabaseMutationError = unknown
 
     export const useSetupControllerConfigureDatabase = <TError = unknown,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,{data: SetupControllerConfigureDatabaseBody}, TContext>, }
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setupControllerConfigureDatabase>>, TError,void, TContext>, }
  ): UseMutationResult<
         Awaited<ReturnType<typeof setupControllerConfigureDatabase>>,
         TError,
-        {data: SetupControllerConfigureDatabaseBody},
+        void,
         TContext
       > => {
 

@@ -6,7 +6,7 @@ import {inject} from '@loopback/core';
 import {HttpErrors, Response, RestBindings, del, get, param, patch, post, requestBody, response} from '@loopback/rest';
 import {ChatSession, Project, PromptWithRelations, PromptContextFile} from '../models';
 import {ChatSessionRepository, ProjectRepository, PromptContextFileRepository, PromptRepository} from '../repositories';
-import {PostgresDataSource} from '../datasources';
+import {SqliteDataSource} from '../datasources';
 import {
   ChatSessionResponse,
   ChatPromptSummary,
@@ -41,7 +41,7 @@ export class ChatSessionsController {
     @repository(ProjectRepository) private projectRepo: ProjectRepository,
     @repository(PromptContextFileRepository)
     private contextFileRepo: PromptContextFileRepository,
-    @inject('datasources.postgres') private db: PostgresDataSource,
+    @inject('datasources.sqlite') private db: SqliteDataSource,
   ) {}
 
   @post('/chat-sessions')
@@ -80,22 +80,25 @@ export class ChatSessionsController {
     const query = q.trim();
     const pattern = `%${query}%`;
 
-    type AggRow = {chat_name: string; matches_content: boolean; matches_output: boolean};
+    // SQLite: LIKE já é case-insensitive para ASCII; MAX(expr) sobre um booleano
+    // 1/0 equivale ao bool_or do Postgres. Placeholders posicionais `?` — o
+    // pattern é repetido por ocorrência.
+    type AggRow = {chat_name: string; matches_content: number; matches_output: number};
     type SessionRow = {chat_name: string};
     type SnippetRow = {chat_name: string; text: string};
 
     const [aggRows, sessionRows] = await Promise.all([
       this.db.execute(
         `SELECT chat_name,
-           bool_or(content ILIKE $1) AS matches_content,
-           bool_or(execution_log ILIKE $1) AS matches_output
+           MAX(content LIKE ?) AS matches_content,
+           MAX(execution_log LIKE ?) AS matches_output
          FROM prompts
-         WHERE chat_name IS NOT NULL AND (content ILIKE $1 OR execution_log ILIKE $1)
+         WHERE chat_name IS NOT NULL AND (content LIKE ? OR execution_log LIKE ?)
          GROUP BY chat_name`,
-        [pattern],
+        [pattern, pattern, pattern, pattern],
       ),
       this.db.execute(
-        `SELECT chat_name FROM chat_sessions WHERE chat_name ILIKE $1`,
+        `SELECT chat_name FROM chat_sessions WHERE chat_name LIKE ?`,
         [pattern],
       ),
     ]);
@@ -111,13 +114,15 @@ export class ChatSessionsController {
     const allNames = [...new Set([...nameMatchSet, ...aggMap.keys()])];
     if (allNames.length === 0) return [];
 
+    // SQLite não tem DISTINCT ON: agrupa por chat_name e usa MIN(id) — com uma
+    // função agregada, as colunas "livres" vêm da linha do MIN (menor id).
     const snippetRows = await this.db.execute(
-      `SELECT DISTINCT ON (chat_name) chat_name,
-         LEFT(CASE WHEN content ILIKE $1 THEN content ELSE execution_log END, 500) AS text
+      `SELECT chat_name, MIN(id) AS id,
+         substr(CASE WHEN content LIKE ? THEN content ELSE execution_log END, 1, 500) AS text
        FROM prompts
-       WHERE chat_name IS NOT NULL AND (content ILIKE $1 OR execution_log ILIKE $1)
-       ORDER BY chat_name, id ASC`,
-      [pattern],
+       WHERE chat_name IS NOT NULL AND (content LIKE ? OR execution_log LIKE ?)
+       GROUP BY chat_name`,
+      [pattern, pattern, pattern],
     );
 
     const typedSnippets = snippetRows as SnippetRow[];

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import RestartScreen from '../../Setup/components/RestartScreen'
 import { useRestartWatcher } from '../hooks/useRestartWatcher'
-import DatabaseSection from './application/DatabaseSection'
 import ClaudeSection from './application/ClaudeSection'
 import NgrokSection from './application/NgrokSection'
 import AuthSection from './application/AuthSection'
@@ -34,7 +33,6 @@ const ApplicationTab: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-5">
-      <DatabaseSection databaseUrl={data.databaseUrl} onNeedRestart={triggerRestart} />
       <ClaudeSection
         claudeCommand={data.claudeCommand}
         timeout={data.timeout}

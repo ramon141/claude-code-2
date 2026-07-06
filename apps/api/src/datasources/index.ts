@@ -1,1 +1,1 @@
-export * from './postgres.datasource';
+export * from './sqlite.datasource';

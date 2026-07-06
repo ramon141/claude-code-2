@@ -46,7 +46,7 @@ const DatabaseErrorScreen: React.FC = () => (
       <AlertTriangle className="w-10 h-10 text-yellow-500" />
       <p className="text-claude-text font-medium">Banco de dados indisponível</p>
       <p className="text-claude-muted text-sm">
-        Não foi possível conectar ao PostgreSQL. Verifique se o banco está rodando e aguarde — o app vai tentar reconectar automaticamente.
+        Não foi possível abrir o banco de dados local. Aguarde — o app vai tentar reconectar automaticamente.
       </p>
       <span className="w-5 h-5 border-2 border-claude-primary border-t-transparent rounded-full animate-spin mt-2" />
     </div>

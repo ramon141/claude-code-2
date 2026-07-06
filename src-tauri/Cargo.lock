@@ -472,7 +472,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "claude-code-desktop"
+name = "claude_code_desktop"
 version = "0.9.0"
 dependencies = [
  "rand 0.8.6",

@@ -63,6 +63,12 @@ jobs:
             OUTFILE="${OUTFILE}.exe"
           fi
           npx --yes @yao-pkg/pkg . --targets ${{ matrix.pkg-target }} --output "${OUTFILE}"
+          # Create symlink for Tauri bundler
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "${OUTFILE}" "../../src-tauri/binaries/api.exe"
+          else
+            cp "${OUTFILE}" "../../src-tauri/binaries/api"
+          fi
         working-directory: apps/api
         shell: bash
 

@@ -111,6 +111,16 @@ jobs:
           prerelease: false
           args: --target ${{ matrix.target }}
 
+      - name: Fix macOS app signature
+        if: runner.os == 'macOS'
+        run: |
+          APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Claude Code Desktop.app"
+          if [ -d "$APP_PATH" ]; then
+            codesign --remove-signature "$APP_PATH" 2>/dev/null || true
+            codesign -s - "$APP_PATH" -f
+            echo "✅ App signature fixed"
+          fi
+
       - name: Copy API binary into app bundle
         run: |
           APP_MACOS_DIR="src-tauri/target/${{ matrix.target }}/release/bundle/macos/Claude Code Desktop.app/Contents/MacOS"
